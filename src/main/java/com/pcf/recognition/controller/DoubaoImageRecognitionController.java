@@ -4,6 +4,9 @@ import com.pcf.recognition.dto.ApiResponse;
 import com.pcf.recognition.dto.ImageRecognitionRequest;
 import com.pcf.recognition.dto.ImageRecognitionResponse;
 import com.pcf.recognition.service.DoubaoImageRecognitionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -22,6 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/doubao/image")
 @RequiredArgsConstructor
+@Tag(name = "Doubao AI识别", description = "基于火山引擎Doubao AI模型的图像识别API")
 public class DoubaoImageRecognitionController {
     
     private final DoubaoImageRecognitionService doubaoService;
@@ -29,12 +33,21 @@ public class DoubaoImageRecognitionController {
     /**
      * 通过文件上传进行图像识别
      */
+    @Operation(
+            summary = "Doubao AI图像识别 (文件上传)", 
+            description = "使用Doubao AI模型识别上传的图片，支持自定义提示词和参数"
+    )
     @PostMapping(value = "/recognize/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<ImageRecognitionResponse>> recognizeByUpload(
+            @Parameter(description = "要识别的图片文件", required = true)
             @RequestParam("file") MultipartFile file,
+            @Parameter(description = "自定义提示词")
             @RequestParam(value = "customPrompt", required = false) String customPrompt,
+            @Parameter(description = "是否详细分析")
             @RequestParam(value = "detailedAnalysis", required = false, defaultValue = "false") Boolean detailedAnalysis,
+            @Parameter(description = "最大Token数量")
             @RequestParam(value = "maxTokens", required = false, defaultValue = "500") Integer maxTokens,
+            @Parameter(description = "温度参数 (0.0-1.0)")
             @RequestParam(value = "temperature", required = false, defaultValue = "0.1") Double temperature) {
         
         try {
@@ -78,8 +91,13 @@ public class DoubaoImageRecognitionController {
     /**
      * 通过JSON请求进行图像识别
      */
+    @Operation(
+            summary = "Doubao AI图像识别 (JSON请求)", 
+            description = "使用JSON格式的请求进行图像识别，支持Base64编码或图片URL"
+    )
     @PostMapping("/recognize/json")
     public ResponseEntity<ApiResponse<ImageRecognitionResponse>> recognizeByJson(
+            @Parameter(description = "图像识别请求参数", required = true)
             @RequestBody ImageRecognitionRequest request) {
         
         try {
@@ -112,6 +130,7 @@ public class DoubaoImageRecognitionController {
     /**
      * 测试Doubao连接
      */
+    @Operation(summary = "测试Doubao AI连接", description = "测试与火山引擎Doubao AI服务的连接状态")
     @GetMapping("/test")
     public ResponseEntity<ApiResponse<Map<String, Object>>> testConnection() {
         try {
@@ -145,6 +164,7 @@ public class DoubaoImageRecognitionController {
     /**
      * 获取服务状态
      */
+    @Operation(summary = "获取Doubao服务状态", description = "获取Doubao图像识别服务的运行状态信息")
     @GetMapping("/status")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getStatus() {
         Map<String, Object> status = new HashMap<>();

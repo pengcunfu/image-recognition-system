@@ -1,5 +1,6 @@
 package com.pcf.recognition.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -14,26 +15,31 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "统一API响应格式")
 public class ApiResponse<T> {
     
     /**
      * 响应码
      */
+    @Schema(description = "响应状态码", example = "200")
     private Integer code;
     
     /**
      * 响应消息
      */
+    @Schema(description = "响应消息", example = "操作成功")
     private String message;
     
     /**
      * 响应数据
      */
+    @Schema(description = "响应数据")
     private T data;
     
     /**
      * 时间戳
      */
+    @Schema(description = "响应时间戳")
     private LocalDateTime timestamp;
     
     /**

@@ -1,0 +1,47 @@
+# 开发环境配置
+spring:
+  devtools:
+    restart:
+      enabled: true
+      # 监控的路径
+      additional-paths: src/main/java,src/main/resources
+      # 排除的路径
+      exclude: static/**,public/**,templates/**
+      # 重启延迟时间（毫秒）
+      quiet-period: 1000
+      # 轮询间隔（毫秒）
+      poll-interval: 2000
+    livereload:
+      enabled: true
+      port: 35729
+  
+  # 禁用缓存以便开发时实时看到更改
+  freemarker:
+    cache: false
+  thymeleaf:
+    cache: false
+  mustache:
+    cache: false
+  groovy:
+    template:
+      cache: false
+
+# 开发环境日志配置
+logging:
+  level:
+    com.pcf.recognition: DEBUG
+    com.pcf.recognition.service: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx"
+
+# 开发环境特定配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

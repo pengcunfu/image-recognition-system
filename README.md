@@ -43,6 +43,26 @@
 
 ## 🚀 快速开始
 
+### 🔥 开发模式（推荐）
+
+使用热重载功能进行开发：
+
+**Windows:**
+```bash
+./dev-start.bat
+```
+
+**Linux/macOS:**
+```bash
+chmod +x dev-start.sh
+./dev-start.sh
+```
+
+或手动启动：
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
 ### 环境要求
 
 - **Java**: JDK 17+

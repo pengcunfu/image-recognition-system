@@ -4,10 +4,14 @@ FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 # 设置工作目录
 WORKDIR /app
 
+# 创建Maven配置目录并复制国内镜像配置
+RUN mkdir -p /root/.m2
+COPY docker/maven/settings.xml /root/.m2/settings.xml
+
 # 复制 Maven 配置文件
 COPY pom.xml .
 
-# 下载依赖（利用Docker缓存）
+# 下载依赖（利用Docker缓存和国内镜像）
 RUN mvn dependency:go-offline -B
 
 # 复制源代码
@@ -22,10 +26,6 @@ FROM eclipse-temurin:17-jre-alpine
 # 安装必要的工具
 RUN apk add --no-cache curl
 
-# 创建非root用户
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
-
 # 创建应用目录
 WORKDIR /app
 
@@ -33,23 +33,19 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # 创建日志目录
-RUN mkdir -p /app/logs && \
-    chown -R appuser:appgroup /app
-
-# 切换到非root用户
-USER appuser
+RUN mkdir -p /app/logs
 
 # 暴露端口
 EXPOSE 8080
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:8080/api/v1/doubao/image/status || exit 1
+  CMD curl -f http://localhost:8080/api/v1/actuator/health || exit 1
 
 # 启动应用
 ENTRYPOINT ["java", \
     "-Djava.security.egd=file:/dev/./urandom", \
-    "-Dspring.profiles.active=docker", \
+    "-Dspring.profiles.active=docker-remote", \
     "-Xms512m", \
     "-Xmx1024m", \
     "-jar", \

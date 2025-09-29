@@ -1,0 +1,56 @@
+# 构建阶段
+FROM node:20-alpine AS build
+
+# 安装必要的构建工具
+RUN apk add --no-cache python3 make g++
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制前端项目文件
+COPY frontend/package*.json ./
+
+# 安装依赖
+RUN npm ci --only=production
+
+# 复制前端源代码
+COPY frontend/ .
+
+# 构建前端应用
+RUN npm run build
+
+# 生产阶段 - 使用 Nginx 提供静态文件服务
+FROM nginx:1.25-alpine
+
+# 安装必要工具
+RUN apk add --no-cache curl
+
+# 复制构建好的静态文件
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# 复制自定义 nginx 配置
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# 创建非root用户
+RUN addgroup -g 1001 -S nginxgroup && \
+    adduser -u 1001 -S nginxuser -G nginxgroup
+
+# 修改nginx配置目录权限
+RUN chown -R nginxuser:nginxgroup /var/cache/nginx && \
+    chown -R nginxuser:nginxgroup /var/log/nginx && \
+    chown -R nginxuser:nginxgroup /etc/nginx/conf.d && \
+    touch /var/run/nginx.pid && \
+    chown -R nginxuser:nginxgroup /var/run/nginx.pid
+
+# 切换到非root用户
+USER nginxuser
+
+# 暴露端口
+EXPOSE 80
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:80/ || exit 1
+
+# 启动 Nginx
+CMD ["nginx", "-g", "daemon off;"]

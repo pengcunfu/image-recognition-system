@@ -1,10 +1,10 @@
-package com.example.demo.service;
+package com.pcf.recognition.service;
 
-import com.example.demo.config.ImageRecognitionConfig;
-import com.example.demo.config.VolcengineConfig;
-import com.example.demo.entity.ImageMetadata;
-import com.example.demo.entity.RecognitionItem;
-import com.example.demo.entity.RecognitionResult;
+import com.pcf.recognition.config.ImageRecognitionConfig;
+import com.pcf.recognition.config.VolcengineConfig;
+import com.pcf.recognition.entity.ImageMetadata;
+import com.pcf.recognition.entity.RecognitionItem;
+import com.pcf.recognition.entity.RecognitionResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,15 +13,11 @@ import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;

@@ -1,7 +1,6 @@
-package com.example.demo.service;
+package com.pcf.recognition.service;
 
-import com.example.demo.config.VolcengineConfig;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.pcf.recognition.config.VolcengineConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

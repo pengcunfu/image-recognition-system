@@ -1,11 +1,9 @@
-package com.example.demo.controller;
+package com.pcf.recognition.controller;
 
-import com.example.demo.dto.ApiResponse;
-import com.example.demo.dto.BatchRecognitionRequest;
-import com.example.demo.dto.RecognitionRequest;
-import com.example.demo.entity.RecognitionResult;
-import com.example.demo.service.FileStorageService;
-import com.example.demo.service.VolcengineImageService;
+import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.entity.RecognitionResult;
+import com.pcf.recognition.service.FileStorageService;
+import com.pcf.recognition.service.VolcengineImageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,7 +11,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.HashMap;

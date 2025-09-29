@@ -1,9 +1,9 @@
-package com.example.demo.controller;
+package com.pcf.recognition.controller;
 
-import com.example.demo.dto.ApiResponse;
-import com.example.demo.dto.ImageRecognitionRequest;
-import com.example.demo.dto.ImageRecognitionResponse;
-import com.example.demo.service.DoubaoImageRecognitionService;
+import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.ImageRecognitionRequest;
+import com.pcf.recognition.dto.ImageRecognitionResponse;
+import com.pcf.recognition.service.DoubaoImageRecognitionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

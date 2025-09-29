@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.pcf.recognition.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

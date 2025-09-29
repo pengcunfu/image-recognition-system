@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.pcf.recognition.dto;
 
 import lombok.Data;
 import lombok.AllArgsConstructor;

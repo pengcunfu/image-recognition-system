@@ -1,8 +1,8 @@
-package com.example.demo.service;
+package com.pcf.recognition.service;
 
-import com.example.demo.config.DoubaoConfig;
-import com.example.demo.dto.ImageRecognitionRequest;
-import com.example.demo.dto.ImageRecognitionResponse;
+import com.pcf.recognition.config.DoubaoConfig;
+import com.pcf.recognition.dto.ImageRecognitionRequest;
+import com.pcf.recognition.dto.ImageRecognitionResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

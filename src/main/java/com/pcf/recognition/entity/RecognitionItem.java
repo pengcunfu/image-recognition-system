@@ -1,4 +1,4 @@
-package com.example.demo.entity;
+package com.pcf.recognition.entity;
 
 import lombok.Data;
 import lombok.AllArgsConstructor;

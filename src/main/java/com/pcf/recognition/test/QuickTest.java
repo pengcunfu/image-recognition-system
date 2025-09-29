@@ -1,9 +1,9 @@
-package com.example.demo.test;
+package com.pcf.recognition.test;
 
-import com.example.demo.config.DoubaoConfig;
-import com.example.demo.dto.ImageRecognitionRequest;
-import com.example.demo.dto.ImageRecognitionResponse;
-import com.example.demo.service.DoubaoImageRecognitionService;
+import com.pcf.recognition.config.DoubaoConfig;
+import com.pcf.recognition.dto.ImageRecognitionRequest;
+import com.pcf.recognition.dto.ImageRecognitionResponse;
+import com.pcf.recognition.service.DoubaoImageRecognitionService;
 
 /**
  * 快速测试类

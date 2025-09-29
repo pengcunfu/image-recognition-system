@@ -59,7 +59,7 @@ public class ImageRecognitionController {
             log.info("图像识别完成: 识别ID={}, 结果数量={}", 
                     result.getRecognitionId(), result.getResults().size());
             
-            return ApiResponse.success("识别成功", result);
+            return ApiResponse.success(result, "识别成功");
             
         } catch (Exception e) {
             log.error("图像识别失败: {}", e.getMessage(), e);
@@ -92,7 +92,6 @@ public class ImageRecognitionController {
             // 生成批次ID
             String batchId = "batch_" + System.currentTimeMillis();
             
-            List<RecognitionResult> results = new ArrayList<>();
             List<Map<String, Object>> processedFiles = new ArrayList<>();
             
             int successCount = 0;
@@ -114,10 +113,10 @@ public class ImageRecognitionController {
                     String imageUrl = fileStorageService.storeFile(file);
                     result.setImageUrl(imageUrl);
                     
-                    results.add(result);
                     fileResult.put("status", "success");
                     fileResult.put("recognitionId", result.getRecognitionId());
                     fileResult.put("results", result.getResults());
+                    fileResult.put("imageUrl", imageUrl);
                     
                     successCount++;
                     
@@ -145,7 +144,7 @@ public class ImageRecognitionController {
             log.info("批量识别完成: 批次ID={}, 总数={}, 成功={}, 失败={}", 
                     batchId, files.size(), successCount, failedCount);
             
-            return ApiResponse.success("批量识别完成", response);
+            return ApiResponse.success(response, "批量识别完成");
             
         } catch (Exception e) {
             log.error("批量识别失败: {}", e.getMessage(), e);

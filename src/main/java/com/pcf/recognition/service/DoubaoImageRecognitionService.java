@@ -167,7 +167,7 @@ public class DoubaoImageRecognitionService {
                 throw new RuntimeException("API响应中没有选择项");
             }
             
-            String content = response.getChoices().get(0).getMessage().getContent();
+            String content = String.valueOf(response.getChoices().get(0).getMessage().getContent());
             log.debug("AI响应内容: {}", content);
             
             // 尝试提取JSON
@@ -180,7 +180,7 @@ public class DoubaoImageRecognitionService {
             return ImageRecognitionResponse.builder()
                     .success(true)
                     .data(data)
-                    .tokenUsage(response.getUsage() != null ? response.getUsage().getTotalTokens() : null)
+                    .tokenUsage(response.getUsage() != null ? (int) response.getUsage().getTotalTokens() : null)
                     .build();
             
         } catch (Exception e) {

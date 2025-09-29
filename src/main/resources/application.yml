@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: image-recognition-system
+  
+  # 数据源配置
+  datasource:
+    url: jdbc:mysql://8.155.40.179:3306/image_recognition?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
+    username: root
+    password: Bing2003
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+
+# 服务器配置
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+# MyBatis配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.pcf.recognition.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 火山引擎配置
+volcengine:
+  access-key-id: ${VOLCENGINE_ACCESS_KEY_ID}
+  secret-access-key: ${VOLCENGINE_SECRET_ACCESS_KEY}
+  region: cn-north-1
+  visual-recognition:
+    endpoint: https://visual.volcengineapi.com
+    service-name: ImageX
+    version: 2018-08-01
+
+# 图像识别服务配置
+image:
+  recognition:
+    enabled: true
+    max-batch-size: 20
+    supported-formats: jpg,jpeg,png,bmp,gif,webp
+    max-file-size: 10485760
+    prompt:
+      default: "分析图像并以JSON格式输出核心属性:{\"category\":\"物体主类别\",\"name\":\"具体名称\",\"color\":\"主要颜色\",\"shape\":\"形状特征\",\"material\":\"材质纹理\",\"attributes\":[\"关键属性1\",\"关键属性2\"],\"confidence\":0.95}要求:1.准确识别主要物体2.颜色用具体色彩词汇3.形状描述简洁明确4.材质包含质感特征5.属性突出显著特点6.置信度0-1之间7.仅输出JSON，无额外文字"
+      detailed: "详细分析图像中的所有元素，包括主要物体、背景、环境、光线等，以结构化JSON格式输出详细信息"
+
+# JWT配置
+jwt:
+  secret: mySecretKey
+  expiration: 86400
+
+# Doubao AI配置
+doubao:
+  api:
+    key: ${DOUBAO_API_KEY}
+    base-url: https://ark.cn-beijing.volces.com/api/v3
+    model: doubao-1-5-thinking-vision-pro-250428
+    timeout: 30000
+    max-retries: 3
+
+# 日志配置
+logging:
+  level:
+    com.pcf.recognition: DEBUG
+    com.pcf.recognition.service.DoubaoImageRecognitionService: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

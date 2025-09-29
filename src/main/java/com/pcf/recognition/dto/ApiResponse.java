@@ -51,7 +51,7 @@ public class ApiResponse<T> {
     /**
      * 成功响应（带消息）
      */
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(T data, String message) {
         return ApiResponse.<T>builder()
                 .code(200)
                 .message(message)
@@ -76,5 +76,29 @@ public class ApiResponse<T> {
      */
     public static <T> ApiResponse<T> error(String message) {
         return error(500, message);
+    }
+    
+    /**
+     * 失败响应（带数据）
+     */
+    public static <T> ApiResponse<T> error(String message, T data) {
+        return ApiResponse.<T>builder()
+                .code(500)
+                .message(message)
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+    
+    /**
+     * 失败响应（带错误码和数据）
+     */
+    public static <T> ApiResponse<T> error(Integer code, String message, T data) {
+        return ApiResponse.<T>builder()
+                .code(code)
+                .message(message)
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 }

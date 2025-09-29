@@ -1,4 +1,4 @@
-package com.pcf.recognition.test;
+package com.pcf.recognition;
 
 import com.pcf.recognition.config.DoubaoConfig;
 import com.pcf.recognition.dto.ImageRecognitionRequest;

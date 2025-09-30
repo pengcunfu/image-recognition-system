@@ -350,10 +350,97 @@ public class KnowledgeService {
     }
 
     /**
+     * 搜索知识库
+     */
+    public Map<String, Object> searchKnowledge(String keyword, Integer page, Integer size, String category) {
+        log.info("搜索知识库: keyword={}, page={}, size={}, category={}", keyword, page, size, category);
+        
+        try {
+            // 构建查询条件
+            LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<KnowledgeItem>()
+                .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+                .and(wrapper -> wrapper
+                    .like(KnowledgeItem::getName, keyword)
+                    .or()
+                    .like(KnowledgeItem::getDescription, keyword)
+                    .or()
+                    .like(KnowledgeItem::getContent, keyword)
+                );
+            
+            // 如果指定了分类，添加分类过滤
+            if (category != null && !category.isEmpty()) {
+                KnowledgeCategory cat = knowledgeCategoryRepository.selectOne(
+                    new LambdaQueryWrapper<KnowledgeCategory>()
+                        .eq(KnowledgeCategory::getKey, category)
+                );
+                if (cat != null) {
+                    queryWrapper.eq(KnowledgeItem::getCategoryId, cat.getId());
+                }
+            }
+            
+            // 计算总数
+            Long total = knowledgeItemRepository.selectCount(queryWrapper);
+            
+            // 分页查询
+            queryWrapper.orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount)
+                       .last("LIMIT " + ((page - 1) * size) + ", " + size);
+            
+            List<KnowledgeItem> items = knowledgeItemRepository.selectList(queryWrapper);
+            
+            // 转换为Map格式
+            List<Map<String, Object>> itemMaps = items.stream()
+                .map(this::convertKnowledgeItemToMap)
+                .toList();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("items", itemMaps);
+            response.put("total", total.intValue());
+            response.put("pages", (int) Math.ceil((double) total / size));
+            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("搜索知识库失败", e);
+            return createErrorResponse("搜索失败");
+        }
+    }
+    
+    /**
+     * 获取最新知识
+     */
+    public Map<String, Object> getLatestKnowledge(Integer limit) {
+        log.info("获取最新知识: limit={}", limit);
+        
+        try {
+            List<KnowledgeItem> latestItems = knowledgeItemRepository.selectList(
+                new LambdaQueryWrapper<KnowledgeItem>()
+                    .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+                    .orderByDesc(KnowledgeItem::getCreateTime)
+                    .last("LIMIT " + limit)
+            );
+            
+            List<Map<String, Object>> itemMaps = latestItems.stream()
+                .map(this::convertKnowledgeItemToMap)
+                .toList();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", itemMaps);
+            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("获取最新知识失败", e);
+            return createErrorResponse("获取最新知识失败");
+        }
+    }
+    
+    /**
      * 点赞知识条目
      */
-    public Map<String, Object> likeKnowledgeItem(Long itemId, Long userId) {
-        log.info("点赞知识条目: itemId={}, userId={}", itemId, userId);
+    public Map<String, Object> likeKnowledgeItem(Long itemId) {
+        log.info("点赞知识条目: itemId={}", itemId);
         
         try {
             KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
@@ -377,6 +464,37 @@ public class KnowledgeService {
         } catch (Exception e) {
             log.error("点赞知识条目失败", e);
             return createErrorResponse("点赞失败");
+        }
+    }
+    
+    /**
+     * 取消点赞知识条目
+     */
+    public Map<String, Object> unlikeKnowledgeItem(Long itemId) {
+        log.info("取消点赞知识条目: itemId={}", itemId);
+        
+        try {
+            KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
+            if (item == null) {
+                return createErrorResponse("知识条目不存在");
+            }
+            
+            // 减少点赞数
+            knowledgeItemRepository.update(null,
+                new LambdaUpdateWrapper<KnowledgeItem>()
+                    .eq(KnowledgeItem::getId, itemId)
+                    .setSql("like_count = GREATEST(like_count - 1, 0)")
+            );
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "取消点赞成功");
+            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("取消点赞知识条目失败", e);
+            return createErrorResponse("取消点赞失败");
         }
     }
     

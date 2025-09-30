@@ -125,10 +125,10 @@
         v-for="post in filteredPosts"
         :key="post.id"
         :post="post"
-        @view-detail="viewPostDetail"
-        @preview-image="previewImage"
-        @search-by-tag="searchByTag"
-        @toggle-like="toggleLike"
+        @viewDetail="viewPostDetail"
+        @previewImage="previewImage"
+        @searchByTag="searchByTag"
+        @toggleLike="toggleLike"
         @toggle-favorite="toggleFavorite"
         @reply="replyPost"
       />
@@ -145,10 +145,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import PostPublishModal from '@/components/PostPublishModal.vue'
 import PostCard from '@/components/PostCard.vue'
 
+const router = useRouter()
 const activeFilter = ref('all')
 const searchKeyword = ref('')
 const loading = ref(false)
@@ -276,7 +278,7 @@ function handleSaveDraft(draftData: any) {
 
 
 function viewPostDetail(post: any) {
-  message.info(`查看帖子详情：${post.title}`)
+  router.push(`/user/community/post/${post.id}`)
 }
 
 function searchByTag(tag: string) {

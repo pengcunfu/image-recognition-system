@@ -148,5 +148,50 @@ public class UserController {
             return ApiResponse.error((String) result.get("message"));
         }
     }
+    
+    @Operation(summary = "获取用户统计数据", description = "获取用户的识别次数、帖子数等统计信息")
+    @GetMapping("/statistics")
+    public ApiResponse<Map<String, Object>> getUserStatistics() {
+        try {
+            log.info("获取用户统计数据请求");
+            
+            // 模拟从token中解析用户ID
+            Long userId = 1L;
+            
+            Map<String, Object> result = userService.getUserStatistics(userId);
+            
+            if ((Boolean) result.get("success")) {
+                return ApiResponse.success((Map<String, Object>) result.get("data"), "获取统计数据成功");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("获取用户统计失败", e);
+            return ApiResponse.error("获取统计数据失败");
+        }
+    }
+    
+    @Operation(summary = "获取用户活动记录", description = "获取用户的最近活动记录")
+    @GetMapping("/activities")
+    public ApiResponse<List<Map<String, Object>>> getUserActivities(
+            @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("获取用户活动记录请求: limit={}", limit);
+            
+            // 模拟从token中解析用户ID
+            Long userId = 1L;
+            
+            Map<String, Object> result = userService.getUserActivities(userId, limit);
+            
+            if ((Boolean) result.get("success")) {
+                return ApiResponse.success((List<Map<String, Object>>) result.get("data"), "获取活动记录成功");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("获取用户活动记录失败", e);
+            return ApiResponse.error("获取活动记录失败");
+        }
+    }
 
 }

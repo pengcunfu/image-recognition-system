@@ -236,6 +236,54 @@ public class UserService {
     }
     
     /**
+     * 获取用户活动记录
+     */
+    public Map<String, Object> getUserActivities(Long userId, Integer limit) {
+        log.info("获取用户活动记录: userId={}, limit={}", userId, limit);
+        
+        try {
+            // 模拟活动记录，实际项目中应该从活动日志表查询
+            List<Map<String, Object>> activities = new ArrayList<>();
+            
+            Map<String, Object> activity1 = new HashMap<>();
+            activity1.put("type", "recognition");
+            activity1.put("description", "识别了一张金毛犬的图片，置信度 95%");
+            activity1.put("time", "2小时前");
+            activity1.put("metadata", Map.of("result", "金毛犬", "confidence", 95));
+            activities.add(activity1);
+            
+            Map<String, Object> activity2 = new HashMap<>();
+            activity2.put("type", "post");
+            activity2.put("description", "发布了新帖子《AI识别技巧分享》");
+            activity2.put("time", "1天前");
+            activity2.put("metadata", Map.of("postTitle", "AI识别技巧分享", "postId", 123));
+            activities.add(activity2);
+            
+            Map<String, Object> activity3 = new HashMap<>();
+            activity3.put("type", "like");
+            activity3.put("description", "点赞了帖子《深度学习在图像识别中的应用》");
+            activity3.put("time", "2天前");
+            activity3.put("metadata", Map.of("postTitle", "深度学习在图像识别中的应用"));
+            activities.add(activity3);
+            
+            // 取前limit个
+            List<Map<String, Object>> limitedActivities = activities.stream()
+                    .limit(limit)
+                    .toList();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", limitedActivities);
+            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("获取用户活动记录失败", e);
+            return createErrorResponse("获取活动记录失败");
+        }
+    }
+    
+    /**
      * 创建错误响应
      */
     private Map<String, Object> createErrorResponse(String message) {

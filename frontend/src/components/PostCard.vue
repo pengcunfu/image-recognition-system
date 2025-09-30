@@ -1,76 +1,90 @@
 <template>
-  <div class="post-item">
+  <a-card class="post-card" hoverable>
     <!-- 帖子头部 -->
     <div class="post-header">
       <div class="post-author-info">
-        <a-avatar :src="post.author.avatar">
+        <a-avatar :src="post.author.avatar" :size="36">
           {{ post.author.name.charAt(0) }}
         </a-avatar>
         <div class="author-details">
-          <span class="author-name">{{ post.author.name }}</span>
-          <a-tag v-if="post.author.level" :color="getLevelColor(post.author.level)" size="small">
-            {{ post.author.level }}
-          </a-tag>
-        </div>
-      </div>
-      <div class="post-meta-info">
-        <span class="post-time">{{ post.createTime }}</span>
-        <a-tag :color="getTypeColor(post.type)" size="small">{{ getTypeName(post.type) }}</a-tag>
-      </div>
-    </div>
-    
-    <!-- 帖子标题 -->
-    <div class="post-title" @click="handleViewDetail">
-      <h3>{{ post.title || '无标题' }}</h3>
-    </div>
-    
-    <!-- 帖子内容预览 -->
-    <div class="post-body">
-      <p class="post-preview" @click="handleViewDetail">
-        {{ getContentPreview(post.content) }}
-        <span v-if="post.content.length > 150" class="read-more">...阅读全文</span>
-      </p>
-      <div class="post-images">
-        <div 
-          class="post-image"
-          @click="handlePreviewImage"
-        >
-          <img :src="post.images?.length ? post.images[0] : getPlaceholderImage()" alt="图片" />
-          <div v-if="post.images?.length > 1" class="more-images">
-            +{{ post.images.length - 1 }}
+          <div class="author-meta">
+            <span class="author-name">{{ post.author.name }}</span>
+            <a-tag v-if="post.author.level" :color="getLevelColor(post.author.level)" size="small">
+              {{ post.author.level }}
+            </a-tag>
+          </div>
+          <div class="post-meta">
+            <span class="post-time">{{ post.createTime }}</span>
+            <a-tag :color="getTypeColor(post.type)" size="small">{{ getTypeName(post.type) }}</a-tag>
           </div>
         </div>
       </div>
-      <div v-if="post.tags?.length" class="post-tags">
-        <a-tag 
-          v-for="tag in post.tags.slice(0, 2)" 
-          :key="tag"
-          size="small"
-          @click="handleSearchByTag(tag)"
-        >
-          {{ tag }}
-        </a-tag>
-        <span v-if="post.tags.length > 2" class="more-tags">+{{ post.tags.length - 2 }}</span>
+    </div>
+    
+    <!-- 帖子内容 -->
+    <div class="post-content" @click="handleViewDetail">
+      <h3 class="post-title">{{ post.title || '无标题' }}</h3>
+      <p class="post-preview">
+        {{ getContentPreview(post.content) }}
+        <span v-if="post.content.length > 150" class="read-more">...阅读全文</span>
+      </p>
+    </div>
+    
+    <!-- 封面图片 -->
+    <div v-if="post.images?.length" class="post-cover" @click="handlePreviewImage">
+      <img :src="post.images[0]" alt="封面图片" />
+    </div>
+    
+    <!-- 标签 -->
+    <div v-if="post.tags?.length" class="post-tags">
+      <a-tag 
+        v-for="tag in post.tags.slice(0, 3)" 
+        :key="tag"
+        size="small"
+        @click="handleSearchByTag(tag)"
+      >
+        {{ tag }}
+      </a-tag>
+      <span v-if="post.tags.length > 3" class="more-tags">+{{ post.tags.length - 3 }}</span>
+    </div>
+    
+    <!-- 帖子操作 -->
+    <div class="post-actions">
+      <div class="action-stats">
+        <span class="stat-item">
+          <i class="fas fa-eye"></i>
+          {{ post.views || 0 }} 浏览
+        </span>
       </div>
-      
-      <!-- 帖子操作 -->
-      <div class="post-actions-inline">
-        <div class="action-group">
-          <button class="action-btn" :class="{ 'liked': post.isLiked }" @click="handleToggleLike">
-            <i class="fas fa-thumbs-up"></i>
-            <span>{{ post.likes }}</span>
-          </button>
-          <button class="action-btn" @click="handleReply">
-            <i class="fas fa-comment"></i>
-            <span>{{ post.replies }}</span>
-          </button>
-          <button class="action-btn" :class="{ 'favorited': post.isFavorited }" @click="handleToggleFavorite">
-            <i class="fas fa-heart"></i>
-          </button>
-        </div>
+      <div class="action-buttons">
+        <a-button 
+          type="text" 
+          size="small"
+          :class="{ 'active': post.isLiked }"
+          @click="handleToggleLike"
+        >
+          <i class="fas fa-thumbs-up"></i>
+          {{ post.likes }}
+        </a-button>
+        <a-button 
+          type="text" 
+          size="small"
+          @click="handleReply"
+        >
+          <i class="fas fa-comment"></i>
+          {{ post.replies }}
+        </a-button>
+        <a-button 
+          type="text" 
+          size="small"
+          :class="{ 'active': post.isFavorited }"
+          @click="handleToggleFavorite"
+        >
+          <i class="fas fa-heart"></i>
+        </a-button>
       </div>
     </div>
-  </div>
+  </a-card>
 </template>
 
 <script setup lang="ts">
@@ -185,52 +199,55 @@ function handleReply() {
 </script>
 
 <style scoped>
-.post-item {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  background: white;
-  border-radius: 8px;
+.post-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
   border: 1px solid #f0f0f0;
-  transition: box-shadow 0.3s;
-  height: 400px;
 }
 
-.post-item:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+.post-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
+.post-card :deep(.ant-card-body) {
+  padding: 20px;
+}
+
+/* 帖子头部 */
 .post-header {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .post-author-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.post-meta-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #666;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .author-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.author-meta {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .author-name {
-  font-weight: 500;
+  font-weight: 600;
   color: #262626;
   font-size: 14px;
+}
+
+.post-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .post-time {
@@ -238,17 +255,18 @@ function handleReply() {
   color: #999;
 }
 
-.post-title {
-  margin-bottom: 12px;
+/* 帖子内容 */
+.post-content {
+  margin-bottom: 16px;
   cursor: pointer;
 }
 
-.post-title h3 {
-  font-size: 14px;
+.post-title {
+  font-size: 16px;
   font-weight: 600;
   color: #262626;
-  margin: 0;
-  line-height: 1.3;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
   transition: color 0.3s;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -257,23 +275,15 @@ function handleReply() {
   overflow: hidden;
 }
 
-.post-title:hover h3 {
+.post-content:hover .post-title {
   color: #1890ff;
-}
-
-.post-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .post-preview {
   color: #666;
-  line-height: 1.4;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: color 0.3s;
-  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  font-size: 14px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   line-clamp: 3;
@@ -281,144 +291,129 @@ function handleReply() {
   overflow: hidden;
 }
 
-.post-preview:hover {
-  color: #1890ff;
-}
-
 .read-more {
   color: #1890ff;
   font-weight: 500;
+  margin-left: 4px;
 }
 
+/* 封面图片 */
+.post-cover {
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+.post-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.post-cover:hover img {
+  transform: scale(1.02);
+}
+
+/* 标签 */
 .post-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
-  min-height: 24px;
+  margin-bottom: 16px;
+  min-height: 22px;
 }
 
 .post-tags :deep(.ant-tag) {
   cursor: pointer;
   transition: all 0.3s;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
 .post-tags :deep(.ant-tag:hover) {
   border-color: #1890ff;
   color: #1890ff;
+  background: rgba(24, 144, 255, 0.05);
 }
 
 .more-tags {
   color: #999;
   font-size: 12px;
+  align-self: center;
 }
 
-.post-images {
-  margin-top: auto;
-  margin-bottom: 0;
-}
-
-.post-image {
-  position: relative;
-  width: 100%;
-  height: 140px;
-  border-radius: 6px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.post-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.post-image:hover img {
-  transform: scale(1.05);
-}
-
-.more-images {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+/* 帖子操作 */
+.post-actions {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.post-actions-inline {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid #f0f0f0;
 }
 
-.action-group {
+.action-stats {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #f8f9fa;
-  border-radius: 20px;
-  padding: 8px 16px;
-  border: 1px solid #e9ecef;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  gap: 16px;
 }
 
-.action-btn {
+.stat-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: transparent;
-  border: none;
+  color: #999;
+  font-size: 12px;
+}
+
+.stat-item i {
+  font-size: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action-buttons :deep(.ant-btn) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: #666;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 12px;
   transition: all 0.3s ease;
-  min-width: 45px;
-  justify-content: center;
-  font-weight: 500;
+  border-radius: 6px;
+  padding: 4px 8px;
+  height: auto;
+  font-size: 12px;
 }
 
-.action-btn:hover {
-  background: rgba(24, 144, 255, 0.1);
+.action-buttons :deep(.ant-btn:hover) {
   color: #1890ff;
-  transform: translateY(-1px);
+  background: rgba(24, 144, 255, 0.06);
 }
 
-.action-btn.liked {
-  background: rgba(24, 144, 255, 0.1);
+.action-buttons :deep(.ant-btn.active) {
   color: #1890ff;
+  background: rgba(24, 144, 255, 0.06);
 }
 
-.action-btn.liked:hover {
-  background: rgba(24, 144, 255, 0.2);
+.action-buttons :deep(.ant-btn i) {
+  font-size: 12px;
 }
 
-.action-btn.favorited {
-  background: rgba(255, 77, 79, 0.1);
+/* 收藏按钮特殊样式 */
+.action-buttons :deep(.ant-btn.active:last-child) {
   color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.06);
 }
 
-.action-btn.favorited:hover {
-  background: rgba(255, 77, 79, 0.2);
-}
-
-.action-btn i {
-  font-size: 14px;
-}
-
-.action-btn span {
-  font-weight: 500;
+.action-buttons :deep(.ant-btn:last-child:hover) {
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.06);
 }
 </style>

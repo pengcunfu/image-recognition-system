@@ -323,7 +323,7 @@ function viewAllHistory() {
 
 // 加载历史结果
 function loadHistoryResult(item: any) {
-  message.info(`加载历史结果：${item.result}`)
+  router.push(`/user/recognition/${item.id}?from=recognition`)
 }
 </script>
 

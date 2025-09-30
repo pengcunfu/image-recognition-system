@@ -178,8 +178,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 
+const router = useRouter()
 const searchKeyword = ref('')
 const activeCategory = ref('all')
 
@@ -203,7 +205,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 1245,
     likes: 89,
-    updateDate: '2024-03-20'
+    updateDate: '2025-03-20'
   },
   {
     id: 2,
@@ -213,7 +215,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 987,
     likes: 156,
-    updateDate: '2024-03-19'
+    updateDate: '2025-03-19'
   },
   {
     id: 3,
@@ -223,7 +225,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 756,
     likes: 67,
-    updateDate: '2024-03-18'
+    updateDate: '2025-03-18'
   },
   {
     id: 4,
@@ -233,7 +235,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 654,
     likes: 78,
-    updateDate: '2024-03-17'
+    updateDate: '2025-03-17'
   },
   {
     id: 5,
@@ -243,7 +245,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 543,
     likes: 92,
-    updateDate: '2024-03-16'
+    updateDate: '2025-03-16'
   },
   {
     id: 6,
@@ -253,7 +255,7 @@ const knowledgeData = ref([
     image: '/api/placeholder/300/200',
     views: 432,
     likes: 55,
-    updateDate: '2024-03-15'
+    updateDate: '2025-03-15'
   }
 ])
 
@@ -311,7 +313,7 @@ function selectCategory(key: string) {
 }
 
 function viewKnowledge(item: any) {
-  message.info(`查看知识：${item.title}`)
+  router.push(`/user/knowledge/${item.id}`)
 }
 </script>
 

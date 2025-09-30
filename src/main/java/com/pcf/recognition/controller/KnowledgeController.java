@@ -122,4 +122,119 @@ public class KnowledgeController {
             return ApiResponse.error((String) result.get("message"));
         }
     }
+    
+    @Operation(summary = "搜索知识库", description = "根据关键词搜索知识库内容")
+    @GetMapping("/search")
+    public ApiResponse<SearchResult> searchKnowledge(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String category) {
+        try {
+            log.info("搜索知识库: keyword={}, page={}, size={}, category={}", keyword, page, size, category);
+            
+            Map<String, Object> result = knowledgeService.searchKnowledge(keyword, page, size, category);
+            
+            if ((Boolean) result.get("success")) {
+                SearchResult searchResult = new SearchResult();
+                searchResult.setItems((List<Map<String, Object>>) result.get("items"));
+                searchResult.setTotal((Integer) result.get("total"));
+                searchResult.setPage(page);
+                searchResult.setSize(size);
+                searchResult.setPages((Integer) result.get("pages"));
+                
+                return ApiResponse.success(searchResult, "搜索完成");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("知识库搜索失败", e);
+            return ApiResponse.error("搜索失败");
+        }
+    }
+    
+    @Operation(summary = "获取最新知识", description = "获取最新发布的知识内容")
+    @GetMapping("/latest")
+    public ApiResponse<List<Map<String, Object>>> getLatestKnowledge(
+            @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            log.info("获取最新知识: limit={}", limit);
+            
+            Map<String, Object> result = knowledgeService.getLatestKnowledge(limit);
+            
+            if ((Boolean) result.get("success")) {
+                return ApiResponse.success((List<Map<String, Object>>) result.get("data"), "获取最新知识成功");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("获取最新知识失败", e);
+            return ApiResponse.error("获取最新知识失败");
+        }
+    }
+    
+    @Operation(summary = "点赞知识内容", description = "用户点赞指定的知识内容")
+    @PostMapping("/{itemId}/like")
+    public ApiResponse<Void> likeKnowledgeItem(@PathVariable Long itemId) {
+        try {
+            log.info("点赞知识内容: itemId={}", itemId);
+            
+            Map<String, Object> result = knowledgeService.likeKnowledgeItem(itemId);
+            
+            if ((Boolean) result.get("success")) {
+                return ApiResponse.success(null, "点赞成功");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("点赞知识内容失败", e);
+            return ApiResponse.error("点赞失败");
+        }
+    }
+    
+    @Operation(summary = "取消点赞知识内容", description = "用户取消点赞指定的知识内容")
+    @DeleteMapping("/{itemId}/like")
+    public ApiResponse<Void> unlikeKnowledgeItem(@PathVariable Long itemId) {
+        try {
+            log.info("取消点赞知识内容: itemId={}", itemId);
+            
+            Map<String, Object> result = knowledgeService.unlikeKnowledgeItem(itemId);
+            
+            if ((Boolean) result.get("success")) {
+                return ApiResponse.success(null, "取消点赞成功");
+            } else {
+                return ApiResponse.error((String) result.get("message"));
+            }
+        } catch (Exception e) {
+            log.error("取消点赞知识内容失败", e);
+            return ApiResponse.error("取消点赞失败");
+        }
+    }
+    
+    /**
+     * 搜索结果
+     */
+    public static class SearchResult {
+        private List<Map<String, Object>> items;
+        private Integer total;
+        private Integer page;
+        private Integer size;
+        private Integer pages;
+        
+        // Getters and Setters
+        public List<Map<String, Object>> getItems() { return items; }
+        public void setItems(List<Map<String, Object>> items) { this.items = items; }
+        
+        public Integer getTotal() { return total; }
+        public void setTotal(Integer total) { this.total = total; }
+        
+        public Integer getPage() { return page; }
+        public void setPage(Integer page) { this.page = page; }
+        
+        public Integer getSize() { return size; }
+        public void setSize(Integer size) { this.size = size; }
+        
+        public Integer getPages() { return pages; }
+        public void setPages(Integer pages) { this.pages = pages; }
+    }
 }

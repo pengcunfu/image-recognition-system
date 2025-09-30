@@ -420,7 +420,7 @@ const trainingHistory = ref([
     accuracy: '96.8%',
     trainTime: '2小时15分',
     status: '已完成',
-    createTime: '2024-03-20 10:30'
+    createTime: '2025-03-20 10:30'
   },
   {
     id: 2,
@@ -429,7 +429,7 @@ const trainingHistory = ref([
     accuracy: '94.2%',
     trainTime: '1小时45分',
     status: '已完成',
-    createTime: '2024-03-19 14:20'
+    createTime: '2025-03-19 14:20'
   }
 ])
 

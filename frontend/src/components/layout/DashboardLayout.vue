@@ -3,7 +3,7 @@
     <!-- Header -->
     <a-layout-header class="header">
       <div class="logo">
-        <i class="fas fa-eye"></i>
+        <!-- <i class="fas fa-eye"></i> -->
         <span>智能图像识别系统</span>
       </div>
       <div class="user-info">
@@ -163,11 +163,59 @@ function handleLogout() {
 .sidebar {
   box-shadow: 2px 0 8px rgba(0,0,0,0.1);
   min-height: calc(100vh - 64px);
+  background: white;
+}
+
+.sidebar :deep(.ant-layout-sider-children) {
+  background: white;
 }
 
 .menu {
   border-right: none;
   padding: 16px 0;
+}
+
+/* 菜单项样式 */
+.menu :deep(.ant-menu-item) {
+  margin: 2px 12px;
+  border-radius: 8px;
+  height: 44px;
+  line-height: 44px;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: #595959;
+}
+
+.menu :deep(.ant-menu-item:hover) {
+  background-color: rgba(24, 144, 255, 0.08);
+  color: #1890ff;
+  transform: translateX(2px);
+}
+
+.menu :deep(.ant-menu-item-selected) {
+  background-color: #e6f7ff !important;
+  color: #1890ff !important;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.menu :deep(.ant-menu-item-selected::after) {
+  display: none;
+}
+
+.menu :deep(.ant-menu-item .anticon) {
+  font-size: 16px;
+  width: 20px;
+  margin-right: 12px;
+}
+
+.menu :deep(.ant-menu-item-selected .anticon) {
+  color: #1890ff;
+}
+
+.menu :deep(.ant-menu-item:hover .anticon) {
+  color: #1890ff;
 }
 
 /* Content */

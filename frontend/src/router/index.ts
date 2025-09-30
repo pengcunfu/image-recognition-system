@@ -25,12 +25,21 @@ import HistoryView from '@/views/user/HistoryView.vue'
 import KnowledgeView from '@/views/user/KnowledgeView.vue'
 import CommunityView from '@/views/user/CommunityView.vue'
 import UserProfileView from '@/views/user/UserProfileView.vue'
+import PostDetailView from '@/views/user/PostDetailView.vue'
+import KnowledgeDetailView from '@/views/user/KnowledgeDetailView.vue'
+import RecognitionDetailView from '@/views/user/RecognitionDetailView.vue'
 
 // VIP用户组件
 import AdvancedRecognitionView from '@/views/vip/AdvancedRecognitionView.vue'
 import VipAnalyticsView from '@/views/vip/VipAnalyticsView.vue'
 import AiTrainingView from '@/views/vip/AiTrainingView.vue'
 import ApiAccessView from '@/views/vip/ApiAccessView.vue'
+
+// 公共页面组件
+import AboutView from '@/views/AboutView.vue'
+import ContactView from '@/views/ContactView.vue'
+import PrivacyView from '@/views/PrivacyView.vue'
+import TermsView from '@/views/TermsView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -207,6 +216,14 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: 'recognition/:id',
+        name: 'RecognitionDetail',
+        component: RecognitionDetailView,
+        meta: {
+          title: '识别详情 - 智能图像识别系统'
+        }
+      },
+      {
         path: 'knowledge',
         name: 'Knowledge',
         component: KnowledgeView,
@@ -215,11 +232,27 @@ const routes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: 'knowledge/:id',
+        name: 'KnowledgeDetail',
+        component: KnowledgeDetailView,
+        meta: {
+          title: '知识详情 - 智能图像识别系统'
+        }
+      },
+      {
         path: 'community',
         name: 'Community',
         component: CommunityView,
         meta: {
           title: '社区 - 智能图像识别系统'
+        }
+      },
+      {
+        path: 'community/post/:id',
+        name: 'PostDetail',
+        component: PostDetailView,
+        meta: {
+          title: '帖子详情 - 智能图像识别系统'
         }
       },
       {
@@ -284,6 +317,43 @@ const routes: Array<RouteRecordRaw> = [
         }
       }
     ]
+  },
+  // 公共页面路由（不需要登录）
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutView,
+    meta: {
+      title: '关于我们 - 智能图像识别系统',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/contact',
+    name: 'Contact',
+    component: ContactView,
+    meta: {
+      title: '联系我们 - 智能图像识别系统',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: PrivacyView,
+    meta: {
+      title: '隐私政策 - 智能图像识别系统',
+      requiresAuth: false
+    }
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: TermsView,
+    meta: {
+      title: '服务条款 - 智能图像识别系统',
+      requiresAuth: false
+    }
   },
   {
     path: '/:pathMatch(.*)*',

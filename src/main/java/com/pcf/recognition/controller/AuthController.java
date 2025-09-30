@@ -113,5 +113,89 @@ public class AuthController {
         
         return ApiResponse.success(result, "Token验证成功");
     }
+    
+    @Operation(summary = "发送短信验证码", description = "发送短信验证码到指定手机号")
+    @PostMapping("/sms-code")
+    public ApiResponse<SmsCodeResponse> sendSmsCode(@RequestBody SmsCodeRequest request) {
+        try {
+            // 校验手机号格式
+            if (!isValidPhoneNumber(request.getPhone())) {
+                return ApiResponse.error("手机号格式不正确");
+            }
+            
+            // 生成6位数字验证码
+            String code = generateSmsCode();
+            
+            // TODO: 集成短信服务商发送短信
+            // 这里模拟发送成功
+            log.info("发送短信验证码到手机号: {}, 验证码: {}", request.getPhone(), code);
+            
+            // 实际项目中应该将验证码存储到Redis中，设置过期时间
+            // redisTemplate.opsForValue().set("SMS_CODE:" + request.getPhone(), code, 5, TimeUnit.MINUTES);
+            
+            SmsCodeResponse response = new SmsCodeResponse();
+            response.setPhone(maskPhoneNumber(request.getPhone()));
+            response.setCodeExpiry(300); // 5分钟过期
+            response.setSendTime(System.currentTimeMillis());
+            
+            return ApiResponse.success(response, "短信验证码发送成功");
+        } catch (Exception e) {
+            log.error("发送短信验证码失败", e);
+            return ApiResponse.error("短信验证码发送失败");
+        }
+    }
+    
+    @Operation(summary = "验证短信验证码", description = "验证用户输入的短信验证码")
+    @PostMapping("/sms-code/verify")
+    public ApiResponse<Boolean> verifySmsCode(@RequestBody SmsCodeVerifyRequest request) {
+        try {
+            // TODO: 从Redis中获取验证码进行验证
+            // String storedCode = redisTemplate.opsForValue().get("SMS_CODE:" + request.getPhone());
+            
+            // 这里模拟验证逻辑
+            String storedCode = "123456"; // 模拟存储的验证码
+            
+            if (storedCode == null) {
+                return ApiResponse.error("验证码已过期或不存在");
+            }
+            
+            if (!storedCode.equals(request.getCode())) {
+                return ApiResponse.error("验证码错误");
+            }
+            
+            // 验证成功后删除验证码
+            // redisTemplate.delete("SMS_CODE:" + request.getPhone());
+            
+            log.info("短信验证码验证成功，手机号: {}", request.getPhone());
+            return ApiResponse.success(true, "验证码验证成功");
+        } catch (Exception e) {
+            log.error("验证短信验证码失败", e);
+            return ApiResponse.error("验证码验证失败");
+        }
+    }
+    
+    /**
+     * 验证手机号格式
+     */
+    private boolean isValidPhoneNumber(String phone) {
+        return phone != null && phone.matches("^1[3-9]\\d{9}$");
+    }
+    
+    /**
+     * 生成6位数字验证码
+     */
+    private String generateSmsCode() {
+        return String.format("%06d", (int)(Math.random() * 1000000));
+    }
+    
+    /**
+     * 手机号脱敏
+     */
+    private String maskPhoneNumber(String phone) {
+        if (phone == null || phone.length() != 11) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(7);
+    }
 
 }

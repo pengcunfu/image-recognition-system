@@ -334,15 +334,15 @@ function viewAllHistory() {
 }
 
 function viewRecognitionDetail(item: any) {
-  message.info(`查看识别详情：${item.result}`)
+  router.push(`/user/recognition/${item.id}?from=dashboard`)
 }
 
 function viewKnowledge(item: any) {
-  message.info(`查看知识：${item.title}`)
+  router.push(`/user/knowledge/${item.id}`)
 }
 
 function viewPost(item: any) {
-  message.info(`查看帖子：${item.title}`)
+  router.push(`/user/community/post/${item.id}`)
 }
 
 function navigateToFeature(path: string) {
@@ -357,16 +357,17 @@ function navigateToFeature(path: string) {
 
 /* 欢迎横幅 */
 .welcome-banner {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   border-radius: 12px;
   padding: 40px;
   margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: white;
+  color: #262626;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .banner-content {
@@ -378,12 +379,16 @@ function navigateToFeature(path: string) {
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 8px;
-  color: white;
+  color: #262626;
+  background: linear-gradient(135deg, #1890ff, #722ed1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .welcome-text p {
   font-size: 16px;
-  opacity: 0.9;
+  color: #666;
   margin-bottom: 24px;
 }
 
@@ -394,7 +399,8 @@ function navigateToFeature(path: string) {
 
 .banner-image {
   font-size: 120px;
-  opacity: 0.1;
+  color: #1890ff;
+  opacity: 0.08;
   position: absolute;
   right: 40px;
   top: 50%;
@@ -421,12 +427,13 @@ function navigateToFeature(path: string) {
   width: 60px;
   height: 60px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #1890ff, #40a9ff);
+  background: #1890ff;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 24px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
 }
 
 .stat-number {
@@ -547,12 +554,13 @@ function navigateToFeature(path: string) {
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #52c41a, #73d13d);
+  background: #52c41a;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 16px;
+  box-shadow: 0 2px 6px rgba(82, 196, 26, 0.2);
 }
 
 .knowledge-title {

@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
+import { ConfigProvider } from 'ant-design-vue'
+import zhCN from 'ant-design-vue/es/locale/zh_CN'
 </script>
 
 <template>
-  <div id="app">
-    <RouterView />
-  </div>
+  <ConfigProvider :locale="zhCN">
+    <div id="app">
+      <RouterView />
+    </div>
+  </ConfigProvider>
 </template>
 
 <style>

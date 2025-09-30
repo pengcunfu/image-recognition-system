@@ -173,9 +173,9 @@
             <a-form-item name="agreement">
               <a-checkbox v-model:checked="formData.agreement">
                 我已阅读并同意
-                <a href="#" class="agreement-link">《用户服务协议》</a>
+                <router-link to="/terms" class="agreement-link">《用户服务协议》</router-link>
                 和
-                <a href="#" class="agreement-link">《隐私政策》</a>
+                <router-link to="/privacy" class="agreement-link">《隐私政策》</router-link>
               </a-checkbox>
             </a-form-item>
             
@@ -433,7 +433,7 @@ async function handleRegister() {
 
 <style scoped>
 .register-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -455,9 +455,9 @@ async function handleRegister() {
 
 .floating-shape {
   position: absolute;
-  opacity: 0.1;
+  opacity: 0.06;
   animation: float 6s ease-in-out infinite;
-  color: white;
+  color: #1890ff;
 }
 
 .floating-shape:nth-child(1) {
@@ -495,10 +495,10 @@ async function handleRegister() {
 
 /* 主容器 */
 .register-box {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: white;
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e8e8e8;
   width: 1000px;
   max-width: 95vw;
   min-height: 700px;
@@ -658,7 +658,7 @@ async function handleRegister() {
 /* 右侧信息区域 */
 .register-info {
   flex: 0.8;
-  background: linear-gradient(135deg, #722ed1 0%, #1890ff 100%);
+  background: #1890ff;
   padding: 60px 40px;
   display: flex;
   flex-direction: column;

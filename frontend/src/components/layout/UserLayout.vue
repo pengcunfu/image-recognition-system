@@ -3,7 +3,7 @@
     <!-- Header -->
     <a-layout-header class="header">
       <div class="logo">
-        <i class="fas fa-eye"></i>
+        <!-- <i class="fas fa-eye"></i> -->
         <span>智能图像识别系统</span>
       </div>
       
@@ -83,12 +83,6 @@
       
       <!-- 用户信息 -->
       <div class="user-info">
-        <a-badge :count="messageCount" :offset="[10, 0]">
-          <a-button type="text" class="message-btn" @click="showMessages">
-            <i class="fas fa-bell"></i>
-          </a-button>
-        </a-badge>
-        
         <a-tag v-if="isVipUser" color="gold" class="vip-badge">
           <i class="fas fa-crown"></i>
           VIP
@@ -137,12 +131,12 @@
     <!-- Footer -->
     <a-layout-footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2024 智能图像识别系统. All rights reserved.</p>
+        <p>&copy; 2025 智能图像识别系统. All rights reserved. Designed by 彭存福</p>
         <div class="footer-links">
-          <a href="#">关于我们</a>
-          <a href="#">联系我们</a>
-          <a href="#">隐私政策</a>
-          <a href="#">服务条款</a>
+          <router-link to="/about">关于我们</router-link>
+          <router-link to="/contact">联系我们</router-link>
+          <router-link to="/privacy">隐私政策</router-link>
+          <router-link to="/terms">服务条款</router-link>
         </div>
       </div>
     </a-layout-footer>
@@ -157,7 +151,6 @@ import { message } from 'ant-design-vue'
 const router = useRouter()
 const route = useRoute()
 const selectedKeys = ref(['/user/dashboard'])
-const messageCount = ref(3)
 
 // 用户信息
 const userInfo = reactive({
@@ -217,10 +210,6 @@ function handleUserMenuClick({ key }: { key: string }) {
   }
 }
 
-// 显示消息
-function showMessages() {
-  message.info('消息功能开发中')
-}
 
 // 退出登录
 function handleLogout() {
@@ -277,16 +266,11 @@ function handleLogout() {
   font-weight: bold;
 }
 
-.message-btn,
 .user-btn {
   color: white !important;
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.message-btn {
-  font-size: 18px;
 }
 
 .user-avatar {

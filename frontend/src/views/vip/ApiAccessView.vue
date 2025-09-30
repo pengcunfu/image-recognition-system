@@ -341,8 +341,8 @@ const apiKeys = ref([
     keyId: 'sk-prod-abc123def456',
     secretKey: 'sk-prod-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz567',
     status: '活跃',
-    createTime: '2024-03-01',
-    lastUsed: '2024-03-20 14:30',
+    createTime: '2025-03-01',
+    lastUsed: '2025-03-20 14:30',
     callCount: 8542
   },
   {
@@ -351,8 +351,8 @@ const apiKeys = ref([
     keyId: 'sk-test-xyz789uvw456',
     secretKey: 'sk-test-xyz789uvw456rst123opq456lmn789hij012efg345bcd678abc901',
     status: '活跃',
-    createTime: '2024-02-15',
-    lastUsed: '2024-03-19 16:45',
+    createTime: '2025-02-15',
+    lastUsed: '2025-03-19 16:45',
     callCount: 2156
   },
   {
@@ -361,8 +361,8 @@ const apiKeys = ref([
     keyId: 'sk-dev-def456ghi789',
     secretKey: 'sk-dev-def456ghi789jkl012mno345pqr678stu901vwx234yz567abc123',
     status: '禁用',
-    createTime: '2024-01-20',
-    lastUsed: '2024-03-10 09:15',
+    createTime: '2025-01-20',
+    lastUsed: '2025-03-10 09:15',
     callCount: 456
   }
 ])

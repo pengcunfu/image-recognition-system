@@ -494,7 +494,7 @@ function handleSubmit() {
 
 <style scoped>
 .forgot-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -516,9 +516,9 @@ function handleSubmit() {
 
 .floating-shape {
   position: absolute;
-  opacity: 0.1;
+  opacity: 0.06;
   animation: float 8s ease-in-out infinite;
-  color: white;
+  color: #1890ff;
 }
 
 .floating-shape:nth-child(1) {
@@ -556,10 +556,10 @@ function handleSubmit() {
 
 /* 主容器 */
 .forgot-box {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(15px);
+  background: white;
   border-radius: 24px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e8e8e8;
   width: 900px;
   max-width: 95vw;
   min-height: 600px;
@@ -572,7 +572,7 @@ function handleSubmit() {
 /* 左侧信息区域 */
 .forgot-info {
   flex: 1;
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  background: #1890ff;
   padding: 60px 40px;
   display: flex;
   flex-direction: column;

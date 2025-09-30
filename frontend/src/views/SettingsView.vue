@@ -29,37 +29,6 @@
           </a-form>
         </a-card>
       </a-col>
-      <a-col :xs="24" :lg="12">
-        <a-card title="通知设置">
-          <a-form layout="vertical">
-            <a-form-item>
-              <a-checkbox v-model:checked="notificationSettings.email">
-                邮件通知
-              </a-checkbox>
-            </a-form-item>
-            <a-form-item>
-              <a-checkbox v-model:checked="notificationSettings.sms">
-                短信通知
-              </a-checkbox>
-            </a-form-item>
-            <a-form-item>
-              <a-checkbox v-model:checked="notificationSettings.push">
-                推送通知
-              </a-checkbox>
-            </a-form-item>
-            <a-form-item>
-              <a-checkbox v-model:checked="notificationSettings.orderAlert">
-                订单提醒
-              </a-checkbox>
-            </a-form-item>
-            <a-form-item>
-              <a-button type="primary" @click="saveNotificationSettings">
-                保存设置
-              </a-button>
-            </a-form-item>
-          </a-form>
-        </a-card>
-      </a-col>
     </a-row>
 
     <a-row :gutter="[24, 24]">
@@ -146,13 +115,6 @@ const systemSettings = reactive({
   version: '1.0.0'
 })
 
-// 通知设置
-const notificationSettings = reactive({
-  email: true,
-  sms: false,
-  push: true,
-  orderAlert: true
-})
 
 // 安全设置
 const securitySettings = reactive({
@@ -172,9 +134,6 @@ function saveSettings() {
   message.success('系统设置已保存')
 }
 
-function saveNotificationSettings() {
-  message.success('通知设置已保存')
-}
 
 function saveSecuritySettings() {
   message.success('安全设置已保存')

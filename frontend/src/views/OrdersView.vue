@@ -62,7 +62,7 @@ const orders = ref([
     product: '智能图像识别摄像头', 
     quantity: 1, 
     totalAmount: '¥8,999', 
-    orderDate: '2024-03-15', 
+    orderDate: '2025-03-15', 
     status: '已完成' 
   },
   { 
@@ -71,7 +71,7 @@ const orders = ref([
     product: 'AI视觉分析模块', 
     quantity: 1, 
     totalAmount: '¥12,999', 
-    orderDate: '2024-03-16', 
+    orderDate: '2025-03-16', 
     status: '处理中' 
   },
   { 
@@ -80,7 +80,7 @@ const orders = ref([
     product: '图像处理服务包', 
     quantity: 2, 
     totalAmount: '¥9,198', 
-    orderDate: '2024-03-17', 
+    orderDate: '2025-03-17', 
     status: '已取消' 
   },
   { 
@@ -89,7 +89,7 @@ const orders = ref([
     product: '深度学习训练平台', 
     quantity: 1, 
     totalAmount: '¥15,999', 
-    orderDate: '2024-03-18', 
+    orderDate: '2025-03-18', 
     status: '待处理' 
   },
   { 
@@ -98,7 +98,7 @@ const orders = ref([
     product: '边缘计算设备', 
     quantity: 3, 
     totalAmount: '¥20,664', 
-    orderDate: '2024-03-19', 
+    orderDate: '2025-03-19', 
     status: '已发货' 
   }
 ])

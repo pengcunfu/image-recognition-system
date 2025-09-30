@@ -212,13 +212,13 @@ const historyColumns = [
 const batchHistory = ref([
   { 
     id: 1, 
-    time: '2024-03-20 14:30', 
+    time: '2025-03-20 14:30', 
     count: 15, 
     successRate: '93.3%' 
   },
   { 
     id: 2, 
-    time: '2024-03-19 10:15', 
+    time: '2025-03-19 10:15', 
     count: 8, 
     successRate: '100%' 
   }

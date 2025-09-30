@@ -3,13 +3,15 @@
     <div class="profile-header">
       <div class="header-content">
         <div class="avatar-section">
-          <a-avatar :size="100" :src="userInfo.avatar" class="user-avatar">
-            {{ userInfo.name.charAt(0) }}
-          </a-avatar>
-          <a-button type="primary" ghost @click="changeAvatar">
-            <i class="fas fa-camera"></i>
-            更换头像
-          </a-button>
+          <div class="avatar-wrapper">
+            <a-avatar :size="100" :src="userInfo.avatar" class="user-avatar">
+              {{ userInfo.name.charAt(0) }}
+            </a-avatar>
+            <div class="avatar-overlay" @click="showAvatarModal">
+              <i class="fas fa-camera"></i>
+              <span>更换头像</span>
+            </div>
+          </div>
         </div>
         
         <div class="user-info">
@@ -356,30 +358,6 @@
                 </a-form>
               </a-card>
 
-              <a-card title="通知设置" class="settings-card">
-                <a-form layout="vertical">
-                  <a-form-item>
-                    <a-checkbox v-model:checked="notificationSettings.newReply">
-                      新回复通知
-                    </a-checkbox>
-                  </a-form-item>
-                  <a-form-item>
-                    <a-checkbox v-model:checked="notificationSettings.newLike">
-                      新点赞通知
-                    </a-checkbox>
-                  </a-form-item>
-                  <a-form-item>
-                    <a-checkbox v-model:checked="notificationSettings.newFollow">
-                      新关注通知
-                    </a-checkbox>
-                  </a-form-item>
-                  <a-form-item>
-                    <a-button type="primary" @click="saveNotifications">
-                      保存设置
-                    </a-button>
-                  </a-form-item>
-                </a-form>
-              </a-card>
             </a-tab-pane>
           </a-tabs>
         </a-col>
@@ -437,21 +415,121 @@
         </a-col>
       </a-row>
     </div>
+
+    <!-- 头像上传模态框 -->
+    <a-modal
+      v-model:open="avatarModalVisible"
+      title="更换头像"
+      :width="600"
+      @ok="handleAvatarUpload"
+      @cancel="cancelAvatarUpload"
+      :confirm-loading="uploadLoading"
+    >
+      <div class="avatar-upload-container">
+        <!-- 当前头像预览 -->
+        <div class="current-avatar">
+          <h4>当前头像</h4>
+          <a-avatar :size="80" :src="userInfo.avatar" class="preview-avatar">
+            {{ userInfo.name.charAt(0) }}
+          </a-avatar>
+        </div>
+
+        <!-- 新头像预览 -->
+        <div class="new-avatar" v-if="newAvatarUrl">
+          <h4>新头像预览</h4>
+          <a-avatar :size="80" :src="newAvatarUrl" class="preview-avatar" />
+        </div>
+
+        <!-- 上传区域 -->
+        <div class="upload-section">
+          <a-upload
+            v-model:file-list="avatarFileList"
+            name="avatar"
+            list-type="picture-card"
+            class="avatar-uploader"
+            :show-upload-list="false"
+            :before-upload="beforeAvatarUpload"
+            @change="handleAvatarChange"
+            accept="image/*"
+          >
+            <div v-if="!newAvatarUrl" class="upload-placeholder">
+              <i class="fas fa-plus"></i>
+              <div class="upload-text">选择图片</div>
+            </div>
+            <img v-else :src="newAvatarUrl" alt="avatar" class="upload-preview" />
+          </a-upload>
+          
+          <div class="upload-tips">
+            <p><i class="fas fa-info-circle"></i> 支持 JPG、PNG 格式</p>
+            <p><i class="fas fa-info-circle"></i> 建议尺寸 200x200 像素</p>
+            <p><i class="fas fa-info-circle"></i> 文件大小不超过 2MB</p>
+          </div>
+        </div>
+
+        <!-- 预设头像选择 -->
+        <div class="preset-avatars">
+          <h4>选择预设头像</h4>
+          <div class="preset-grid">
+            <div 
+              v-for="(preset, index) in presetAvatars" 
+              :key="index"
+              class="preset-item"
+              :class="{ 'selected': selectedPreset === index }"
+              @click="selectPresetAvatar(preset, index)"
+            >
+              <a-avatar :size="50" :src="preset.url" />
+              <span class="preset-name">{{ preset.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 
+const route = useRoute()
+const router = useRouter()
 const activeTab = ref('activities')
+
+// 根据路由设置活动标签
+function setActiveTabFromRoute() {
+  const routeName = route.name
+  switch (routeName) {
+    case 'UserProfile':
+      activeTab.value = 'activities'
+      break
+    case 'UserFavorites':
+      activeTab.value = 'favorites'
+      break
+    case 'UserSettings':
+      activeTab.value = 'settings'
+      break
+    default:
+      activeTab.value = 'activities'
+  }
+}
+
+// 监听路由变化
+watch(() => route.name, () => {
+  setActiveTabFromRoute()
+}, { immediate: true })
+
+// 组件挂载时设置标签
+onMounted(() => {
+  setActiveTabFromRoute()
+})
 
 // 用户信息
 const userInfo = reactive({
   name: '张三',
   bio: '热爱AI技术的图像识别爱好者，喜欢分享和交流技术经验',
   avatar: '',
-  joinDate: '2024年1月',
+  joinDate: '2025年1月',
   location: '北京市',
   email: 'zhangsan@example.com'
 })
@@ -479,12 +557,6 @@ const privacySettings = reactive({
   allowFollow: true
 })
 
-// 通知设置
-const notificationSettings = reactive({
-  newReply: true,
-  newLike: true,
-  newFollow: true
-})
 
 // 活动记录
 const activities = ref([
@@ -738,9 +810,111 @@ const recentVisitors = ref([
   }
 ])
 
+// 头像上传相关变量
+const avatarModalVisible = ref(false)
+const uploadLoading = ref(false)
+const newAvatarUrl = ref('')
+const avatarFileList = ref([])
+const selectedPreset = ref(-1)
+
+// 预设头像
+const presetAvatars = ref([
+  { name: '默认1', url: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg' },
+  { name: '默认2', url: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png' },
+  { name: '默认3', url: 'https://gw.alipayobjects.com/zos/rmsportal/BiazfanxmamNRoxxVxka.png' },
+  { name: '默认4', url: 'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg' },
+  { name: '默认5', url: 'https://gw.alipayobjects.com/zos/rmsportal/ThXAXghbEsBCCSDihZxY.png' },
+  { name: '默认6', url: 'https://gw.alipayobjects.com/zos/rmsportal/OKJXDXrmkNshAMvwtvhu.png' }
+])
+
 // 方法
-function changeAvatar() {
-  message.info('更换头像功能开发中')
+function showAvatarModal() {
+  avatarModalVisible.value = true
+  // 重置状态
+  newAvatarUrl.value = ''
+  avatarFileList.value = []
+  selectedPreset.value = -1
+}
+
+function cancelAvatarUpload() {
+  avatarModalVisible.value = false
+  newAvatarUrl.value = ''
+  avatarFileList.value = []
+  selectedPreset.value = -1
+}
+
+function beforeAvatarUpload(file: any) {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  if (!isJpgOrPng) {
+    message.error('只能上传 JPG/PNG 格式的图片!')
+    return false
+  }
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    message.error('图片大小不能超过 2MB!')
+    return false
+  }
+  return false // 阻止自动上传，我们手动处理
+}
+
+function handleAvatarChange(info: any) {
+  if (info.file && info.file.originFileObj) {
+    const reader = new FileReader()
+    reader.addEventListener('load', () => {
+      newAvatarUrl.value = reader.result as string
+      selectedPreset.value = -1 // 清除预设选择
+    })
+    reader.readAsDataURL(info.file.originFileObj)
+  }
+}
+
+function selectPresetAvatar(preset: any, index: number) {
+  selectedPreset.value = index
+  newAvatarUrl.value = preset.url
+  avatarFileList.value = []
+}
+
+async function handleAvatarUpload() {
+  if (!newAvatarUrl.value) {
+    message.warning('请选择头像')
+    return
+  }
+
+  uploadLoading.value = true
+  
+  try {
+    // 模拟上传过程
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // 更新用户头像
+    userInfo.avatar = newAvatarUrl.value
+    
+    // 这里应该调用实际的API上传头像
+    // const formData = new FormData()
+    // if (avatarFileList.value.length > 0) {
+    //   formData.append('avatar', avatarFileList.value[0].originFileObj)
+    //   const response = await uploadAvatar(formData)
+    //   userInfo.avatar = response.data.avatarUrl
+    // } else {
+    //   // 如果是预设头像，直接保存URL
+    //   const response = await updateUserAvatar({ avatarUrl: newAvatarUrl.value })
+    //   userInfo.avatar = response.data.avatarUrl
+    // }
+    
+    message.success('头像更换成功!')
+    avatarModalVisible.value = false
+    
+    // 重置状态
+    newAvatarUrl.value = ''
+    avatarFileList.value = []
+    selectedPreset.value = -1
+    
+  } catch (error) {
+    console.error('头像上传失败:', error)
+    message.error('头像上传失败，请重试')
+  } finally {
+    uploadLoading.value = false
+  }
 }
 
 function getActivityIcon(type: string) {
@@ -781,15 +955,15 @@ function getCategoryColor(category: string) {
 }
 
 function viewPost(post: any) {
-  message.info(`查看帖子：${post.title}`)
+  router.push(`/user/community/post/${post.id}`)
 }
 
 function viewFavorite(item: any) {
-  message.info(`查看收藏：${item.result}`)
+  router.push(`/user/recognition/${item.id}`)
 }
 
 function viewKnowledge(item: any) {
-  message.info(`查看知识：${item.title}`)
+  router.push(`/user/knowledge/${item.id}`)
 }
 
 function saveProfile() {
@@ -801,9 +975,6 @@ function savePrivacy() {
   message.success('隐私设置保存成功')
 }
 
-function saveNotifications() {
-  message.success('通知设置保存成功')
-}
 </script>
 
 <style scoped>
@@ -813,11 +984,13 @@ function saveNotifications() {
 
 /* 头部区域 */
 .profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   border-radius: 12px;
   padding: 40px;
   margin-bottom: 24px;
-  color: white;
+  color: #262626;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f0f0f0;
 }
 
 .header-content {
@@ -833,11 +1006,49 @@ function saveNotifications() {
   gap: 16px;
 }
 
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
 .user-avatar {
-  background: rgba(255, 255, 255, 0.2);
+  background: #1890ff;
   color: white;
   font-size: 32px;
   font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%;
+  color: white;
+  font-size: 12px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay i {
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.avatar-overlay span {
+  font-size: 10px;
 }
 
 .user-info {
@@ -848,12 +1059,12 @@ function saveNotifications() {
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 8px;
-  color: white;
+  color: #262626;
 }
 
 .user-info p {
   font-size: 16px;
-  opacity: 0.9;
+  color: #666;
   margin-bottom: 16px;
   line-height: 1.6;
 }
@@ -862,7 +1073,7 @@ function saveNotifications() {
   display: flex;
   gap: 24px;
   font-size: 14px;
-  opacity: 0.9;
+  color: #999;
 }
 
 .user-meta span {
@@ -879,20 +1090,22 @@ function saveNotifications() {
 .stat-item {
   text-align: center;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #f8f9fa;
   border-radius: 12px;
   min-width: 80px;
+  border: 1px solid #f0f0f0;
 }
 
 .stat-number {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 4px;
+  color: #262626;
 }
 
 .stat-label {
   font-size: 12px;
-  opacity: 0.8;
+  color: #999;
 }
 
 /* 内容区域 */
@@ -1470,5 +1683,133 @@ function saveNotifications() {
     min-width: 60px;
     padding: 12px;
   }
+}
+
+/* 头像上传模态框样式 */
+.avatar-upload-container {
+  padding: 20px 0;
+}
+
+.current-avatar,
+.new-avatar {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.current-avatar h4,
+.new-avatar h4 {
+  margin-bottom: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.preview-avatar {
+  border: 2px solid #f0f0f0;
+}
+
+.upload-section {
+  margin-bottom: 32px;
+}
+
+.avatar-uploader .ant-upload {
+  width: 128px;
+  height: 128px;
+  margin: 0 auto 16px;
+  display: block;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+  background: #fafafa;
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+}
+
+.upload-placeholder:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.upload-placeholder i {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.upload-text {
+  font-size: 14px;
+}
+
+.upload-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.upload-tips {
+  text-align: center;
+  color: #666;
+}
+
+.upload-tips p {
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.upload-tips i {
+  margin-right: 4px;
+  color: #1890ff;
+}
+
+.preset-avatars h4 {
+  margin-bottom: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.preset-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #f0f0f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.preset-item:hover {
+  border-color: #1890ff;
+  background-color: #f6ffed;
+}
+
+.preset-item.selected {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.preset-name {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.preset-item.selected .preset-name {
+  color: #1890ff;
+  font-weight: 500;
 }
 </style>

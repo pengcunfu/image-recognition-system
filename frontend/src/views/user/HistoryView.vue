@@ -27,6 +27,8 @@
           <a-range-picker
             v-model:value="filters.dateRange"
             style="width: 100%"
+            :placeholder="['开始日期', '结束日期']"
+            format="YYYY-MM-DD"
             @change="applyFilters"
           />
         </a-col>
@@ -171,7 +173,7 @@
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total) => `共 ${total} 条记录`
+            showTotal: (total: number) => `共 ${total} 条记录`
           }"
           row-key="id"
         >
@@ -218,7 +220,7 @@
                     <i class="fas fa-chevron-down"></i>
                   </a-button>
                   <template #overlay>
-                    <a-menu @click="({ key }) => handleMoreAction(key, record)">
+                    <a-menu @click="({ key }: { key: string }) => handleMoreAction(key, record)">
                       <a-menu-item key="share">
                         <i class="fas fa-share"></i>
                         分享
@@ -245,10 +247,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { Dayjs } from 'dayjs'
 
+const router = useRouter()
 const viewMode = ref('grid')
+const isTableView = computed(() => viewMode.value === 'table')
 
 // 筛选器
 const filters = reactive({
@@ -282,7 +287,7 @@ const historyData = ref([
     result: '金毛寻回犬',
     category: '动物',
     confidence: 95,
-    time: '2024-03-20 14:30',
+    time: '2025-03-20 14:30',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: true
   },
@@ -291,7 +296,7 @@ const historyData = ref([
     result: '玫瑰花',
     category: '植物',
     confidence: 88,
-    time: '2024-03-20 10:15',
+    time: '2025-03-20 10:15',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: false
   },
@@ -300,7 +305,7 @@ const historyData = ref([
     result: '苹果',
     category: '食物',
     confidence: 92,
-    time: '2024-03-19 16:22',
+    time: '2025-03-19 16:22',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: true
   },
@@ -309,7 +314,7 @@ const historyData = ref([
     result: '轿车',
     category: '交通工具',
     confidence: 85,
-    time: '2024-03-19 09:45',
+    time: '2025-03-19 09:45',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: false
   },
@@ -318,7 +323,7 @@ const historyData = ref([
     result: '现代建筑',
     category: '建筑',
     confidence: 78,
-    time: '2024-03-18 20:10',
+    time: '2025-03-18 20:10',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: false
   },
@@ -327,7 +332,7 @@ const historyData = ref([
     result: '波斯猫',
     category: '动物',
     confidence: 91,
-    time: '2024-03-18 15:33',
+    time: '2025-03-18 15:33',
     thumbnail: '/api/placeholder/150/150',
     isFavorite: true
   }
@@ -392,7 +397,7 @@ function getConfidenceColor(confidence: number) {
 }
 
 function viewDetail(item: any) {
-  message.info(`查看详情：${item.result}`)
+  router.push(`/user/recognition/${item.id}?from=history`)
 }
 
 function toggleFavorite(item: any) {

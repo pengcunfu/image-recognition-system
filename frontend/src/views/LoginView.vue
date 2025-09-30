@@ -16,9 +16,9 @@
     <div class="login-box">
       <!-- 左侧信息区域 -->
       <div class="login-info">
-        <div class="system-logo">
+        <!-- <div class="system-logo">
           <i class="fas fa-eye"></i>
-        </div>
+        </div> -->
         <h1 class="system-title">智能图像识别系统</h1>
         <p class="system-subtitle">基于深度学习的通用图像识别平台，提供识别、学习、交流一体化服务</p>
         
@@ -289,7 +289,7 @@ onMounted(() => {
 
 <style scoped>
 .login-container {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -311,10 +311,10 @@ onMounted(() => {
 
 .floating-shape {
   position: absolute;
-  opacity: 0.1;
+  opacity: 0.06;
   animation: float 6s ease-in-out infinite;
   font-size: 60px;
-  color: white;
+  color: #1890ff;
 }
 
 .floating-shape:nth-child(1) {
@@ -344,10 +344,10 @@ onMounted(() => {
 
 /* 主容器 */
 .login-box {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: white;
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e8e8e8;
   width: 900px;
   max-width: 95vw;
   min-height: 600px;
@@ -360,7 +360,7 @@ onMounted(() => {
 /* 左侧信息区域 */
 .login-info {
   flex: 1;
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  background: #1890ff;
   padding: 60px 40px;
   display: flex;
   flex-direction: column;
@@ -513,7 +513,7 @@ onMounted(() => {
 
 /* 登录按钮 */
 .login-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  background: #1890ff;
   border: none;
   height: 48px;
   margin-bottom: 16px;

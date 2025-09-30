@@ -1,0 +1,192 @@
+package com.pcf.recognition.controller;
+
+import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.Map;
+
+/**
+ * 用户认证控制器
+ * 提供登录、注册、密码重置等功能
+ */
+@Tag(name = "用户认证", description = "用户登录、注册、密码管理等认证相关接口")
+@RestController
+@RequestMapping("/api/v1/auth")
+@Slf4j
+@RequiredArgsConstructor
+public class AuthController {
+    
+    private final AuthService authService;
+
+    @Operation(summary = "用户登录", description = "通过用户名/邮箱和密码进行登录认证")
+    @PostMapping("/login")
+    public ApiResponse<Map<String, Object>> login(
+            @Parameter(description = "登录请求数据") @Valid @RequestBody LoginRequest request) {
+        
+        try {
+            Map<String, Object> result = authService.login(
+                request.getUsername(), 
+                request.getPassword(), 
+                request.getCaptcha()
+            );
+            return ApiResponse.success(result, "登录成功");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "用户注册", description = "创建新用户账户")
+    @PostMapping("/register")
+    public ApiResponse<Map<String, Object>> register(
+            @Parameter(description = "注册请求数据") @Valid @RequestBody RegisterRequest request) {
+        
+        try {
+            Map<String, Object> result = authService.register(
+                request.getUsername(),
+                request.getEmail(),
+                request.getPassword(),
+                request.getConfirmPassword()
+            );
+            return ApiResponse.success(result, "注册成功");
+        } catch (RuntimeException e) {
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "忘记密码", description = "通过邮箱重置密码")
+    @PostMapping("/forgot-password")
+    public ApiResponse<String> forgotPassword(
+            @Parameter(description = "邮箱地址") @Valid @RequestBody ForgotPasswordRequest request) {
+        
+        log.info("忘记密码请求: email={}", request.getEmail());
+        
+        // 模拟发送重置邮件
+        return ApiResponse.success("密码重置邮件已发送到您的邮箱", "重置邮件发送成功");
+    }
+
+    @Operation(summary = "刷新验证码", description = "获取新的验证码")
+    @GetMapping("/captcha")
+    public ApiResponse<Map<String, String>> getCaptcha() {
+        Map<String, String> result = authService.generateCaptcha();
+        return ApiResponse.success(result, "验证码获取成功");
+    }
+
+    @Operation(summary = "退出登录", description = "用户登出，清除会话")
+    @PostMapping("/logout")
+    public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
+        
+        log.info("用户退出登录: token={}", token);
+        
+        // 模拟清除会话逻辑
+        return ApiResponse.success("退出登录成功");
+    }
+
+    @Operation(summary = "验证Token", description = "验证用户token是否有效")
+    @GetMapping("/validate")
+    public ApiResponse<Map<String, Object>> validateToken(
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        
+        if (token == null || !token.startsWith("token_")) {
+            return ApiResponse.error("Token无效");
+        }
+        
+        // 模拟token验证
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", true);
+        result.put("userInfo", Map.of(
+            "id", 1,
+            "username", "user",
+            "name", "张三",
+            "role", "user"
+        ));
+        
+        return ApiResponse.success(result, "Token验证成功");
+    }
+
+    // 生成验证码
+    private String generateCaptcha() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            result.append(chars.charAt((int) (Math.random() * chars.length())));
+        }
+        return result.toString();
+    }
+
+    // 内部类：请求数据模型
+    public static class LoginRequest {
+        @NotBlank(message = "用户名不能为空")
+        private String username;
+        
+        @NotBlank(message = "密码不能为空")
+        @Size(min = 6, message = "密码长度至少6位")
+        private String password;
+        
+        private String captcha;
+        private boolean rememberMe = false;
+
+        // Getters and Setters
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public String getCaptcha() { return captcha; }
+        public void setCaptcha(String captcha) { this.captcha = captcha; }
+        public boolean isRememberMe() { return rememberMe; }
+        public void setRememberMe(boolean rememberMe) { this.rememberMe = rememberMe; }
+    }
+
+    public static class RegisterRequest {
+        @NotBlank(message = "用户名不能为空")
+        @Size(min = 3, max = 20, message = "用户名长度3-20位")
+        private String username;
+        
+        @NotBlank(message = "邮箱不能为空")
+        @Email(message = "邮箱格式不正确")
+        private String email;
+        
+        @NotBlank(message = "密码不能为空")
+        @Size(min = 6, message = "密码长度至少6位")
+        private String password;
+        
+        @NotBlank(message = "确认密码不能为空")
+        private String confirmPassword;
+        
+        private String captcha;
+        private boolean acceptTerms = false;
+
+        // Getters and Setters
+        public String getUsername() { return username; }
+        public void setUsername(String username) { this.username = username; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        public String getConfirmPassword() { return confirmPassword; }
+        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
+        public String getCaptcha() { return captcha; }
+        public void setCaptcha(String captcha) { this.captcha = captcha; }
+        public boolean isAcceptTerms() { return acceptTerms; }
+        public void setAcceptTerms(boolean acceptTerms) { this.acceptTerms = acceptTerms; }
+    }
+
+    public static class ForgotPasswordRequest {
+        @NotBlank(message = "邮箱不能为空")
+        @Email(message = "邮箱格式不正确")
+        private String email;
+
+        // Getters and Setters
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+    }
+}

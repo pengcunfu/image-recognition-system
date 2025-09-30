@@ -13,6 +13,7 @@ import java.util.List;
 
 /**
  * Swagger/OpenAPI 配置类
+ * 兼容Spring Boot 3.5.x和JDK 17
  */
 @Configuration
 public class SwaggerConfig {

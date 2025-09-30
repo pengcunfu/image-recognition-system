@@ -1,6 +1,8 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.CreatePostRequest;
+import com.pcf.recognition.dto.AddCommentRequest;
 import com.pcf.recognition.service.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.util.*;
 
 /**
@@ -150,39 +150,4 @@ public class CommunityController {
         }
     }
 
-    // 请求数据类
-    public static class CreatePostRequest {
-        @NotBlank(message = "标题不能为空")
-        @Size(max = 200, message = "标题长度不能超过200字符")
-        private String title;
-        
-        @NotBlank(message = "内容不能为空")
-        private String content;
-        
-        private String category;
-        private String tags;
-
-        // getters and setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public String getCategory() { return category; }
-        public void setCategory(String category) { this.category = category; }
-        public String getTags() { return tags; }
-        public void setTags(String tags) { this.tags = tags; }
-    }
-
-    public static class AddCommentRequest {
-        @NotBlank(message = "评论内容不能为空")
-        private String content;
-        
-        private Long parentId;
-
-        // getters and setters
-        public String getContent() { return content; }
-        public void setContent(String content) { this.content = content; }
-        public Long getParentId() { return parentId; }
-        public void setParentId(Long parentId) { this.parentId = parentId; }
-    }
 }

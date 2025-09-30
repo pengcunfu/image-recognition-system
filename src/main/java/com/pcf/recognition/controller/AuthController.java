@@ -1,6 +1,9 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.LoginRequest;
+import com.pcf.recognition.dto.RegisterRequest;
+import com.pcf.recognition.dto.ForgotPasswordRequest;
 import com.pcf.recognition.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,9 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,7 +56,7 @@ public class AuthController {
                 request.getUsername(),
                 request.getEmail(),
                 request.getPassword(),
-                request.getConfirmPassword()
+                request.getCaptcha()
             );
             return ApiResponse.success(result, "注册成功");
         } catch (RuntimeException e) {
@@ -76,8 +77,8 @@ public class AuthController {
 
     @Operation(summary = "刷新验证码", description = "获取新的验证码")
     @GetMapping("/captcha")
-    public ApiResponse<Map<String, String>> getCaptcha() {
-        Map<String, String> result = authService.generateCaptcha();
+    public ApiResponse<Map<String, Object>> getCaptcha() {
+        Map<String, Object> result = authService.getCaptcha();
         return ApiResponse.success(result, "验证码获取成功");
     }
 
@@ -113,80 +114,4 @@ public class AuthController {
         return ApiResponse.success(result, "Token验证成功");
     }
 
-    // 生成验证码
-    private String generateCaptcha() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < 4; i++) {
-            result.append(chars.charAt((int) (Math.random() * chars.length())));
-        }
-        return result.toString();
-    }
-
-    // 内部类：请求数据模型
-    public static class LoginRequest {
-        @NotBlank(message = "用户名不能为空")
-        private String username;
-        
-        @NotBlank(message = "密码不能为空")
-        @Size(min = 6, message = "密码长度至少6位")
-        private String password;
-        
-        private String captcha;
-        private boolean rememberMe = false;
-
-        // Getters and Setters
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        public String getCaptcha() { return captcha; }
-        public void setCaptcha(String captcha) { this.captcha = captcha; }
-        public boolean isRememberMe() { return rememberMe; }
-        public void setRememberMe(boolean rememberMe) { this.rememberMe = rememberMe; }
-    }
-
-    public static class RegisterRequest {
-        @NotBlank(message = "用户名不能为空")
-        @Size(min = 3, max = 20, message = "用户名长度3-20位")
-        private String username;
-        
-        @NotBlank(message = "邮箱不能为空")
-        @Email(message = "邮箱格式不正确")
-        private String email;
-        
-        @NotBlank(message = "密码不能为空")
-        @Size(min = 6, message = "密码长度至少6位")
-        private String password;
-        
-        @NotBlank(message = "确认密码不能为空")
-        private String confirmPassword;
-        
-        private String captcha;
-        private boolean acceptTerms = false;
-
-        // Getters and Setters
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        public String getConfirmPassword() { return confirmPassword; }
-        public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
-        public String getCaptcha() { return captcha; }
-        public void setCaptcha(String captcha) { this.captcha = captcha; }
-        public boolean isAcceptTerms() { return acceptTerms; }
-        public void setAcceptTerms(boolean acceptTerms) { this.acceptTerms = acceptTerms; }
-    }
-
-    public static class ForgotPasswordRequest {
-        @NotBlank(message = "邮箱不能为空")
-        @Email(message = "邮箱格式不正确")
-        private String email;
-
-        // Getters and Setters
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-    }
 }

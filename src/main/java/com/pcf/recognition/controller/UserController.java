@@ -1,6 +1,8 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.UpdateProfileRequest;
+import com.pcf.recognition.dto.ChangePasswordRequest;
 import com.pcf.recognition.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -149,32 +149,4 @@ public class UserController {
         }
     }
 
-    // 请求数据类
-    public static class UpdateProfileRequest {
-        @NotBlank(message = "姓名不能为空")
-        private String name;
-        private String phone;
-        private String bio;
-
-        // getters and setters
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-        public String getBio() { return bio; }
-        public void setBio(String bio) { this.bio = bio; }
-    }
-
-    public static class ChangePasswordRequest {
-        @NotBlank(message = "原密码不能为空")
-        private String oldPassword;
-        @NotBlank(message = "新密码不能为空")
-        private String newPassword;
-
-        // getters and setters
-        public String getOldPassword() { return oldPassword; }
-        public void setOldPassword(String oldPassword) { this.oldPassword = oldPassword; }
-        public String getNewPassword() { return newPassword; }
-        public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
-    }
 }

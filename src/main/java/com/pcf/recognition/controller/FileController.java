@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  */
 @Slf4j
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/v1/files")
 public class FileController {
     
     @Value("${file.upload.path:uploads}")

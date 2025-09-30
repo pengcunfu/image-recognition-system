@@ -23,7 +23,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/doubao/image")
+@RequestMapping("/api/v1/doubao/image")
 @RequiredArgsConstructor
 @Tag(name = "Doubao AI识别", description = "基于火山引擎Doubao AI模型的图像识别API")
 public class DoubaoImageRecognitionController {

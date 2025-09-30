@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/recognition")
+@RequestMapping("/api/v1/recognition")
 @RequiredArgsConstructor
 @Validated
 @Tag(name = "图像识别", description = "基于火山引擎的图像识别API")

@@ -2,7 +2,7 @@
   <a-layout class="dashboard-layout">
     <!-- Header -->
     <a-layout-header class="header">
-      <div class="logo">
+      <div class="logo" @click="toggleSidebar">
         <!-- <i class="fas fa-eye"></i> -->
         <span>智能图像识别系统</span>
       </div>
@@ -106,6 +106,11 @@ function handleMenuClick({ key }: { key: string }) {
   }
 }
 
+// 切换侧边栏
+function toggleSidebar() {
+  collapsed.value = !collapsed.value
+}
+
 // 退出登录
 function handleLogout() {
   // 清除登录状态
@@ -132,6 +137,11 @@ function handleLogout() {
   justify-content: space-between;
   height: 64px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .logo {
@@ -140,6 +150,14 @@ function handleLogout() {
   gap: 12px;
   font-size: 20px;
   font-weight: bold;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.logo:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .logo i {
@@ -162,8 +180,15 @@ function handleLogout() {
 /* Sidebar */
 .sidebar {
   box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-  min-height: calc(100vh - 64px);
+  height: 100vh;
   background: white;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  z-index: 999;
+  width: 256px !important;
+  min-width: 256px;
+  max-width: 256px;
 }
 
 .sidebar :deep(.ant-layout-sider-children) {
@@ -173,11 +198,13 @@ function handleLogout() {
 .menu {
   border-right: none;
   padding: 16px 0;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 /* 菜单项样式 */
 .menu :deep(.ant-menu-item) {
-  margin: 2px 12px;
+  margin: 2px 8px;
   border-radius: 8px;
   height: 44px;
   line-height: 44px;
@@ -185,12 +212,14 @@ function handleLogout() {
   font-size: 14px;
   font-weight: 500;
   color: #595959;
+  width: calc(100% - 16px);
+  overflow: hidden;
 }
 
 .menu :deep(.ant-menu-item:hover) {
   background-color: rgba(24, 144, 255, 0.08);
   color: #1890ff;
-  transform: translateX(2px);
+  transform: none;
 }
 
 .menu :deep(.ant-menu-item-selected) {
@@ -222,6 +251,21 @@ function handleLogout() {
 .content {
   padding: 24px;
   overflow-y: auto;
+  margin-top: 64px;
+  margin-left: 256px;
+  min-height: calc(100vh - 64px);
+  transition: margin-left 0.3s ease;
+}
+
+/* 侧边栏收缩时的内容区域调整 */
+.dashboard-layout :deep(.ant-layout-sider-collapsed) + .ant-layout .content {
+  margin-left: 80px;
+}
+
+.sidebar:deep(.ant-layout-sider-collapsed) {
+  width: 80px !important;
+  min-width: 80px;
+  max-width: 80px;
 }
 
 .content-wrapper {
@@ -237,6 +281,11 @@ function handleLogout() {
   
   .content {
     padding: 16px;
+    margin-left: 200px;
+  }
+  
+  .dashboard-layout :deep(.ant-layout-sider-collapsed) + .ant-layout .content {
+    margin-left: 80px;
   }
 }
 
@@ -251,6 +300,20 @@ function handleLogout() {
   
   .user-info span {
     display: none;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .content {
+    margin-left: 0 !important;
   }
 }
 </style>

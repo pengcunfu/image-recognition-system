@@ -3,6 +3,7 @@ package com.pcf.recognition.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.BatchRecognition;
 import com.pcf.recognition.entity.BatchRecognitionItem;
 import com.pcf.recognition.repository.BatchRecognitionRepository;
@@ -30,7 +31,7 @@ public class BatchRecognitionService {
     /**
      * 创建批量识别任务
      */
-    public Map<String, Object> createBatchTask(Long userId, String taskName, String description, MultipartFile[] images) {
+    public BatchTaskCreateResponseDto createBatchTask(Long userId, String taskName, String description, MultipartFile[] images) {
         log.info("创建批量识别任务: userId={}, taskName={}, imageCount={}", userId, taskName, images.length);
         
         try {
@@ -62,24 +63,26 @@ public class BatchRecognitionService {
                 batchRecognitionItemRepository.insert(item);
             }
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "批量识别任务创建成功");
-            response.put("taskId", batchTask.getId());
-            response.put("totalCount", images.length);
-            
-            return response;
+            return BatchTaskCreateResponseDto.builder()
+                .success(true)
+                .message("批量识别任务创建成功")
+                .taskId(batchTask.getId())
+                .totalCount(images.length)
+                .build();
             
         } catch (Exception e) {
             log.error("创建批量识别任务失败", e);
-            return createErrorResponse("创建任务失败");
+            return BatchTaskCreateResponseDto.builder()
+                .success(false)
+                .message("创建任务失败")
+                .build();
         }
     }
 
     /**
      * 获取批量任务列表
      */
-    public Map<String, Object> getBatchTasks(Long userId, Integer page, Integer size, String status) {
+    public BatchTaskListResponseDto getBatchTasks(Long userId, Integer page, Integer size, String status) {
         log.info("获取批量任务列表: userId={}, page={}, size={}", userId, page, size);
         
         try {
@@ -96,26 +99,27 @@ public class BatchRecognitionService {
             
             Page<BatchRecognition> result = batchRecognitionRepository.selectPage(pageRequest, queryWrapper);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", result.getRecords());
-            response.put("total", result.getTotal());
-            response.put("pages", result.getPages());
-            response.put("current", result.getCurrent());
-            response.put("size", result.getSize());
-            
-            return response;
+            return BatchTaskListResponseDto.builder()
+                .success(true)
+                .data(result.getRecords())
+                .total(result.getTotal())
+                .pages(result.getPages())
+                .current(result.getCurrent())
+                .size(result.getSize())
+                .build();
             
         } catch (Exception e) {
             log.error("获取批量任务列表失败", e);
-            return createErrorResponse("获取任务列表失败");
+            return BatchTaskListResponseDto.builder()
+                .success(false)
+                .build();
         }
     }
 
     /**
      * 获取批量任务详情
      */
-    public Map<String, Object> getBatchTaskDetail(Long taskId, Long userId) {
+    public ApiResponse<BatchTaskDetailDto> getBatchTaskDetail(Long taskId, Long userId) {
         log.info("获取批量任务详情: taskId={}, userId={}", taskId, userId);
         
         try {
@@ -126,7 +130,7 @@ public class BatchRecognitionService {
             );
             
             if (task == null) {
-                return createErrorResponse("任务不存在");
+                return ApiResponse.error("任务不存在");
             }
             
             // 获取任务项
@@ -136,26 +140,23 @@ public class BatchRecognitionService {
                     .orderByAsc(BatchRecognitionItem::getCreateTime)
             );
             
-            Map<String, Object> taskDetail = new HashMap<>();
-            taskDetail.put("task", task);
-            taskDetail.put("items", items);
+            BatchTaskDetailDto taskDetail = BatchTaskDetailDto.builder()
+                .task(task)
+                .items(items)
+                .build();
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", taskDetail);
-            
-            return response;
+            return ApiResponse.success(taskDetail, "获取任务详情成功");
             
         } catch (Exception e) {
             log.error("获取批量任务详情失败", e);
-            return createErrorResponse("获取任务详情失败");
+            return ApiResponse.error("获取任务详情失败");
         }
     }
 
     /**
      * 删除批量任务
      */
-    public Map<String, Object> deleteBatchTask(Long taskId, Long userId) {
+    public OperationResultDto deleteBatchTask(Long taskId, Long userId) {
         log.info("删除批量任务: taskId={}, userId={}", taskId, userId);
         
         try {
@@ -167,7 +168,10 @@ public class BatchRecognitionService {
             );
             
             if (task == null) {
-                return createErrorResponse("任务不存在");
+                return OperationResultDto.builder()
+                    .success(false)
+                    .message("任务不存在")
+                    .build();
             }
             
             // 删除任务项
@@ -179,29 +183,34 @@ public class BatchRecognitionService {
             // 删除任务
             batchRecognitionRepository.deleteById(taskId);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "删除成功");
-            
-            return response;
+            return OperationResultDto.builder()
+                .success(true)
+                .message("删除成功")
+                .build();
             
         } catch (Exception e) {
             log.error("删除批量任务失败", e);
-            return createErrorResponse("删除失败");
+            return OperationResultDto.builder()
+                .success(false)
+                .message("删除失败")
+                .build();
         }
     }
 
     /**
      * 更新任务进度
      */
-    public Map<String, Object> updateTaskProgress(Long taskId, Integer processedCount, Integer successCount, Integer failedCount) {
+    public BatchTaskProgressUpdateDto updateTaskProgress(Long taskId, Integer processedCount, Integer successCount, Integer failedCount) {
         log.info("更新任务进度: taskId={}, processed={}, success={}, failed={}", taskId, processedCount, successCount, failedCount);
         
         try {
             BatchRecognition task = batchRecognitionRepository.selectById(taskId);
             
             if (task == null) {
-                return createErrorResponse("任务不存在");
+                return BatchTaskProgressUpdateDto.builder()
+                    .success(false)
+                    .message("任务不存在")
+                    .build();
             }
             
             // 计算进度百分比
@@ -225,23 +234,25 @@ public class BatchRecognitionService {
             
             batchRecognitionRepository.update(null, updateWrapper);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "进度更新成功");
-            response.put("progress", progress);
-            
-            return response;
+            return BatchTaskProgressUpdateDto.builder()
+                .success(true)
+                .message("进度更新成功")
+                .progress(progress)
+                .build();
             
         } catch (Exception e) {
             log.error("更新任务进度失败", e);
-            return createErrorResponse("更新进度失败");
+            return BatchTaskProgressUpdateDto.builder()
+                .success(false)
+                .message("更新进度失败")
+                .build();
         }
     }
 
     /**
      * 获取批量任务统计
      */
-    public Map<String, Object> getBatchStats(Long userId) {
+    public BatchTaskStatsDto getBatchStats(Long userId) {
         log.info("获取批量任务统计: userId={}", userId);
         
         try {
@@ -265,31 +276,21 @@ public class BatchRecognitionService {
                     .eq(BatchRecognition::getStatus, BatchRecognition.BatchStatus.PROCESSING)
             );
             
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalTasks", totalTasks);
-            stats.put("completedTasks", completedTasks);
-            stats.put("processingTasks", processingTasks);
-            stats.put("pendingTasks", totalTasks - completedTasks - processingTasks);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("stats", stats);
-            
-            return response;
+            return BatchTaskStatsDto.builder()
+                .totalTasks(totalTasks)
+                .completedTasks(completedTasks)
+                .processingTasks(processingTasks)
+                .pendingTasks(totalTasks - completedTasks - processingTasks)
+                .build();
             
         } catch (Exception e) {
             log.error("获取批量任务统计失败", e);
-            return createErrorResponse("获取统计失败");
+            return BatchTaskStatsDto.builder()
+                .totalTasks(0L)
+                .completedTasks(0L)
+                .processingTasks(0L)
+                .pendingTasks(0L)
+                .build();
         }
-    }
-    
-    /**
-     * 创建错误响应
-     */
-    private Map<String, Object> createErrorResponse(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return response;
     }
 }

@@ -1,0 +1,4 @@
+---
+alwaysApply: false
+---
+这是基于Windows平台开发，如果涉及到任何系统命令，请使用PowerShell语法。

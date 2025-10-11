@@ -346,7 +346,7 @@ echo "0 2 * * * /path/to/scripts/backup.sh" | crontab -
 如遇到问题，请通过以下方式反馈：
 
 - **GitHub Issues**: [提交问题](https://github.com/pengcunfu/image-recognition-system/issues)
-- **邮箱**: pengcunfu@example.com
+- **邮箱**: 3173484026@qq.com
 - **文档**: 查看 [完整文档](./docs/)
 
 ## 相关链接

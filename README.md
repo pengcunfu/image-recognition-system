@@ -1,4 +1,4 @@
-# 🔍 智能图像识别系统
+# 智能图像识别系统
 
 > 基于 Doubao-1.5-thinking-vision-pro 的通用图像识别平台
 
@@ -8,21 +8,21 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📋 项目简介
+## 项目简介
 
 智能图像识别系统是一个基于人工智能的图像分析平台，能够精准识别图像中的物体种类、名称、颜色、形状、材质等核心属性。系统采用前后端分离架构，集成了火山引擎 Doubao AI 大模型，提供高精度的图像识别服务。
 
-### ✨ 核心特性
+### 核心特性
 
-- 🎯 **精准识别**: 基于 Doubao-1.5-thinking-vision-pro 大模型，识别准确率高
-- 🚀 **高效处理**: 精炼的提示词设计，节省 30-50% Token 消耗
-- 📊 **结构化输出**: 标准 JSON 格式输出，便于程序解析和处理
-- 🔄 **批量处理**: 支持多图像批量识别，提高处理效率
-- 🌐 **Web界面**: 现代化的 Vue.js 前端界面，用户体验友好
-- 🐳 **容器化部署**: 完整的 Docker 部署方案，一键启动
-- 📈 **监控运维**: 集成 Prometheus + Grafana 监控体系
+- **精准识别**: 基于 Doubao-1.5-thinking-vision-pro 大模型，识别准确率高
+- **高效处理**: 精炼的提示词设计，节省 30-50% Token 消耗
+- **结构化输出**: 标准 JSON 格式输出，便于程序解析和处理
+- **批量处理**: 支持多图像批量识别，提高处理效率
+- **Web界面**: 现代化的 Vue.js 前端界面，用户体验友好
+- **容器化部署**: 完整的 Docker 部署方案，一键启动
+- **监控运维**: 集成 Prometheus + Grafana 监控体系
 
-### 🏗️ 技术架构
+### 技术架构
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -41,9 +41,9 @@
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 快速开始
+## 快速开始
 
-### 🔥 开发模式（推荐）
+### 开发模式（推荐）
 
 使用热重载功能进行开发：
 
@@ -77,7 +77,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/your-repo/image-recognition-system.git
+git clone https://github.com/pengcunfu/image-recognition-system.git
 cd image-recognition-system
 
 # 2. 配置环境变量
@@ -130,7 +130,7 @@ cp dist/* /var/www/html/
 
 </details>
 
-## 🌐 访问地址
+## 访问地址
 
 部署完成后，您可以通过以下地址访问：
 
@@ -140,7 +140,7 @@ cp dist/* /var/www/html/
 - **健康检查**: http://localhost:8080/api/v1/doubao/image/status
 - **监控面板**: http://localhost:3000 (Grafana)
 
-## 🔧 API 使用示例
+## API 使用示例
 
 ### 文件上传识别
 
@@ -187,9 +187,9 @@ curl -X POST "http://localhost:8080/api/v1/doubao/image/recognize/json" \
 }
 ```
 
-## 📊 功能特性
+## 功能特性
 
-### 🎯 图像识别能力
+### 图像识别能力
 
 - **物体分类**: 准确识别图像中的主要物体类别
 - **名称识别**: 提供具体的物体名称和品种信息
@@ -198,7 +198,7 @@ curl -X POST "http://localhost:8080/api/v1/doubao/image/recognize/json" \
 - **材质识别**: 判断物体的材质和质感特征
 - **属性提取**: 提取物体的关键属性和特征标签
 
-### 🚀 系统功能
+### 系统功能
 
 - **用户管理**: 用户注册、登录、权限控制
 - **批量处理**: 支持多图像批量上传和识别
@@ -207,7 +207,7 @@ curl -X POST "http://localhost:8080/api/v1/doubao/image/recognize/json" \
 - **实时监控**: 系统性能和服务状态监控
 - **数据统计**: 识别结果统计和分析报表
 
-## 🔑 配置说明
+## 配置说明
 
 ### 环境变量配置
 
@@ -243,7 +243,7 @@ image.recognition.prompt.default=分析图像并以JSON格式输出核心属性.
 image.recognition.prompt.detailed=详细分析图像中的所有元素...
 ```
 
-## 🛠️ 开发指南
+## 开发指南
 
 ### 项目结构
 
@@ -284,14 +284,14 @@ docker-compose up -d mysql redis
 - **JavaScript/TypeScript**: 遵循 ESLint 标准
 - **提交信息**: 遵循 Conventional Commits 规范
 
-## 📈 性能指标
+## 性能指标
 
 - **识别速度**: 平均响应时间 < 2秒
 - **识别准确率**: > 95% (基于测试数据集)
 - **并发支持**: 支持 100+ 并发请求
 - **Token 效率**: 相比标准提示词节省 30-50% Token
 
-## 🔒 安全特性
+## 安全特性
 
 - **身份认证**: JWT Token 认证机制
 - **权限控制**: 基于角色的访问控制 (RBAC)
@@ -300,7 +300,7 @@ docker-compose up -d mysql redis
 - **文件验证**: 上传文件格式和大小验证
 - **SQL 注入防护**: MyBatis 参数化查询
 
-## 📊 监控运维
+## 监控运维
 
 ### 健康检查
 
@@ -332,7 +332,7 @@ docker-compose logs -f frontend
 echo "0 2 * * * /path/to/scripts/backup.sh" | crontab -
 ```
 
-## 🤝 贡献指南
+## 贡献指南
 
 欢迎贡献代码！请遵循以下步骤：
 
@@ -342,19 +342,19 @@ echo "0 2 * * * /path/to/scripts/backup.sh" | crontab -
 4. 推送分支: `git push origin feature/your-feature`
 5. 提交 Pull Request
 
-## 📄 许可证
+## 许可证
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
-## 🆘 问题反馈
+## 问题反馈
 
 如遇到问题，请通过以下方式反馈：
 
-- **GitHub Issues**: [提交问题](https://github.com/your-repo/image-recognition-system/issues)
-- **邮箱**: support@yourproject.com
+- **GitHub Issues**: [提交问题](https://github.com/pengcunfu/image-recognition-system/issues)
+- **邮箱**: pengcunfu@example.com
 - **文档**: 查看 [完整文档](./docs/)
 
-## 📚 相关链接
+## 相关链接
 
 - **项目参考**: https://github.com/dengcao/AI-Intelligent-Recognition.git
 - **Doubao API 文档**: https://www.volcengine.com/docs/82379
@@ -363,7 +363,8 @@ echo "0 2 * * * /path/to/scripts/backup.sh" | crontab -
 
 ---
 
-⭐ 如果这个项目对您有帮助，请给我们一个 Star！
+如果这个项目对您有帮助，请给我们一个 Star！
 
 **版本**: v1.0.0  
-**最后更新**: 2025年12月29日
+**最后更新**: 2025年10月11日  
+**作者**: pengcunfu

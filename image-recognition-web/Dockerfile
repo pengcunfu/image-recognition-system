@@ -8,16 +8,16 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 # 复制npm国内镜像配置
-COPY docker/npm/.npmrc /root/.npmrc
+COPY ../docker/npm/.npmrc /root/.npmrc
 
 # 复制前端项目文件
-COPY frontend/package*.json ./
+COPY package*.json ./
 
 # 安装依赖（生产环境需要devDependencies来构建）
 RUN npm ci
 
 # 复制前端源代码
-COPY frontend/ .
+COPY . .
 
 # 构建前端应用
 RUN npm run build
@@ -32,7 +32,7 @@ RUN apk add --no-cache curl
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # 复制自定义 nginx 配置
-COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ../docker/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # 暴露端口
 EXPOSE 80

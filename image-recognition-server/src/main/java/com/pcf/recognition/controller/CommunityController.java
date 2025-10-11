@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -29,6 +30,7 @@ public class CommunityController {
 
     @Operation(summary = "获取帖子列表", description = "分页获取社区帖子列表")
     @GetMapping("/posts")
+    // 公开接口，无需权限验证
     public ApiResponse<Map<String, Object>> getPosts(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
@@ -48,6 +50,7 @@ public class CommunityController {
 
     @Operation(summary = "获取帖子详情", description = "获取单个帖子的详细信息")
     @GetMapping("/posts/{id}")
+    // 公开接口，无需权限验证
     public ApiResponse<Map<String, Object>> getPostDetail(
             @Parameter(description = "帖子ID") @PathVariable Long id) {
         
@@ -64,6 +67,7 @@ public class CommunityController {
 
     @Operation(summary = "发布帖子", description = "发布新的社区帖子")
     @PostMapping("/posts")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> createPost(
             @Parameter(description = "帖子发布请求") @Valid @RequestBody CreatePostRequest request,
             @RequestHeader(value = "Authorization", required = false) String token) {
@@ -89,6 +93,7 @@ public class CommunityController {
 
     @Operation(summary = "获取帖子评论", description = "获取帖子的评论列表")
     @GetMapping("/posts/{id}/comments")
+    // 公开接口，无需权限验证
     public ApiResponse<Map<String, Object>> getPostComments(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
@@ -107,6 +112,7 @@ public class CommunityController {
 
     @Operation(summary = "添加评论", description = "为帖子添加评论")
     @PostMapping("/posts/{id}/comments")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> addComment(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @Parameter(description = "评论请求") @Valid @RequestBody AddCommentRequest request,
@@ -132,6 +138,7 @@ public class CommunityController {
 
     @Operation(summary = "点赞帖子", description = "为帖子点赞")
     @PostMapping("/posts/{id}/like")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<String> likePost(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {

@@ -1,20 +1,16 @@
 package com.pcf.recognition.controller;
 
-import com.pcf.recognition.dto.ApiResponse;
-import com.pcf.recognition.dto.LoginRequest;
-import com.pcf.recognition.dto.RegisterRequest;
-import com.pcf.recognition.dto.ForgotPasswordRequest;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 用户认证控制器
@@ -31,16 +27,22 @@ public class AuthController {
 
     @Operation(summary = "用户登录", description = "通过用户名/邮箱和密码进行登录认证")
     @PostMapping("/login")
-    public ApiResponse<Map<String, Object>> login(
+    // 公开接口，无需权限验证
+    public ApiResponse<LoginResponseDto> login(
             @Parameter(description = "登录请求数据") @Valid @RequestBody LoginRequest request) {
         
         try {
-            Map<String, Object> result = authService.login(
+            LoginResponseDto result = authService.login(
                 request.getUsername(), 
                 request.getPassword(), 
                 request.getCaptcha()
             );
-            return ApiResponse.success(result, "登录成功");
+            
+            if (result.getSuccess()) {
+                return ApiResponse.success(result, result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -48,17 +50,23 @@ public class AuthController {
 
     @Operation(summary = "用户注册", description = "创建新用户账户")
     @PostMapping("/register")
-    public ApiResponse<Map<String, Object>> register(
+    // 公开接口，无需权限验证
+    public ApiResponse<RegisterResponseDto> register(
             @Parameter(description = "注册请求数据") @Valid @RequestBody RegisterRequest request) {
         
         try {
-            Map<String, Object> result = authService.register(
+            RegisterResponseDto result = authService.register(
                 request.getUsername(),
                 request.getEmail(),
                 request.getPassword(),
                 request.getCaptcha()
             );
-            return ApiResponse.success(result, "注册成功");
+            
+            if (result.getSuccess()) {
+                return ApiResponse.success(result, result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -66,6 +74,7 @@ public class AuthController {
 
     @Operation(summary = "忘记密码", description = "通过邮箱重置密码")
     @PostMapping("/forgot-password")
+    // 公开接口，无需权限验证
     public ApiResponse<String> forgotPassword(
             @Parameter(description = "邮箱地址") @Valid @RequestBody ForgotPasswordRequest request) {
         
@@ -77,13 +86,15 @@ public class AuthController {
 
     @Operation(summary = "刷新验证码", description = "获取新的验证码")
     @GetMapping("/captcha")
-    public ApiResponse<Map<String, Object>> getCaptcha() {
-        Map<String, Object> result = authService.getCaptcha();
+    // 公开接口，无需权限验证
+    public ApiResponse<CaptchaResponseDto> getCaptcha() {
+        CaptchaResponseDto result = authService.getCaptcha();
         return ApiResponse.success(result, "验证码获取成功");
     }
 
     @Operation(summary = "退出登录", description = "用户登出，清除会话")
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
         
         log.info("用户退出登录: token={}", token);
@@ -94,7 +105,8 @@ public class AuthController {
 
     @Operation(summary = "验证Token", description = "验证用户token是否有效")
     @GetMapping("/validate")
-    public ApiResponse<Map<String, Object>> validateToken(
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<TokenValidationResponseDto> validateToken(
             @RequestHeader(value = "Authorization", required = false) String token) {
         
         if (token == null || !token.startsWith("token_")) {
@@ -102,20 +114,24 @@ public class AuthController {
         }
         
         // 模拟token验证
-        Map<String, Object> result = new HashMap<>();
-        result.put("valid", true);
-        result.put("userInfo", Map.of(
-            "id", 1,
-            "username", "user",
-            "name", "张三",
-            "role", "user"
-        ));
+        UserInfoDto userInfo = UserInfoDto.builder()
+            .id(1L)
+            .username("user")
+            .name("张三")
+            .role("user")
+            .build();
+            
+        TokenValidationResponseDto result = TokenValidationResponseDto.builder()
+            .valid(true)
+            .userInfo(userInfo)
+            .build();
         
         return ApiResponse.success(result, "Token验证成功");
     }
     
     @Operation(summary = "发送短信验证码", description = "发送短信验证码到指定手机号")
     @PostMapping("/sms-code")
+    // 公开接口，无需权限验证
     public ApiResponse<SmsCodeResponse> sendSmsCode(@RequestBody SmsCodeRequest request) {
         try {
             // 校验手机号格式
@@ -147,6 +163,7 @@ public class AuthController {
     
     @Operation(summary = "验证短信验证码", description = "验证用户输入的短信验证码")
     @PostMapping("/sms-code/verify")
+    // 公开接口，无需权限验证
     public ApiResponse<Boolean> verifySmsCode(@RequestBody SmsCodeVerifyRequest request) {
         try {
             // TODO: 从Redis中获取验证码进行验证

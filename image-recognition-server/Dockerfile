@@ -6,7 +6,7 @@ WORKDIR /app
 
 # 创建Maven配置目录并复制国内镜像配置
 RUN mkdir -p /root/.m2
-COPY docker/maven/settings.xml /root/.m2/settings.xml
+COPY ../docker/maven/settings.xml /root/.m2/settings.xml
 
 # 复制 Maven 配置文件
 COPY pom.xml .

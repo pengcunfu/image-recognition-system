@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +28,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "批量图像识别", description = "同时上传多张图片进行批量识别")
     @PostMapping("/recognize")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> batchRecognize(
             @Parameter(description = "图片文件列表") @RequestParam("images") MultipartFile[] images,
             @Parameter(description = "任务名称") @RequestParam(required = false) String taskName,
@@ -56,6 +58,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "获取批量任务列表", description = "获取用户的批量识别任务列表")
     @GetMapping("/tasks")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> getBatchTasks(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
@@ -78,6 +81,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "获取批量任务详情", description = "获取批量识别任务的详细信息")
     @GetMapping("/tasks/{id}")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> getBatchTaskDetail(
             @Parameter(description = "任务ID") @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {
@@ -98,6 +102,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "删除批量任务", description = "删除批量识别任务")
     @DeleteMapping("/tasks/{id}")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<String> deleteBatchTask(
             @Parameter(description = "任务ID") @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {
@@ -118,6 +123,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "获取批量任务进度", description = "获取批量识别任务的进度信息")
     @GetMapping("/tasks/{id}/progress")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> getTaskProgress(
             @Parameter(description = "任务ID") @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {
@@ -150,6 +156,7 @@ public class BatchRecognitionController {
 
     @Operation(summary = "获取批量任务统计", description = "获取用户的批量任务统计信息")
     @GetMapping("/stats")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> getBatchStats(
             @RequestHeader(value = "Authorization", required = false) String token) {
         

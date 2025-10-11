@@ -28,6 +28,14 @@ public class FileStorageService {
     private long maxFileSize;
 
     /**
+     * 存储文件 - 为了兼容性保留的方法名
+     */
+    public String storeFile(MultipartFile file) throws IOException {
+        FileUploadResult result = uploadFile(file);
+        return result.getUrl();
+    }
+    
+    /**
      * 上传文件
      */
     public FileUploadResult uploadFile(MultipartFile file) throws IOException {

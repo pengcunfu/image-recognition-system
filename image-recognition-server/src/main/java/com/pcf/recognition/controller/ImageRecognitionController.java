@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,6 +61,7 @@ public class ImageRecognitionController {
             )
     })
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<RecognitionResult> recognizeImage(
             @Parameter(description = "要识别的图片文件", required = true)
             @RequestParam("file") @NotNull MultipartFile file,
@@ -106,6 +108,7 @@ public class ImageRecognitionController {
             description = "上传多张图片进行批量AI识别，最多支持20张图片"
     )
     @PostMapping(value = "/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<Map<String, Object>> batchRecognizeImages(
             @Parameter(description = "要识别的图片文件列表 (最多20张)", required = true)
             @RequestParam("files") List<MultipartFile> files,
@@ -197,6 +200,7 @@ public class ImageRecognitionController {
      */
     @Operation(summary = "获取支持的识别模式", description = "获取系统支持的所有图像识别模式列表")
     @GetMapping("/modes")
+    // 公开接口，无需权限验证
     public ApiResponse<List<Map<String, Object>>> getSupportedModes() {
         List<Map<String, Object>> modes = new ArrayList<>();
         
@@ -243,6 +247,7 @@ public class ImageRecognitionController {
      */
     @Operation(summary = "健康检查", description = "检查图像识别服务的运行状态")
     @GetMapping("/health")
+    // 公开接口，无需权限验证
     public ApiResponse<Map<String, Object>> healthCheck() {
         Map<String, Object> status = new HashMap<>();
         status.put("status", "healthy");

@@ -12,6 +12,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +36,7 @@ public class FileController {
 
     @Operation(summary = "上传单个文件", description = "上传单个文件，支持图片、文档等格式")
     @PostMapping("/upload")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileStorageService.FileUploadResult> uploadFile(
             @Parameter(description = "要上传的文件", required = true)
             @RequestParam("file") MultipartFile file) {
@@ -51,6 +53,7 @@ public class FileController {
 
     @Operation(summary = "批量上传文件", description = "批量上传多个文件")
     @PostMapping("/upload/batch")
+    @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<List<FileStorageService.FileUploadResult>> uploadFiles(
             @Parameter(description = "要上传的文件列表", required = true)
             @RequestParam("files") MultipartFile[] files) {
@@ -66,7 +69,7 @@ public class FileController {
                     })
                     .filter(result -> result != null)
                     .toList();
-            
+
             return ApiResponse.success(results, "批量上传完成，成功" + results.size() + "个文件");
         } catch (Exception e) {
             log.error("批量文件上传失败", e);
@@ -76,6 +79,7 @@ public class FileController {
 
     @Operation(summary = "获取文件", description = "根据文件ID获取文件内容，支持在线预览")
     @GetMapping("/{fileId}")
+    // 公开接口，无需权限验证
     public ResponseEntity<Resource> getFile(
             @Parameter(description = "文件ID", required = true)
             @PathVariable String fileId,
@@ -98,7 +102,7 @@ public class FileController {
                     .contentType(MediaType.parseMediaType(contentType));
 
             if (download) {
-                builder.header(HttpHeaders.CONTENT_DISPOSITION, 
+                builder.header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + filePath.getFileName().toString() + "\"");
             } else {
                 // 对于图片等文件，设置为内联显示
@@ -116,6 +120,7 @@ public class FileController {
 
     @Operation(summary = "下载文件", description = "根据文件ID下载文件")
     @GetMapping("/{fileId}/download")
+    // 公开接口，无需权限验证
     public ResponseEntity<Resource> downloadFile(
             @Parameter(description = "文件ID", required = true)
             @PathVariable String fileId) {
@@ -124,6 +129,7 @@ public class FileController {
 
     @Operation(summary = "预览文件", description = "根据文件ID预览文件（主要用于图片）")
     @GetMapping("/{fileId}/preview")
+    // 公开接口，无需权限验证
     public ResponseEntity<Resource> previewFile(
             @Parameter(description = "文件ID", required = true)
             @PathVariable String fileId) {
@@ -132,12 +138,13 @@ public class FileController {
 
     @Operation(summary = "删除文件", description = "根据文件ID删除文件")
     @DeleteMapping("/{fileId}")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Void> deleteFile(
             @Parameter(description = "文件ID", required = true)
             @PathVariable String fileId) {
         try {
             boolean deleted = fileStorageService.deleteFile(fileId);
-            
+
             if (deleted) {
                 return ApiResponse.success(null, "文件删除成功");
             } else {
@@ -151,23 +158,24 @@ public class FileController {
 
     @Operation(summary = "获取文件信息", description = "根据文件ID获取文件的元信息")
     @GetMapping("/{fileId}/info")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileInfo> getFileInfo(
             @Parameter(description = "文件ID", required = true)
             @PathVariable String fileId) {
         try {
             Path filePath = fileStorageService.getFilePath(fileId);
-            
+
             if (!Files.exists(filePath)) {
                 return ApiResponse.error("文件不存在");
             }
-            
+
             FileInfo fileInfo = new FileInfo();
             fileInfo.setId(fileId);
             fileInfo.setName(filePath.getFileName().toString());
             fileInfo.setSize(Files.size(filePath));
             fileInfo.setContentType(Files.probeContentType(filePath));
             fileInfo.setLastModified(Files.getLastModifiedTime(filePath).toMillis());
-            
+
             return ApiResponse.success(fileInfo, "获取文件信息成功");
         } catch (Exception e) {
             log.error("获取文件信息失败: {}", fileId, e);
@@ -184,21 +192,46 @@ public class FileController {
         private long size;
         private String contentType;
         private long lastModified;
-        
+
         // Getters and Setters
-        public String getId() { return id; }
-        public void setId(String id) { this.id = id; }
-        
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        
-        public long getSize() { return size; }
-        public void setSize(long size) { this.size = size; }
-        
-        public String getContentType() { return contentType; }
-        public void setContentType(String contentType) { this.contentType = contentType; }
-        
-        public long getLastModified() { return lastModified; }
-        public void setLastModified(long lastModified) { this.lastModified = lastModified; }
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public void setSize(long size) {
+            this.size = size;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public void setContentType(String contentType) {
+            this.contentType = contentType;
+        }
+
+        public long getLastModified() {
+            return lastModified;
+        }
+
+        public void setLastModified(long lastModified) {
+            this.lastModified = lastModified;
+        }
     }
 }

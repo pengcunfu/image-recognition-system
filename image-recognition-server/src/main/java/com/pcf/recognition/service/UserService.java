@@ -1,7 +1,7 @@
 package com.pcf.recognition.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,272 +24,201 @@ public class UserService {
     
     private final UserRepository userRepository;
 
+
     /**
      * 获取用户信息
      */
-    public Map<String, Object> getUserInfo(Long userId) {
+    public UserInfoDto getUserInfo(Long userId) {
         log.info("获取用户信息: userId={}", userId);
+
+        User user = userRepository.selectById(userId);
         
-        try {
-            User user = userRepository.selectById(userId);
-            
-            if (user == null) {
-                return createErrorResponse("用户不存在");
-            }
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("user", Map.of(
-                "id", user.getId(),
-                "username", user.getUsername(),
-                "email", user.getEmail(),
-                "name", user.getName() != null ? user.getName() : user.getUsername(),
-                "phone", user.getPhone() != null ? user.getPhone() : "",
-                "avatar", user.getAvatar() != null ? user.getAvatar() : "/api/v1/images/default-avatar.png",
-                "bio", user.getBio() != null ? user.getBio() : "",
-                "role", user.getRole().name().toLowerCase(),
-                "status", user.getStatus().name().toLowerCase(),
-                "vipLevel", user.getVipLevel(),
-                "lastLoginTime", user.getLastLoginTime(),
-                "createTime", user.getCreateTime()
-            ));
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取用户信息失败", e);
-            return createErrorResponse("获取用户信息失败");
+        if (user == null) {
+            return null; // 或抛出异常
         }
+        
+        return UserInfoDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .name(user.getName() != null ? user.getName() : user.getUsername())
+                .phone(user.getPhone() != null ? user.getPhone() : "")
+                .avatar(user.getAvatar() != null ? user.getAvatar() : "/api/v1/images/default-avatar.png")
+                .bio(user.getBio() != null ? user.getBio() : "")
+                .role(user.getRole().name().toLowerCase())
+                .status(user.getStatus().name().toLowerCase())
+                .vipLevel(user.getVipLevel())
+                .lastLoginTime(user.getLastLoginTime())
+                .createTime(user.getCreateTime())
+                .build();
     }
 
     /**
      * 更新用户信息
      */
-    public Map<String, Object> updateUserInfo(Long userId, Map<String, Object> updateData) {
+    public boolean updateUserInfo(Long userId, UserUpdateDto updateData) {
         log.info("更新用户信息: userId={}", userId);
         
-        try {
-            User user = userRepository.selectById(userId);
-            
-            if (user == null) {
-                return createErrorResponse("用户不存在");
-            }
-            
-            // 使用LambdaUpdateWrapper进行更新
-            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(User::getId, userId);
-            
-            if (updateData.containsKey("name")) {
-                updateWrapper.set(User::getName, (String) updateData.get("name"));
-            }
-            if (updateData.containsKey("phone")) {
-                updateWrapper.set(User::getPhone, (String) updateData.get("phone"));
-            }
-            if (updateData.containsKey("bio")) {
-                updateWrapper.set(User::getBio, (String) updateData.get("bio"));
-            }
-            if (updateData.containsKey("avatar")) {
-                updateWrapper.set(User::getAvatar, (String) updateData.get("avatar"));
-            }
-            
-            userRepository.update(null, updateWrapper);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "用户信息更新成功");
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("更新用户信息失败", e);
-            return createErrorResponse("更新用户信息失败");
+        User user = userRepository.selectById(userId);
+        
+        if (user == null) {
+            return false;
         }
+        
+        // 使用LambdaUpdateWrapper进行更新
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getId, userId);
+        
+        if (updateData.getName() != null) {
+            updateWrapper.set(User::getName, updateData.getName());
+        }
+        if (updateData.getPhone() != null) {
+            updateWrapper.set(User::getPhone, updateData.getPhone());
+        }
+        if (updateData.getBio() != null) {
+            updateWrapper.set(User::getBio, updateData.getBio());
+        }
+        if (updateData.getAvatar() != null) {
+            updateWrapper.set(User::getAvatar, updateData.getAvatar());
+        }
+        
+        return userRepository.update(null, updateWrapper) > 0;
     }
 
     /**
      * 修改密码
      */
-    public Map<String, Object> changePassword(Long userId, String oldPassword, String newPassword) {
+    public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         log.info("修改密码: userId={}", userId);
         
-        try {
-            User user = userRepository.selectById(userId);
-            
-            if (user == null) {
-                return createErrorResponse("用户不存在");
-            }
-            
-            // 验证旧密码
-            if (!oldPassword.equals(user.getPassword())) {
-                return createErrorResponse("原密码错误");
-            }
-            
-            // 更新密码
-            userRepository.update(null, 
-                new LambdaUpdateWrapper<User>()
-                    .eq(User::getId, userId)
-                    .set(User::getPassword, newPassword) // 生产环境应加密
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "密码修改成功");
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("修改密码失败", e);
-            return createErrorResponse("修改密码失败");
+        User user = userRepository.selectById(userId);
+        
+        if (user == null) {
+            return false;
         }
+        
+        // 验证旧密码
+        if (!oldPassword.equals(user.getPassword())) {
+            throw new IllegalArgumentException("原密码错误");
+        }
+        
+        // 更新密码
+        return userRepository.update(null, 
+            new LambdaUpdateWrapper<User>()
+                .eq(User::getId, userId)
+                .set(User::getPassword, newPassword) // 生产环境应加密
+        ) > 0;
     }
 
     /**
-     * 获取用户统计信息
+     * 获取用户统计信息（合并重复方法）
      */
-    public Map<String, Object> getUserStats(Long userId) {
+    public UserStatsDto getUserStats(Long userId) {
         log.info("获取用户统计信息: userId={}", userId);
         
-        try {
-            // 这里应该从相关表查询统计数据，暂时返回模拟数据
-            Map<String, Object> stats = Map.of(
-                "totalRecognitions", 156,
-                "successRecognitions", 148,
-                "failedRecognitions", 8,
-                "favoriteCount", 23,
-                "totalUploadSize", 52428800L, // 字节
-                "averageConfidence", 92.5,
-                "lastRecognitionTime", LocalDateTime.now().minusHours(2)
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("stats", stats);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取用户统计信息失败", e);
-            return createErrorResponse("获取统计信息失败");
+        User user = userRepository.selectById(userId);
+        
+        if (user == null) {
+            return null;
         }
+        
+        // 这里应该从相关表查询统计数据，暂时返回模拟数据
+        return UserStatsDto.builder()
+                .totalRecognitions(156)
+                .successRecognitions(148)
+                .failedRecognitions(8)
+                .favoriteCount(23)
+                .totalUploadSize(52428800L) // 字节
+                .averageConfidence(92.5)
+                .lastRecognitionTime(LocalDateTime.now().minusHours(2))
+                .postCount(15)
+                .commentCount(8)
+                .viewCount(120)
+                .likeCount(25)
+                .recognitionCount(156) // 与totalRecognitions保持一致
+                .build();
     }
 
     /**
      * 获取用户设置
      */
-    public Map<String, Object> getUserSettings(Long userId) {
+    public UserSettingsDto getUserSettings(Long userId) {
         log.info("获取用户设置: userId={}", userId);
         
-        try {
-            // 模拟用户设置数据
-            Map<String, Object> settings = Map.of(
-                "theme", "light",
-                "language", "zh-CN",
-                "notifications", Map.of(
-                    "email", true,
-                    "push", false,
-                    "sms", false
-                ),
-                "privacy", Map.of(
-                    "showProfile", true,
-                    "showHistory", false,
-                    "allowComments", true
-                ),
-                "recognition", Map.of(
-                    "autoSave", true,
-                    "defaultConfidence", 80,
-                    "maxFileSize", 10485760 // 10MB
-                )
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("settings", settings);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取用户设置失败", e);
-            return createErrorResponse("获取用户设置失败");
-        }
+        // 模拟用户设置数据
+        return UserSettingsDto.builder()
+                .theme("light")
+                .language("zh-CN")
+                .notifications(UserSettingsDto.NotificationSettings.builder()
+                        .email(true)
+                        .push(false)
+                        .sms(false)
+                        .build())
+                .privacy(UserSettingsDto.PrivacySettings.builder()
+                        .showProfile(true)
+                        .showHistory(false)
+                        .allowComments(true)
+                        .build())
+                .recognition(UserSettingsDto.RecognitionSettings.builder()
+                        .autoSave(true)
+                        .defaultConfidence(80)
+                        .maxFileSize(10485760L) // 10MB
+                        .build())
+                .build();
     }
 
     /**
      * 更新用户设置
      */
-    public Map<String, Object> updateUserSettings(Long userId, Map<String, Object> settings) {
+    public boolean updateUserSettings(Long userId, UserSettingsDto settings) {
         log.info("更新用户设置: userId={}", userId);
         
-        try {
-            // 实际应该将设置保存到数据库，这里只是模拟
-            log.info("用户设置已更新: {}", settings);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "设置保存成功");
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("更新用户设置失败", e);
-            return createErrorResponse("保存设置失败");
-        }
+        // 实际应该将设置保存到数据库，这里只是模拟
+        log.info("用户设置已更新: {}", settings);
+        
+        return true; // 模拟更新成功
     }
     
     /**
      * 获取用户活动记录
      */
-    public Map<String, Object> getUserActivities(Long userId, Integer limit) {
+    public List<UserActivityDto> getUserActivities(Long userId, Integer limit) {
         log.info("获取用户活动记录: userId={}, limit={}", userId, limit);
         
-        try {
-            // 模拟活动记录，实际项目中应该从活动日志表查询
-            List<Map<String, Object>> activities = new ArrayList<>();
-            
-            Map<String, Object> activity1 = new HashMap<>();
-            activity1.put("type", "recognition");
-            activity1.put("description", "识别了一张金毛犬的图片，置信度 95%");
-            activity1.put("time", "2小时前");
-            activity1.put("metadata", Map.of("result", "金毛犬", "confidence", 95));
-            activities.add(activity1);
-            
-            Map<String, Object> activity2 = new HashMap<>();
-            activity2.put("type", "post");
-            activity2.put("description", "发布了新帖子《AI识别技巧分享》");
-            activity2.put("time", "1天前");
-            activity2.put("metadata", Map.of("postTitle", "AI识别技巧分享", "postId", 123));
-            activities.add(activity2);
-            
-            Map<String, Object> activity3 = new HashMap<>();
-            activity3.put("type", "like");
-            activity3.put("description", "点赞了帖子《深度学习在图像识别中的应用》");
-            activity3.put("time", "2天前");
-            activity3.put("metadata", Map.of("postTitle", "深度学习在图像识别中的应用"));
-            activities.add(activity3);
-            
-            // 取前limit个
-            List<Map<String, Object>> limitedActivities = activities.stream()
-                    .limit(limit)
-                    .toList();
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", limitedActivities);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取用户活动记录失败", e);
-            return createErrorResponse("获取活动记录失败");
-        }
+        // 模拟活动记录，实际项目中应该从活动日志表查询
+        List<UserActivityDto> activities = new ArrayList<>();
+        
+        activities.add(UserActivityDto.builder()
+                .id(1L)
+                .type("recognition")
+                .description("识别了一张金毛犬的图片，置信度 95%")
+                .createTime(LocalDateTime.now().minusHours(2))
+                .timeDisplay("2小时前")
+                .metadata(Map.of("result", "金毛犬", "confidence", 95))
+                .build());
+        
+        activities.add(UserActivityDto.builder()
+                .id(2L)
+                .type("post")
+                .description("发布了新帖子《AI识别技巧分享》")
+                .createTime(LocalDateTime.now().minusDays(1))
+                .timeDisplay("1天前")
+                .metadata(Map.of("postTitle", "AI识别技巧分享", "postId", 123))
+                .build());
+        
+        activities.add(UserActivityDto.builder()
+                .id(3L)
+                .type("like")
+                .description("点赞了帖子《深度学习在图像识别中的应用》")
+                .createTime(LocalDateTime.now().minusDays(2))
+                .timeDisplay("2天前")
+                .metadata(Map.of("postTitle", "深度学习在图像识别中的应用"))
+                .build());
+        
+        // 取前limit个
+        return activities.stream()
+                .limit(limit)
+                .toList();
     }
     
-    /**
-     * 创建错误响应
-     */
-    private Map<String, Object> createErrorResponse(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return response;
-    }
 }

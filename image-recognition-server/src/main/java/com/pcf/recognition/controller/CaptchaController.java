@@ -21,7 +21,7 @@ import java.util.Random;
  */
 @Tag(name = "验证码管理", description = "验证码生成和验证相关接口")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/captcha")
 @Slf4j
 public class CaptchaController {
 
@@ -31,7 +31,8 @@ public class CaptchaController {
     private static final int CAPTCHA_LENGTH = 4;
     
     @Operation(summary = "获取验证码", description = "生成图片验证码，返回base64编码的图片数据和验证码ID")
-    @GetMapping("/captcha")
+    @GetMapping("/generate")
+    // 公开接口，无需权限验证
     public ApiResponse<CaptchaResponse> getCaptcha(HttpSession session) {
         try {
             // 生成验证码
@@ -64,6 +65,7 @@ public class CaptchaController {
     
     @Operation(summary = "验证验证码", description = "验证用户输入的验证码是否正确")
     @PostMapping("/captcha/verify")
+    // 公开接口，无需权限验证
     public ApiResponse<Boolean> verifyCaptcha(@RequestBody CaptchaVerifyRequest request, HttpSession session) {
         try {
             String sessionCode = (String) session.getAttribute(CAPTCHA_SESSION_KEY);

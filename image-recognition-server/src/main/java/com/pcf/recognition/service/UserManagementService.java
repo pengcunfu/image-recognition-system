@@ -6,6 +6,8 @@ import com.pcf.recognition.entity.RecognitionHistory;
 import com.pcf.recognition.repository.UserRepository;
 import com.pcf.recognition.repository.UserFavoriteRepository;
 import com.pcf.recognition.repository.RecognitionHistoryRepository;
+import com.pcf.recognition.dto.UserInfoDto;
+import com.pcf.recognition.dto.UserStatsDto;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,14 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * 用户管理服务 - 纯ORM实现
+ * 用户管理服务 - 专注于管理员级别的用户管理功能
+ * 与UserService的区别：
+ * - UserService：处理当前用户的个人信息管理
+ * - UserManagementService：处理管理员对所有用户的管理操作
  */
 @Service
 @Slf4j
@@ -37,10 +39,10 @@ public class UserManagementService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * 根据用户名或邮箱查找用户（MyBatis Plus方式）
+     * 根据用户名或邮箱查找用户（管理员功能）
      */
     public Optional<User> findByUsernameOrEmail(String usernameOrEmail) {
-        log.info("查找用户: usernameOrEmail={}", usernameOrEmail);
+        log.info("管理员查找用户: usernameOrEmail={}", usernameOrEmail);
         
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, usernameOrEmail)
@@ -52,24 +54,24 @@ public class UserManagementService {
     }
 
     /**
-     * 创建新用户
+     * 创建新用户（管理员功能）
      */
     @Transactional
-    public User createUser(String username, String email, String password, String name) {
-        log.info("创建用户: username={}, email={}", username, email);
+    public User createUser(String username, String email, String password, String name, User.UserRole role) {
+        log.info("管理员创建用户: username={}, email={}, role={}", username, email, role);
         
         // 检查用户名是否已存在
         LambdaQueryWrapper<User> usernameWrapper = new LambdaQueryWrapper<>();
         usernameWrapper.eq(User::getUsername, username);
         if (userRepository.selectCount(usernameWrapper) > 0) {
-            throw new RuntimeException("用户名已存在");
+            throw new IllegalArgumentException("用户名已存在");
         }
         
         // 检查邮箱是否已存在
         LambdaQueryWrapper<User> emailWrapper = new LambdaQueryWrapper<>();
         emailWrapper.eq(User::getEmail, email);
         if (userRepository.selectCount(emailWrapper) > 0) {
-            throw new RuntimeException("邮箱已被注册");
+            throw new IllegalArgumentException("邮箱已被注册");
         }
         
         // 创建用户实体
@@ -78,215 +80,167 @@ public class UserManagementService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setName(name);
-        user.setRole(User.UserRole.USER);
+        user.setRole(role != null ? role : User.UserRole.USER);
         user.setStatus(User.UserStatus.ACTIVE);
-        user.setVipLevel(0);
+        user.setVipLevel(role == User.UserRole.VIP ? 1 : 0);
         
         userRepository.insert(user);
-        User savedUser = user;
-        log.info("用户创建成功: userId={}", savedUser.getId());
+        log.info("管理员创建用户成功: userId={}", user.getId());
         
-        return savedUser;
+        return user;
     }
 
     /**
-     * 更新用户信息
+     * 获取用户分页列表（管理员功能）
+     */
+    public Page<User> getUserList(int page, int size, User.UserRole role, User.UserStatus status) {
+        log.info("管理员获取用户列表: page={}, size={}, role={}, status={}", page, size, role, status);
+        
+        Page<User> pageRequest = new Page<>(page, size);
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        
+        if (role != null) {
+            wrapper.eq(User::getRole, role);
+        }
+        if (status != null) {
+            wrapper.eq(User::getStatus, status);
+        }
+        
+        wrapper.orderByDesc(User::getCreateTime);
+        
+        return userRepository.selectPage(pageRequest, wrapper);
+    }
+
+    /**
+     * 更新用户状态（管理员功能）
      */
     @Transactional
-    public User updateUserProfile(Long userId, String name, String email, String phone, String bio) {
-        log.info("更新用户信息: userId={}", userId);
+    public boolean updateUserStatus(Long userId, User.UserStatus status) {
+        log.info("管理员更新用户状态: userId={}, status={}", userId, status);
         
         User user = userRepository.selectById(userId);
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            return false;
         }
         
-        // 如果邮箱变更，检查是否已被使用
-        if (email != null && !email.equals(user.getEmail())) {
-            LambdaQueryWrapper<User> emailWrapper = new LambdaQueryWrapper<>();
-            emailWrapper.eq(User::getEmail, email)
-                       .ne(User::getId, userId); // 排除当前用户
-            if (userRepository.selectCount(emailWrapper) > 0) {
-                throw new RuntimeException("邮箱已被其他用户使用");
-            }
-            user.setEmail(email);
-        }
-        
-        // 更新其他信息
-        if (name != null) user.setName(name);
-        if (phone != null) user.setPhone(phone);
-        if (bio != null) user.setBio(bio);
-        
-        userRepository.updateById(user);
-        User updatedUser = user;
-        log.info("用户信息更新成功: userId={}", userId);
-        
-        return updatedUser;
+        user.setStatus(status);
+        return userRepository.updateById(user) > 0;
     }
 
     /**
-     * 修改密码
+     * 更新用户角色（管理员功能）
      */
     @Transactional
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        log.info("修改密码: userId={}", userId);
+    public boolean updateUserRole(Long userId, User.UserRole role) {
+        log.info("管理员更新用户角色: userId={}, role={}", userId, role);
         
-        User user = userDao.findById(userId)
-                .orElseThrow(() -> new RuntimeException("用户不存在"));
-        
-        // 验证原密码
-        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-            throw new RuntimeException("原密码错误");
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            return false;
         }
         
-        // 更新密码
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userDao.save(user);
+        user.setRole(role);
+        // 如果设置为VIP，自动设置VIP等级
+        if (role == User.UserRole.VIP && user.getVipLevel() == 0) {
+            user.setVipLevel(1);
+        }
         
-        log.info("密码修改成功: userId={}", userId);
+        return userRepository.updateById(user) > 0;
     }
 
     /**
-     * 获取用户统计数据（纯ORM方式）
+     * 重置用户密码（管理员功能）
      */
-    public Map<String, Object> getUserStats(Long userId) {
-        log.info("获取用户统计数据: userId={}", userId);
+    @Transactional
+    public boolean resetUserPassword(Long userId, String newPassword) {
+        log.info("管理员重置用户密码: userId={}", userId);
         
-        Map<String, Object> stats = new HashMap<>();
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            return false;
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        return userRepository.updateById(user) > 0;
+    }
+
+    /**
+     * 获取系统统计数据（管理员功能）
+     */
+    public UserStatsDto getSystemStats() {
+        log.info("管理员获取系统统计数据");
+        
+        // 总用户数
+        Long totalUsers = userRepository.selectCount(null);
+        
+        // 活跃用户数
+        LambdaQueryWrapper<User> activeWrapper = new LambdaQueryWrapper<>();
+        activeWrapper.eq(User::getStatus, User.UserStatus.ACTIVE);
+        Long activeUsers = userRepository.selectCount(activeWrapper);
+        
+        // VIP用户数
+        LambdaQueryWrapper<User> vipWrapper = new LambdaQueryWrapper<>();
+        vipWrapper.eq(User::getRole, User.UserRole.VIP);
+        Long vipUsers = userRepository.selectCount(vipWrapper);
         
         // 总识别次数
-        long totalRecognitions = historyDao.countByUserId(userId);
-        stats.put("totalRecognitions", totalRecognitions);
+        Long totalRecognitions = historyRepository.selectCount(null);
         
-        // 本月识别次数
-        LocalDateTime startOfMonth = YearMonth.now().atDay(1).atStartOfDay();
-        long thisMonthRecognitions = historyDao.countByUserIdSince(userId, startOfMonth);
-        stats.put("thisMonthRecognitions", thisMonthRecognitions);
-        
-        // 收藏数量
-        long favorites = favoriteDao.countByUserId(userId);
-        stats.put("favorites", favorites);
-        
-        // 计算平均置信度（通过查询所有记录计算）
-        List<RecognitionHistory> allHistories = historyDao.findRecentByUserId(userId, 1000);
-        
-        if (!allHistories.isEmpty()) {
-            double avgConfidence = allHistories.stream()
-                    .mapToInt(RecognitionHistory::getConfidence)
-                    .average()
-                    .orElse(0.0);
-            stats.put("averageConfidence", Math.round(avgConfidence * 10) / 10.0);
-        } else {
-            stats.put("averageConfidence", 0.0);
-        }
-        
-        // 其他统计数据
-        stats.put("discussions", 8); // 模拟数据
-        stats.put("likes", 45); // 模拟数据
-        stats.put("shares", 12); // 模拟数据
-        
-        return stats;
+        return UserStatsDto.builder()
+                .totalRecognitions(totalRecognitions.intValue())
+                .recognitionCount(totalRecognitions.intValue())
+                .postCount(totalUsers.intValue()) // 使用用户数作为模拟数据
+                .commentCount((int)(totalUsers * 2)) // 模拟数据
+                .favoriteCount((int)(totalRecognitions * 0.1)) // 模拟数据
+                .viewCount((int)(totalRecognitions * 5)) // 模拟数据
+                .likeCount((int)(totalRecognitions * 0.3)) // 模拟数据
+                .successRecognitions((int)(totalRecognitions * 0.9)) // 模拟90%成功率
+                .failedRecognitions((int)(totalRecognitions * 0.1)) // 模拟10%失败率
+                .averageConfidence(87.5) // 模拟平均置信度
+                .build();
     }
 
     /**
-     * 获取用户收藏列表
-     */
-    public Page<UserFavorite> getUserFavorites(Long userId, int page, int size) {
-        log.info("获取用户收藏列表: userId={}, page={}, size={}", userId, page, size);
-        
-        Pageable pageable = PageRequest.of(page - 1, size);
-        return favoriteDao.findByUserId(userId, pageable);
-    }
-
-    /**
-     * 添加收藏
+     * 删除用户（软删除，管理员功能）
      */
     @Transactional
-    public UserFavorite addToFavorites(Long userId, Long recognitionId, String tags) {
-        log.info("添加收藏: userId={}, recognitionId={}", userId, recognitionId);
+    public boolean deleteUser(Long userId) {
+        log.info("管理员删除用户: userId={}", userId);
         
-        // 检查是否已收藏
-        if (favoriteDao.existsByUserIdAndRecognitionId(userId, recognitionId)) {
-            throw new RuntimeException("该识别结果已在收藏夹中");
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            return false;
         }
         
-        // 验证识别记录存在
-        RecognitionHistory history = historyDao.findById(recognitionId)
-                .orElseThrow(() -> new RuntimeException("识别记录不存在"));
-        
-        // 验证记录属于当前用户
-        if (!history.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限收藏该记录");
-        }
-        
-        // 创建收藏
-        UserFavorite favorite = new UserFavorite();
-        favorite.setUserId(userId);
-        favorite.setRecognitionId(recognitionId);
-        favorite.setTags(tags);
-        
-        UserFavorite savedFavorite = favoriteDao.save(favorite);
-        
-        // 更新识别记录的收藏状态
-        history.setIsFavorite(true);
-        historyDao.save(history);
-        
-        log.info("收藏添加成功: favoriteId={}", savedFavorite.getId());
-        return savedFavorite;
+        // 软删除
+        return userRepository.deleteById(userId) > 0;
     }
 
     /**
-     * 取消收藏
+     * 获取用户详细信息（管理员功能）
      */
-    @Transactional
-    public void removeFromFavorites(Long userId, Long favoriteId) {
-        log.info("取消收藏: userId={}, favoriteId={}", userId, favoriteId);
+    public UserInfoDto getUserDetail(Long userId) {
+        log.info("管理员获取用户详情: userId={}", userId);
         
-        UserFavorite favorite = favoriteDao.findById(favoriteId)
-                .orElseThrow(() -> new RuntimeException("收藏不存在"));
-        
-        // 验证收藏属于当前用户
-        if (!favorite.getUserId().equals(userId)) {
-            throw new RuntimeException("无权限删除该收藏");
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            return null;
         }
         
-        // 更新识别记录的收藏状态
-        RecognitionHistory history = historyDao.findById(favorite.getRecognitionId())
-                .orElse(null);
-        if (history != null) {
-            history.setIsFavorite(false);
-            historyDao.save(history);
-        }
-        
-        // 删除收藏
-        favoriteDao.deleteById(favoriteId);
-        
-        log.info("收藏删除成功: favoriteId={}", favoriteId);
+        return UserInfoDto.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .name(user.getName())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .bio(user.getBio())
+                .role(user.getRole().name().toLowerCase())
+                .status(user.getStatus().name().toLowerCase())
+                .vipLevel(user.getVipLevel())
+                .lastLoginTime(user.getLastLoginTime())
+                .createTime(user.getCreateTime())
+                .build();
     }
 
-    /**
-     * 更新用户登录时间
-     */
-    @Transactional
-    public void updateLastLoginTime(Long userId) {
-        User user = userDao.findById(userId).orElse(null);
-        if (user != null) {
-            user.setLastLoginTime(LocalDateTime.now());
-            userDao.save(user);
-        }
-    }
-
-    /**
-     * 获取激活用户总数
-     */
-    public long getActiveUserCount() {
-        return userDao.countByStatus(User.UserStatus.ACTIVE);
-    }
-
-    /**
-     * 根据角色获取用户列表
-     */
-    public List<User> getUsersByRole(User.UserRole role) {
-        return userDao.findByRole(role);
-    }
 }

@@ -3,6 +3,7 @@ package com.pcf.recognition.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.KnowledgeCategory;
 import com.pcf.recognition.entity.KnowledgeItem;
 import com.pcf.recognition.repository.KnowledgeCategoryRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 知识库服务
@@ -29,236 +31,204 @@ public class KnowledgeService {
     /**
      * 获取知识分类
      */
-    public Map<String, Object> getKnowledgeCategories() {
+    public List<KnowledgeCategoryDto> getKnowledgeCategories() {
         log.info("获取知识分类");
         
-        try {
-            List<KnowledgeCategory> categories = knowledgeCategoryRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeCategory>()
-                    .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
-                    .orderByAsc(KnowledgeCategory::getSortOrder, KnowledgeCategory::getId)
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", categories);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取知识分类失败", e);
-            return createErrorResponse("获取分类失败");
-        }
+        List<KnowledgeCategory> categories = knowledgeCategoryRepository.selectList(
+            new LambdaQueryWrapper<KnowledgeCategory>()
+                .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
+                .orderByAsc(KnowledgeCategory::getSortOrder, KnowledgeCategory::getId)
+        );
+        
+        return categories.stream()
+                .map(this::convertToCategoryDto)
+                .collect(Collectors.toList());
     }
 
     /**
      * 获取知识条目列表
      */
-    public Map<String, Object> getKnowledgeItems(String category, Integer page, Integer size, String keyword) {
+    public KnowledgePageDto getKnowledgeItems(String category, Integer page, Integer size, String keyword) {
         log.info("获取知识条目列表: category={}, page={}, size={}, keyword={}", category, page, size, keyword);
         
-        try {
-            Page<KnowledgeItem> pageRequest = new Page<>(page, size);
-            
-            LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED);
-            
-            // 按分类筛选
-            if (category != null && !category.isEmpty()) {
-                // 先查找分类ID
-                KnowledgeCategory categoryEntity = knowledgeCategoryRepository.selectOne(
-                    new LambdaQueryWrapper<KnowledgeCategory>()
-                        .eq(KnowledgeCategory::getKey, category)
-                );
-                if (categoryEntity != null) {
-                    queryWrapper.eq(KnowledgeItem::getCategoryId, categoryEntity.getId());
-                }
+        Page<KnowledgeItem> pageRequest = new Page<>(page, size);
+        
+        LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED);
+        
+        // 按分类筛选
+        if (category != null && !category.isEmpty()) {
+            // 先查找分类ID
+            KnowledgeCategory categoryEntity = knowledgeCategoryRepository.selectOne(
+                new LambdaQueryWrapper<KnowledgeCategory>()
+                    .eq(KnowledgeCategory::getKey, category)
+            );
+            if (categoryEntity != null) {
+                queryWrapper.eq(KnowledgeItem::getCategoryId, categoryEntity.getId());
             }
-            
-            // 按关键词搜索
-            if (keyword != null && !keyword.isEmpty()) {
-                queryWrapper.and(wrapper -> wrapper
-                    .like(KnowledgeItem::getName, keyword)
-                    .or()
-                    .like(KnowledgeItem::getDescription, keyword)
-                    .or()
-                    .like(KnowledgeItem::getTags, keyword)
-                );
-            }
-            
-            queryWrapper.orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getId);
-            
-            Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", result.getRecords());
-            response.put("total", result.getTotal());
-            response.put("pages", result.getPages());
-            response.put("current", result.getCurrent());
-            response.put("size", result.getSize());
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取知识条目列表失败", e);
-            return createErrorResponse("获取知识条目失败");
         }
+        
+        // 按关键词搜索
+        if (keyword != null && !keyword.isEmpty()) {
+            queryWrapper.and(wrapper -> wrapper
+                .like(KnowledgeItem::getName, keyword)
+                .or()
+                .like(KnowledgeItem::getDescription, keyword)
+                .or()
+                .like(KnowledgeItem::getTags, keyword)
+            );
+        }
+        
+        queryWrapper.orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getId);
+        
+        Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
+        
+        List<KnowledgeItemDto> itemDtos = result.getRecords().stream()
+                .map(this::convertToItemDto)
+                .collect(Collectors.toList());
+        
+        return KnowledgePageDto.builder()
+                .items(itemDtos)
+                .total(result.getTotal())
+                .pages(result.getPages())
+                .current(result.getCurrent())
+                .size(result.getSize())
+                .keyword(keyword)
+                .category(category)
+                .build();
     }
 
     /**
      * 获取知识条目详情
      */
-    public Map<String, Object> getKnowledgeDetail(String id) {
+    public KnowledgeItemDto getKnowledgeDetail(String id) {
         log.info("获取知识条目详情: id={}", id);
         
-        try {
-            KnowledgeItem item = knowledgeItemRepository.selectById(Long.parseLong(id));
-            
-            if (item == null || item.getStatus() != KnowledgeItem.ItemStatus.PUBLISHED) {
-                return createErrorResponse("知识条目不存在");
-            }
-            
-            // 增加浏览量
-            knowledgeItemRepository.update(null,
-                new LambdaUpdateWrapper<KnowledgeItem>()
-                    .eq(KnowledgeItem::getId, id)
-                    .setSql("view_count = view_count + 1")
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", item);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取知识条目详情失败", e);
-            return createErrorResponse("获取详情失败");
+        KnowledgeItem item = knowledgeItemRepository.selectById(Long.parseLong(id));
+        
+        if (item == null || item.getStatus() != KnowledgeItem.ItemStatus.PUBLISHED) {
+            return null;
         }
+        
+        // 增加浏览量
+        knowledgeItemRepository.update(null,
+            new LambdaUpdateWrapper<KnowledgeItem>()
+                .eq(KnowledgeItem::getId, id)
+                .setSql("view_count = view_count + 1")
+        );
+        
+        return convertToItemDto(item);
     }
 
     /**
      * 搜索知识条目
      */
-    public Map<String, Object> searchKnowledge(String keyword, Integer page, Integer size) {
+    public KnowledgePageDto searchKnowledge(String keyword, Integer page, Integer size) {
         log.info("搜索知识条目: keyword={}, page={}, size={}", keyword, page, size);
         
-        try {
-            Page<KnowledgeItem> pageRequest = new Page<>(page, size);
-            
-            LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                      .and(wrapper -> wrapper
-                          .like(KnowledgeItem::getName, keyword)
-                          .or()
-                          .like(KnowledgeItem::getDescription, keyword)
-                          .or()
-                          .like(KnowledgeItem::getContent, keyword)
-                          .or()
-                          .like(KnowledgeItem::getTags, keyword)
-                          .or()
-                          .like(KnowledgeItem::getScientificName, keyword)
-                      )
-                      .orderByDesc(KnowledgeItem::getViewCount);
-            
-            Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", result.getRecords());
-            response.put("total", result.getTotal());
-            response.put("pages", result.getPages());
-            response.put("current", result.getCurrent());
-            response.put("size", result.getSize());
-            response.put("keyword", keyword);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("搜索知识条目失败", e);
-            return createErrorResponse("搜索失败");
-        }
+        Page<KnowledgeItem> pageRequest = new Page<>(page, size);
+        
+        LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+                  .and(wrapper -> wrapper
+                      .like(KnowledgeItem::getName, keyword)
+                      .or()
+                      .like(KnowledgeItem::getDescription, keyword)
+                      .or()
+                      .like(KnowledgeItem::getContent, keyword)
+                      .or()
+                      .like(KnowledgeItem::getTags, keyword)
+                      .or()
+                      .like(KnowledgeItem::getScientificName, keyword)
+                  )
+                  .orderByDesc(KnowledgeItem::getViewCount);
+        
+        Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
+        
+        List<KnowledgeItemDto> itemDtos = result.getRecords().stream()
+                .map(this::convertToItemDto)
+                .collect(Collectors.toList());
+        
+        return KnowledgePageDto.builder()
+                .items(itemDtos)
+                .total(result.getTotal())
+                .pages(result.getPages())
+                .current(result.getCurrent())
+                .size(result.getSize())
+                .keyword(keyword)
+                .build();
     }
 
     /**
      * 获取热门知识条目
      */
-    public Map<String, Object> getPopularKnowledge(Integer limit) {
+    public List<KnowledgeItemDto> getPopularKnowledge(Integer limit) {
         log.info("获取热门知识条目: limit={}", limit);
         
-        try {
-            List<KnowledgeItem> popularItems = knowledgeItemRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                    .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                    .orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount)
-                    .last("LIMIT " + limit)
-            );
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", popularItems);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取热门知识条目失败", e);
-            return createErrorResponse("获取热门条目失败");
-        }
+        List<KnowledgeItem> popularItems = knowledgeItemRepository.selectList(
+            new LambdaQueryWrapper<KnowledgeItem>()
+                .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+                .orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount)
+                .last("LIMIT " + limit)
+        );
+        
+        return popularItems.stream()
+                .map(this::convertToItemDto)
+                .collect(Collectors.toList());
     }
 
     /**
      * 获取知识统计信息
      */
-    public Map<String, Object> getKnowledgeStats() {
+    public KnowledgeStatsDto getKnowledgeStats() {
         log.info("获取知识统计信息");
         
-        try {
-            // 总分类数
-            Long totalCategories = knowledgeCategoryRepository.selectCount(
-                new LambdaQueryWrapper<KnowledgeCategory>()
-                    .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
-            );
+        // 总分类数
+        Long totalCategories = knowledgeCategoryRepository.selectCount(
+            new LambdaQueryWrapper<KnowledgeCategory>()
+                .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
+        );
+        
+        // 总条目数
+        Long totalItems = knowledgeItemRepository.selectCount(
+            new LambdaQueryWrapper<KnowledgeItem>()
+                .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+        );
+        
+        // 总浏览量
+        List<KnowledgeItem> allItems = knowledgeItemRepository.selectList(
+            new LambdaQueryWrapper<KnowledgeItem>()
+                .select(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount, KnowledgeItem::getFavoriteCount)
+                .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+        );
+        
+        long totalViews = allItems.stream()
+            .mapToLong(item -> item.getViewCount() != null ? item.getViewCount() : 0)
+            .sum();
             
-            // 总条目数
-            Long totalItems = knowledgeItemRepository.selectCount(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                    .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-            );
+        long totalLikes = allItems.stream()
+            .mapToLong(item -> item.getLikeCount() != null ? item.getLikeCount() : 0)
+            .sum();
             
-            // 总浏览量
-            List<KnowledgeItem> allItems = knowledgeItemRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                    .select(KnowledgeItem::getViewCount)
-                    .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-            );
-            
-            long totalViews = allItems.stream()
-                .mapToLong(item -> item.getViewCount() != null ? item.getViewCount() : 0)
-                .sum();
-            
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalCategories", totalCategories);
-            stats.put("totalItems", totalItems);
-            stats.put("totalViews", totalViews);
-            stats.put("monthlyGrowth", 8.5); // 模拟数据，实际应该计算
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("stats", stats);
-            
-            return response;
-            
-        } catch (Exception e) {
-            log.error("获取知识统计信息失败", e);
-            return createErrorResponse("获取统计失败");
-        }
+        long totalFavorites = allItems.stream()
+            .mapToLong(item -> item.getFavoriteCount() != null ? item.getFavoriteCount() : 0)
+            .sum();
+        
+        return KnowledgeStatsDto.builder()
+                .totalCategories(totalCategories)
+                .totalItems(totalItems)
+                .totalViews(totalViews)
+                .totalLikes(totalLikes)
+                .totalFavorites(totalFavorites)
+                .monthlyGrowth(8.5) // 模拟数据，实际应该计算
+                .averageDifficulty(3.2) // 模拟数据
+                .build();
     }
 
     /**
      * 创建知识分类
      */
-    public Map<String, Object> createCategory(String name, String key, String description, String image) {
+    public KnowledgeCreateResponseDto createCategory(String name, String key, String description, String image) {
         log.info("创建知识分类: name={}, key={}", name, key);
         
         try {
@@ -269,7 +239,10 @@ public class KnowledgeService {
             );
             
             if (existing != null) {
-                return createErrorResponse("分类键值已存在");
+                return KnowledgeCreateResponseDto.builder()
+                    .success(false)
+                    .message("分类键值已存在")
+                    .build();
             }
             
             KnowledgeCategory category = new KnowledgeCategory();
@@ -281,23 +254,25 @@ public class KnowledgeService {
             
             knowledgeCategoryRepository.insert(category);
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "分类创建成功");
-            response.put("categoryId", category.getId());
-            
-            return response;
+            return KnowledgeCreateResponseDto.builder()
+                .success(true)
+                .message("分类创建成功")
+                .id(category.getId())
+                .build();
             
         } catch (Exception e) {
             log.error("创建知识分类失败", e);
-            return createErrorResponse("创建分类失败");
+            return KnowledgeCreateResponseDto.builder()
+                .success(false)
+                .message("创建分类失败")
+                .build();
         }
     }
 
     /**
      * 创建知识条目
      */
-    public Map<String, Object> createKnowledgeItem(Long categoryId, String name, String key, String description, 
+    public KnowledgeCreateResponseDto createKnowledgeItem(Long categoryId, String name, String key, String description, 
                                                   String content, Long authorId) {
         log.info("创建知识条目: name={}, key={}, categoryId={}", name, key, categoryId);
         
@@ -305,7 +280,10 @@ public class KnowledgeService {
             // 检查分类是否存在
             KnowledgeCategory category = knowledgeCategoryRepository.selectById(categoryId);
             if (category == null) {
-                return createErrorResponse("分类不存在");
+                return KnowledgeCreateResponseDto.builder()
+                    .success(false)
+                    .message("分类不存在")
+                    .build();
             }
             
             // 检查key是否已存在
@@ -315,7 +293,10 @@ public class KnowledgeService {
             );
             
             if (existing != null) {
-                return createErrorResponse("知识条目键值已存在");
+                return KnowledgeCreateResponseDto.builder()
+                    .success(false)
+                    .message("知识条目键值已存在")
+                    .build();
             }
             
             KnowledgeItem item = new KnowledgeItem();
@@ -336,23 +317,25 @@ public class KnowledgeService {
                     .setSql("item_count = item_count + 1")
             );
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "知识条目创建成功");
-            response.put("itemId", item.getId());
-            
-            return response;
+            return KnowledgeCreateResponseDto.builder()
+                .success(true)
+                .message("知识条目创建成功")
+                .id(item.getId())
+                .build();
             
         } catch (Exception e) {
             log.error("创建知识条目失败", e);
-            return createErrorResponse("创建知识条目失败");
+            return KnowledgeCreateResponseDto.builder()
+                .success(false)
+                .message("创建知识条目失败")
+                .build();
         }
     }
 
     /**
      * 搜索知识库
      */
-    public Map<String, Object> searchKnowledge(String keyword, Integer page, Integer size, String category) {
+    public KnowledgeSearchResultDto searchKnowledge(String keyword, Integer page, Integer size, String category) {
         log.info("搜索知识库: keyword={}, page={}, size={}, category={}", keyword, page, size, category);
         
         try {
@@ -387,29 +370,39 @@ public class KnowledgeService {
             
             List<KnowledgeItem> items = knowledgeItemRepository.selectList(queryWrapper);
             
-            // 转换为Map格式
-            List<Map<String, Object>> itemMaps = items.stream()
-                .map(this::convertKnowledgeItemToMap)
+            // 转换为DTO格式
+            List<KnowledgeItemDto> itemDtos = items.stream()
+                .map(this::convertToItemDto)
                 .toList();
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("items", itemMaps);
-            response.put("total", total.intValue());
-            response.put("pages", (int) Math.ceil((double) total / size));
-            
-            return response;
+            return KnowledgeSearchResultDto.builder()
+                .items(itemDtos)
+                .total(total.intValue())
+                .page(page)
+                .size(size)
+                .pages((int) Math.ceil((double) total / size))
+                .keyword(keyword)
+                .category(category)
+                .build();
             
         } catch (Exception e) {
             log.error("搜索知识库失败", e);
-            return createErrorResponse("搜索失败");
+            return KnowledgeSearchResultDto.builder()
+                .items(Collections.emptyList())
+                .total(0)
+                .page(page)
+                .size(size)
+                .pages(0)
+                .keyword(keyword)
+                .category(category)
+                .build();
         }
     }
     
     /**
      * 获取最新知识
      */
-    public Map<String, Object> getLatestKnowledge(Integer limit) {
+    public List<KnowledgeItemDto> getLatestKnowledge(Integer limit) {
         log.info("获取最新知识: limit={}", limit);
         
         try {
@@ -420,32 +413,29 @@ public class KnowledgeService {
                     .last("LIMIT " + limit)
             );
             
-            List<Map<String, Object>> itemMaps = latestItems.stream()
-                .map(this::convertKnowledgeItemToMap)
+            return latestItems.stream()
+                .map(this::convertToItemDto)
                 .toList();
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("data", itemMaps);
-            
-            return response;
             
         } catch (Exception e) {
             log.error("获取最新知识失败", e);
-            return createErrorResponse("获取最新知识失败");
+            return Collections.emptyList();
         }
     }
     
     /**
      * 点赞知识条目
      */
-    public Map<String, Object> likeKnowledgeItem(Long itemId) {
+    public OperationResultDto likeKnowledgeItem(Long itemId) {
         log.info("点赞知识条目: itemId={}", itemId);
         
         try {
             KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
             if (item == null) {
-                return createErrorResponse("知识条目不存在");
+                return OperationResultDto.builder()
+                    .success(false)
+                    .message("知识条目不存在")
+                    .build();
             }
             
             // 增加点赞数
@@ -455,28 +445,33 @@ public class KnowledgeService {
                     .setSql("like_count = like_count + 1")
             );
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "点赞成功");
-            
-            return response;
+            return OperationResultDto.builder()
+                .success(true)
+                .message("点赞成功")
+                .build();
             
         } catch (Exception e) {
             log.error("点赞知识条目失败", e);
-            return createErrorResponse("点赞失败");
+            return OperationResultDto.builder()
+                .success(false)
+                .message("点赞失败")
+                .build();
         }
     }
     
     /**
      * 取消点赞知识条目
      */
-    public Map<String, Object> unlikeKnowledgeItem(Long itemId) {
+    public OperationResultDto unlikeKnowledgeItem(Long itemId) {
         log.info("取消点赞知识条目: itemId={}", itemId);
         
         try {
             KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
             if (item == null) {
-                return createErrorResponse("知识条目不存在");
+                return OperationResultDto.builder()
+                    .success(false)
+                    .message("知识条目不存在")
+                    .build();
             }
             
             // 减少点赞数
@@ -486,25 +481,69 @@ public class KnowledgeService {
                     .setSql("like_count = GREATEST(like_count - 1, 0)")
             );
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "取消点赞成功");
-            
-            return response;
+            return OperationResultDto.builder()
+                .success(true)
+                .message("取消点赞成功")
+                .build();
             
         } catch (Exception e) {
             log.error("取消点赞知识条目失败", e);
-            return createErrorResponse("取消点赞失败");
+            return OperationResultDto.builder()
+                .success(false)
+                .message("取消点赞失败")
+                .build();
         }
     }
     
+    
     /**
-     * 创建错误响应
+     * 转换KnowledgeCategory为DTO
      */
-    private Map<String, Object> createErrorResponse(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return response;
+    private KnowledgeCategoryDto convertToCategoryDto(KnowledgeCategory category) {
+        return KnowledgeCategoryDto.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .key(category.getKey())
+                .description(category.getDescription())
+                .image(category.getImage())
+                .itemCount(category.getItemCount())
+                .sortOrder(category.getSortOrder())
+                .status(category.getStatus() != null ? category.getStatus().name() : null)
+                .createTime(category.getCreateTime())
+                .updateTime(category.getUpdateTime())
+                .build();
+    }
+    
+    /**
+     * 转换KnowledgeItem为DTO
+     */
+    private KnowledgeItemDto convertToItemDto(KnowledgeItem item) {
+        return KnowledgeItemDto.builder()
+                .id(item.getId())
+                .categoryId(item.getCategoryId())
+                .name(item.getName())
+                .key(item.getKey())
+                .scientificName(item.getScientificName())
+                .description(item.getDescription())
+                .content(item.getContent())
+                .images(item.getImages())
+                .characteristics(item.getCharacteristics())
+                .habitat(item.getHabitat())
+                .lifespan(item.getLifespan())
+                .relatedItems(item.getRelatedItems())
+                .tags(item.getTags())
+                .viewCount(item.getViewCount())
+                .likeCount(item.getLikeCount())
+                .favoriteCount(item.getFavoriteCount())
+                .shareCount(item.getShareCount())
+                .difficulty(item.getDifficulty())
+                .sortOrder(item.getSortOrder())
+                .status(item.getStatus() != null ? item.getStatus().name() : null)
+                .authorId(item.getAuthorId())
+                .reviewerId(item.getReviewerId())
+                .reviewTime(item.getReviewTime())
+                .createTime(item.getCreateTime())
+                .updateTime(item.getUpdateTime())
+                .build();
     }
 }

@@ -27,6 +27,11 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // 公开访问的接口（无需认证）
                 .requestMatchers(
+                    // 根路径和首页
+                    "/",
+                    "/index.html",
+                    "/home",
+                    
                     // 认证相关接口
                     "/api/v1/auth/login",
                     "/api/v1/auth/register", 
@@ -40,6 +45,8 @@ public class SecurityConfig {
                     
                     // 首页和健康检查
                     "/api/v1/index/**",
+                    "/api/v1/info",
+                    "/api/v1/health",
                     "/api/v1/welcome/**",
                     "/api/v1/recognition/health",
                     "/api/v1/recognition/modes",

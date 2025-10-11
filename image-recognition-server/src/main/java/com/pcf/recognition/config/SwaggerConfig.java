@@ -14,14 +14,15 @@ import java.util.List;
 /**
  * Swagger/OpenAPI 配置类
  * 兼容Spring Boot 3.5.x和JDK 17
+ * 临时禁用以解决版本冲突问题
  */
-@Configuration
+// @Configuration
 public class SwaggerConfig {
 
     @Value("${server.servlet.context-path:/api/v1}")
     private String contextPath;
 
-    @Bean
+    // @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()

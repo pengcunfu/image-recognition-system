@@ -1,8 +1,6 @@
 package com.pcf.recognition.controller;
 
-import com.pcf.recognition.dto.ApiResponse;
-import com.pcf.recognition.dto.CreatePostRequest;
-import com.pcf.recognition.dto.AddCommentRequest;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
-import java.util.*;
 
 /**
  * 社区控制器
@@ -25,135 +22,134 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class CommunityController {
-    
+
     private final CommunityService communityService;
 
     @Operation(summary = "获取帖子列表", description = "分页获取社区帖子列表")
     @GetMapping("/posts")
     // 公开接口，无需权限验证
-    public ApiResponse<Map<String, Object>> getPosts(
+    public ApiResponse<PostListResponseDto> getPosts(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "10") int size,
             @Parameter(description = "分类筛选") @RequestParam(required = false) String category,
             @Parameter(description = "排序方式") @RequestParam(defaultValue = "latest") String sort) {
-        
+
         log.info("获取帖子列表请求: page={}, size={}, category={}, sort={}", page, size, category, sort);
-        
-        Map<String, Object> result = communityService.getPosts(page, size, category, sort);
-        
-        if ((Boolean) result.get("success")) {
+
+        try {
+            PostListResponseDto result = communityService.getPosts(page, size, category, sort);
             return ApiResponse.success(result, "获取帖子列表成功");
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+        } catch (Exception e) {
+            log.error("获取帖子列表失败", e);
+            return ApiResponse.error("获取帖子列表失败");
         }
     }
 
     @Operation(summary = "获取帖子详情", description = "获取单个帖子的详细信息")
     @GetMapping("/posts/{id}")
     // 公开接口，无需权限验证
-    public ApiResponse<Map<String, Object>> getPostDetail(
+    public ApiResponse<PostDto> getPostDetail(
             @Parameter(description = "帖子ID") @PathVariable Long id) {
-        
+
         log.info("获取帖子详情请求: id={}", id);
-        
-        Map<String, Object> result = communityService.getPostDetail(id);
-        
-        if ((Boolean) result.get("success")) {
-            return ApiResponse.success((Map<String, Object>) result.get("data"), "获取帖子详情成功");
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+
+        try {
+            PostDetailResponseDto result = communityService.getPostDetail(id);
+            return ApiResponse.success(result.getPost(), "获取帖子详情成功");
+        } catch (Exception e) {
+            log.error("获取帖子详情失败", e);
+            return ApiResponse.error("帖子不存在或获取失败");
         }
     }
 
     @Operation(summary = "发布帖子", description = "发布新的社区帖子")
     @PostMapping("/posts")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<Map<String, Object>> createPost(
+    public ApiResponse<PostCreateResponseDto> createPost(
             @Parameter(description = "帖子发布请求") @Valid @RequestBody CreatePostRequest request,
             @RequestHeader(value = "Authorization", required = false) String token) {
-        
+
         log.info("发布帖子请求: title={}", request.getTitle());
-        
-        // 模拟从token中解析用户ID
-        Long authorId = 1L;
-        
-        Map<String, Object> result = communityService.createPost(
-            authorId, request.getTitle(), request.getContent(), 
-            request.getCategory(), request.getTags()
-        );
-        
-        if ((Boolean) result.get("success")) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("postId", result.get("postId"));
-            return ApiResponse.success(data, (String) result.get("message"));
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+
+        try {
+            // 模拟从token中解析用户ID
+            Long authorId = 1L;
+
+            PostCreateResponseDto result = communityService.createPost(
+                    authorId, request.getTitle(), request.getContent(),
+                    request.getCategory(), request.getTags()
+            );
+
+            return ApiResponse.success(result, "帖子发布成功");
+        } catch (Exception e) {
+            log.error("发布帖子失败", e);
+            return ApiResponse.error("发布帖子失败");
         }
     }
 
     @Operation(summary = "获取帖子评论", description = "获取帖子的评论列表")
     @GetMapping("/posts/{id}/comments")
     // 公开接口，无需权限验证
-    public ApiResponse<Map<String, Object>> getPostComments(
+    public ApiResponse<CommentListResponseDto> getPostComments(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size) {
-        
+
         log.info("获取帖子评论请求: postId={}, page={}, size={}", id, page, size);
-        
-        Map<String, Object> result = communityService.getPostComments(id, page, size);
-        
-        if ((Boolean) result.get("success")) {
+
+        try {
+            CommentListResponseDto result = communityService.getPostComments(id, page, size);
             return ApiResponse.success(result, "获取评论成功");
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+        } catch (Exception e) {
+            log.error("获取帖子评论失败", e);
+            return ApiResponse.error("获取评论失败");
         }
     }
 
     @Operation(summary = "添加评论", description = "为帖子添加评论")
     @PostMapping("/posts/{id}/comments")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<Map<String, Object>> addComment(
+    public ApiResponse<CommentCreateResponseDto> addComment(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @Parameter(description = "评论请求") @Valid @RequestBody AddCommentRequest request,
             @RequestHeader(value = "Authorization", required = false) String token) {
-        
+
         log.info("添加评论请求: postId={}, content={}", id, request.getContent());
-        
-        // 模拟从token中解析用户ID
-        Long authorId = 1L;
-        
-        Map<String, Object> result = communityService.addComment(
-            id, authorId, request.getContent(), request.getParentId()
-        );
-        
-        if ((Boolean) result.get("success")) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("commentId", result.get("commentId"));
-            return ApiResponse.success(data, (String) result.get("message"));
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+
+        try {
+            // 模拟从token中解析用户ID
+            Long authorId = 1L;
+
+            CommentCreateResponseDto result = communityService.addComment(
+                    id, authorId, request.getContent(), request.getParentId()
+            );
+
+            return ApiResponse.success(result, "评论发布成功");
+        } catch (Exception e) {
+            log.error("添加评论失败", e);
+            return ApiResponse.error("发布评论失败");
         }
     }
 
     @Operation(summary = "点赞帖子", description = "为帖子点赞")
     @PostMapping("/posts/{id}/like")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> likePost(
+    public ApiResponse<Void> likePost(
             @Parameter(description = "帖子ID") @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String token) {
-        
+
         log.info("点赞帖子请求: postId={}", id);
-        
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
-        
-        Map<String, Object> result = communityService.likePost(id, userId);
-        
-        if ((Boolean) result.get("success")) {
-            return ApiResponse.success(null, (String) result.get("message"));
-        } else {
-            return ApiResponse.error((String) result.get("message"));
+
+        try {
+            // 模拟从token中解析用户ID
+            Long userId = 1L;
+
+            communityService.likePost(id, userId);
+
+            return ApiResponse.success(null, "点赞成功");
+        } catch (Exception e) {
+            log.error("点赞帖子失败", e);
+            return ApiResponse.error("点赞失败");
         }
     }
 

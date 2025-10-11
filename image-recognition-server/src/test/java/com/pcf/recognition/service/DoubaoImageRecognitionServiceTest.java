@@ -1,6 +1,7 @@
 package com.pcf.recognition.service;
 
 import com.pcf.recognition.config.DoubaoConfig;
+import com.pcf.recognition.config.ImageRecognitionConfig;
 import com.pcf.recognition.dto.ImageRecognitionRequest;
 import com.pcf.recognition.dto.ImageRecognitionResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class DoubaoImageRecognitionServiceTest {
     
     private DoubaoImageRecognitionService service;
     private DoubaoConfig config;
+    private ImageRecognitionConfig imageConfig;
     
     @BeforeEach
     void setUp() {
@@ -36,7 +38,17 @@ public class DoubaoImageRecognitionServiceTest {
         config.setTimeout(30000);
         config.setMaxRetries(3);
         
-        service = new DoubaoImageRecognitionService(config);
+        imageConfig = new ImageRecognitionConfig();
+        imageConfig.setEnabled(true);
+        imageConfig.setMaxBatchSize(20);
+        imageConfig.setSupportedFormats("jpg,jpeg,png,bmp,gif,webp");
+        imageConfig.setMaxFileSize(10485760L);
+        
+        // 设置提示词内容（模拟从文件加载）
+        imageConfig.setDefaultPromptContent("分析图像并以JSON格式输出核心属性:{\"category\":\"物体主类别\",\"name\":\"具体名称\",\"color\":\"主要颜色\",\"shape\":\"形状特征\",\"material\":\"材质纹理\",\"attributes\":[\"关键属性1\",\"关键属性2\"],\"confidence\":0.95}要求:1.准确识别主要物体2.颜色用具体色彩词汇3.形状描述简洁明确4.材质包含质感特征5.属性突出显著特点6.置信度0-1之间7.仅输出JSON，无额外文字");
+        imageConfig.setDetailedPromptContent("详细分析图像中的所有元素，包括主要物体、背景、环境、光线等，以结构化JSON格式输出详细信息");
+        
+        service = new DoubaoImageRecognitionService(config, imageConfig);
         service.initArkService();
     }
     

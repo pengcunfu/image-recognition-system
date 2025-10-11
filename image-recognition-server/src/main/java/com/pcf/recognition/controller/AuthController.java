@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.AuthService;
+import com.pcf.recognition.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
 public class AuthController {
     
     private final AuthService authService;
+    private final JwtUtil jwtUtil;
 
     @Operation(summary = "用户登录", description = "通过用户名/邮箱和密码进行登录认证")
     @PostMapping("/login")
@@ -39,6 +41,16 @@ public class AuthController {
             );
             
             if (result.getSuccess()) {
+                // 生成JWT Token
+                String token = jwtUtil.generateToken(
+                    result.getUser().getId(),
+                    result.getUser().getUsername(),
+                    result.getUser().getRole()
+                );
+                
+                // 设置Token到响应中
+                result.setToken(token);
+                
                 return ApiResponse.success(result, result.getMessage());
             } else {
                 return ApiResponse.error(result.getMessage());
@@ -109,16 +121,30 @@ public class AuthController {
     public ApiResponse<TokenValidationResponseDto> validateToken(
             @RequestHeader(value = "Authorization", required = false) String token) {
         
-        if (token == null || !token.startsWith("token_")) {
-            return ApiResponse.error("Token无效");
+        if (token == null) {
+            return ApiResponse.error("Token不能为空");
         }
         
-        // 模拟token验证
+        // 验证Token
+        if (!jwtUtil.validateToken(token)) {
+            return ApiResponse.error("Token无效或已过期");
+        }
+        
+        // 从Token中获取用户信息
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        String username = jwtUtil.getUsernameFromToken(token);
+        String role = jwtUtil.getRoleFromToken(token);
+        
+        if (userId == null || username == null || role == null) {
+            return ApiResponse.error("Token信息不完整");
+        }
+        
+        // 构建用户信息（实际项目中应该从数据库获取最新信息）
         UserInfoDto userInfo = UserInfoDto.builder()
-            .id(1L)
-            .username("user")
-            .name("张三")
-            .role("user")
+            .id(userId)
+            .username(username)
+            .name(username) // 简化处理，实际应从数据库获取
+            .role(role)
             .build();
             
         TokenValidationResponseDto result = TokenValidationResponseDto.builder()

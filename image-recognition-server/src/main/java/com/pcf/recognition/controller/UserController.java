@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.UserService;
+import com.pcf.recognition.util.TokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ import java.util.*;
 public class UserController {
     
     private final UserService userService;
+    private final TokenUtil tokenUtil;
 
     @Operation(summary = "获取用户信息", description = "获取当前登录用户的详细信息")
     @GetMapping("/profile")
@@ -34,8 +36,11 @@ public class UserController {
         
         log.info("获取用户信息请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         UserInfoDto userInfo = userService.getUserInfo(userId);
         
@@ -55,8 +60,11 @@ public class UserController {
         
         log.info("更新用户信息请求: name={}", request.getName());
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         boolean success = userService.updateUserInfo(userId, request);
         
@@ -75,8 +83,11 @@ public class UserController {
         
         log.info("获取用户统计数据请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         UserStatsDto stats = userService.getUserStats(userId);
         
@@ -92,8 +103,11 @@ public class UserController {
         
         log.info("用户修改密码请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         try {
             boolean success = userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
@@ -116,8 +130,11 @@ public class UserController {
         
         log.info("获取用户设置请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         UserSettingsDto settings = userService.getUserSettings(userId);
         
@@ -133,8 +150,11 @@ public class UserController {
         
         log.info("更新用户设置请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         boolean success = userService.updateUserSettings(userId, settings);
         
@@ -148,11 +168,15 @@ public class UserController {
     @Operation(summary = "获取用户统计数据", description = "获取用户的识别次数、帖子数等统计信息")
     @GetMapping("/statistics")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserStatsDto> getUserStatistics() {
+    public ApiResponse<UserStatsDto> getUserStatistics(
+            @RequestHeader(value = "Authorization", required = false) String token) {
         log.info("获取用户统计数据请求");
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         UserStatsDto stats = userService.getUserStats(userId); // 使用统一的方法
         
@@ -167,11 +191,15 @@ public class UserController {
     @GetMapping("/activities")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<UserActivityDto>> getUserActivities(
-            @RequestParam(defaultValue = "10") Integer limit) {
+            @RequestParam(defaultValue = "10") Integer limit,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         log.info("获取用户活动记录请求: limit={}", limit);
         
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
         
         List<UserActivityDto> activities = userService.getUserActivities(userId, limit);
         

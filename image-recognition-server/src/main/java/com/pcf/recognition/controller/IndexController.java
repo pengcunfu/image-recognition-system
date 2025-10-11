@@ -39,7 +39,7 @@ public class IndexController {
      */
     @GetMapping(value = "/favicon.ico", produces = "image/x-icon")
     public ResponseEntity<Resource> favicon() {
-        Resource resource = new ClassPathResource("static/favicon.ico");
+        Resource resource = new ClassPathResource("static/favicon.png");
         if (resource.exists()) {
             return ResponseEntity.ok()
                     .contentType(MediaType.valueOf("image/x-icon"))

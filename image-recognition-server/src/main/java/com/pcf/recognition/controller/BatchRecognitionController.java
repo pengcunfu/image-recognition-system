@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.BatchRecognitionService;
+import com.pcf.recognition.util.TokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ import java.util.*;
 public class BatchRecognitionController {
 
     private final BatchRecognitionService batchRecognitionService;
+    private final TokenUtil tokenUtil;
 
     @Operation(summary = "批量图像识别", description = "同时上传多张图片进行批量识别")
     @PostMapping("/recognize")
@@ -37,8 +39,11 @@ public class BatchRecognitionController {
 
         log.info("批量图像识别请求: 图片数量={}", images.length);
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         // 设置默认任务名称
         if (taskName == null || taskName.trim().isEmpty()) {
@@ -67,8 +72,11 @@ public class BatchRecognitionController {
 
         log.info("获取批量任务列表请求: page={}, size={}, status={}", page, size, status);
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         BatchTaskListResponseDto result = batchRecognitionService.getBatchTasks(userId, page, size, status);
 
@@ -88,8 +96,11 @@ public class BatchRecognitionController {
 
         log.info("获取批量任务详情请求: id={}", id);
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         return batchRecognitionService.getBatchTaskDetail(id, userId);
     }
@@ -103,8 +114,11 @@ public class BatchRecognitionController {
 
         log.info("删除批量任务请求: id={}", id);
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         OperationResultDto result = batchRecognitionService.deleteBatchTask(id, userId);
 
@@ -124,8 +138,11 @@ public class BatchRecognitionController {
 
         log.info("获取批量任务进度请求: id={}", id);
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         ApiResponse<BatchTaskDetailDto> result = batchRecognitionService.getBatchTaskDetail(id, userId);
 
@@ -156,8 +173,11 @@ public class BatchRecognitionController {
 
         log.info("获取批量任务统计请求");
 
-        // 模拟从token中解析用户ID
-        Long userId = 1L;
+        // 从token中解析用户ID
+        Long userId = tokenUtil.getUserIdFromHeader(token);
+        if (userId == null) {
+            return ApiResponse.error("无效的Token");
+        }
 
         BatchTaskStatsDto result = batchRecognitionService.getBatchStats(userId);
 

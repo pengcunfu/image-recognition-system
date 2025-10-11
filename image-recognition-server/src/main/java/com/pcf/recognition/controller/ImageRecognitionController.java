@@ -4,6 +4,7 @@ import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.RecognitionResult;
 import com.pcf.recognition.service.FileStorageService;
 import com.pcf.recognition.service.VolcengineImageService;
+import com.pcf.recognition.util.TokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,6 +36,7 @@ public class ImageRecognitionController {
     
     private final VolcengineImageService volcengineImageService;
     private final FileStorageService fileStorageService;
+    private final TokenUtil tokenUtil;
     
     /**
      * 单张图像识别
@@ -70,14 +72,18 @@ public class ImageRecognitionController {
             @Parameter(description = "最大结果数量")
             @RequestParam(value = "maxResults", defaultValue = "5") Integer maxResults,
             @Parameter(description = "标签过滤")
-            @RequestParam(value = "tags", required = false) List<String> tags) {
+            @RequestParam(value = "tags", required = false) List<String> tags,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         
         try {
             log.info("开始处理图像识别请求: 文件名={}, 模式={}, 置信度={}", 
                     file.getOriginalFilename(), mode, confidence);
             
-            // 模拟用户ID（实际项目中应从JWT token中获取）
-            Long userId = 1L;
+            // 从token中获取用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             // 调用火山引擎识别服务
             RecognitionResult result = volcengineImageService.recognizeImage(
@@ -117,7 +123,8 @@ public class ImageRecognitionController {
             @Parameter(description = "最大结果数量")
             @RequestParam(value = "maxResults", defaultValue = "5") Integer maxResults,
             @Parameter(description = "批次名称")
-            @RequestParam(value = "batchName", required = false) String batchName) {
+            @RequestParam(value = "batchName", required = false) String batchName,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         
         try {
             log.info("开始处理批量图像识别请求: 文件数量={}, 模式={}", files.size(), mode);
@@ -127,8 +134,11 @@ public class ImageRecognitionController {
                 return ApiResponse.error(400, "批量识别最多支持20个文件");
             }
             
-            // 模拟用户ID
-            Long userId = 1L;
+            // 从token中获取用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             // 生成批次ID
             String batchId = "batch_" + System.currentTimeMillis();

@@ -30,11 +30,11 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
-    
+
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
     private static final String SMS_CODE_KEY_PREFIX = "sms_code:";
-    
+
     // 过期时间
     private static final long CAPTCHA_EXPIRE_TIME = 5; // 5分钟
     private static final long SMS_CODE_EXPIRE_TIME = 5; // 5分钟
@@ -277,7 +277,7 @@ public class AuthService {
             String redisKey = CAPTCHA_KEY_PREFIX + captchaId;
             String storedCaptcha = stringRedisTemplate.opsForValue().get(redisKey);
 
-            if (storedCaptcha == null) {
+            if (storedCaptcha.isEmpty()) {
                 log.warn("验证码不存在或已过期: captchaId={}", captchaId);
                 return false;
             }

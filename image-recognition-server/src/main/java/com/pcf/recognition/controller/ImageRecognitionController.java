@@ -1,6 +1,6 @@
 package com.pcf.recognition.controller;
 
-import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.RecognitionResult;
 import com.pcf.recognition.service.FileStorageService;
 import com.pcf.recognition.service.VolcengineImageService;
@@ -20,9 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 图像识别API控制器
@@ -109,7 +107,7 @@ public class ImageRecognitionController {
     )
     @PostMapping(value = "/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<Map<String, Object>> batchRecognizeImages(
+    public ApiResponse<BatchRecognitionResponseDto> batchRecognizeImages(
             @Parameter(description = "要识别的图片文件列表 (最多20张)", required = true)
             @RequestParam("files") List<MultipartFile> files,
             @Parameter(description = "识别模式", schema = @Schema(allowableValues = {"general", "animal", "plant", "food", "scene"}))
@@ -135,7 +133,7 @@ public class ImageRecognitionController {
             // 生成批次ID
             String batchId = "batch_" + System.currentTimeMillis();
             
-            List<Map<String, Object>> processedFiles = new ArrayList<>();
+            List<BatchFileResultDto> processedFiles = new ArrayList<>();
             
             int successCount = 0;
             int failedCount = 0;
@@ -143,9 +141,9 @@ public class ImageRecognitionController {
             // 处理每个文件
             for (int i = 0; i < files.size(); i++) {
                 MultipartFile file = files.get(i);
-                Map<String, Object> fileResult = new HashMap<>();
-                fileResult.put("fileName", file.getOriginalFilename());
-                fileResult.put("index", i);
+                BatchFileResultDto fileResult = new BatchFileResultDto();
+                fileResult.setFileName(file.getOriginalFilename());
+                fileResult.setIndex(i);
                 
                 try {
                     // 识别图像
@@ -156,17 +154,17 @@ public class ImageRecognitionController {
                     String imageUrl = fileStorageService.storeFile(file);
                     result.setImageUrl(imageUrl);
                     
-                    fileResult.put("status", "success");
-                    fileResult.put("recognitionId", result.getRecognitionId());
-                    fileResult.put("results", result.getResults());
-                    fileResult.put("imageUrl", imageUrl);
+                    fileResult.setStatus("success");
+                    fileResult.setRecognitionId(result.getRecognitionId());
+                    fileResult.setResults(result.getResults());
+                    fileResult.setImageUrl(imageUrl);
                     
                     successCount++;
                     
                 } catch (Exception e) {
                     log.error("处理文件失败: {}, 错误: {}", file.getOriginalFilename(), e.getMessage());
-                    fileResult.put("status", "failed");
-                    fileResult.put("error", e.getMessage());
+                    fileResult.setStatus("failed");
+                    fileResult.setError(e.getMessage());
                     
                     failedCount++;
                 }
@@ -175,14 +173,14 @@ public class ImageRecognitionController {
             }
             
             // 构建响应
-            Map<String, Object> response = new HashMap<>();
-            response.put("batchId", batchId);
-            response.put("status", "completed");
-            response.put("totalFiles", files.size());
-            response.put("successFiles", successCount);
-            response.put("failedFiles", failedCount);
-            response.put("results", processedFiles);
-            response.put("batchName", batchName);
+            BatchRecognitionResponseDto response = new BatchRecognitionResponseDto();
+            response.setBatchId(batchId);
+            response.setStatus("completed");
+            response.setTotalFiles(files.size());
+            response.setSuccessFiles(successCount);
+            response.setFailedFiles(failedCount);
+            response.setResults(processedFiles);
+            response.setBatchName(batchName);
             
             log.info("批量识别完成: 批次ID={}, 总数={}, 成功={}, 失败={}", 
                     batchId, files.size(), successCount, failedCount);
@@ -201,42 +199,42 @@ public class ImageRecognitionController {
     @Operation(summary = "获取支持的识别模式", description = "获取系统支持的所有图像识别模式列表")
     @GetMapping("/modes")
     // 公开接口，无需权限验证
-    public ApiResponse<List<Map<String, Object>>> getSupportedModes() {
-        List<Map<String, Object>> modes = new ArrayList<>();
+    public ApiResponse<List<RecognitionModeDto>> getSupportedModes() {
+        List<RecognitionModeDto> modes = new ArrayList<>();
         
         // 通用识别
-        Map<String, Object> general = new HashMap<>();
-        general.put("id", "general");
-        general.put("name", "通用识别");
-        general.put("description", "适用于各种类型的图像识别");
+        RecognitionModeDto general = new RecognitionModeDto();
+        general.setId("general");
+        general.setName("通用识别");
+        general.setDescription("适用于各种类型的图像识别");
         modes.add(general);
         
         // 动物识别
-        Map<String, Object> animal = new HashMap<>();
-        animal.put("id", "animal");
-        animal.put("name", "动物识别");
-        animal.put("description", "专门识别各种动物");
+        RecognitionModeDto animal = new RecognitionModeDto();
+        animal.setId("animal");
+        animal.setName("动物识别");
+        animal.setDescription("专门识别各种动物");
         modes.add(animal);
         
         // 植物识别
-        Map<String, Object> plant = new HashMap<>();
-        plant.put("id", "plant");
-        plant.put("name", "植物识别");
-        plant.put("description", "识别花卉、树木等植物");
+        RecognitionModeDto plant = new RecognitionModeDto();
+        plant.setId("plant");
+        plant.setName("植物识别");
+        plant.setDescription("识别花卉、树木等植物");
         modes.add(plant);
         
         // 食物识别
-        Map<String, Object> food = new HashMap<>();
-        food.put("id", "food");
-        food.put("name", "食物识别");
-        food.put("description", "识别各种食物和菜品");
+        RecognitionModeDto food = new RecognitionModeDto();
+        food.setId("food");
+        food.setName("食物识别");
+        food.setDescription("识别各种食物和菜品");
         modes.add(food);
         
         // 场景识别
-        Map<String, Object> scene = new HashMap<>();
-        scene.put("id", "scene");
-        scene.put("name", "场景识别");
-        scene.put("description", "识别场景、地标和建筑");
+        RecognitionModeDto scene = new RecognitionModeDto();
+        scene.setId("scene");
+        scene.setName("场景识别");
+        scene.setDescription("识别场景、地标和建筑");
         modes.add(scene);
         
         return ApiResponse.success(modes);
@@ -248,12 +246,12 @@ public class ImageRecognitionController {
     @Operation(summary = "健康检查", description = "检查图像识别服务的运行状态")
     @GetMapping("/health")
     // 公开接口，无需权限验证
-    public ApiResponse<Map<String, Object>> healthCheck() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("status", "healthy");
-        status.put("service", "image-recognition");
-        status.put("timestamp", System.currentTimeMillis());
-        status.put("version", "1.0.0");
+    public ApiResponse<HealthCheckResponseDto> healthCheck() {
+        HealthCheckResponseDto status = new HealthCheckResponseDto();
+        status.setStatus("healthy");
+        status.setService("image-recognition");
+        status.setTimestamp(System.currentTimeMillis());
+        status.setVersion("1.0.0");
         
         return ApiResponse.success(status);
     }

@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.RecognitionHistoryService;
+import com.pcf.recognition.util.TokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ import java.util.List;
 public class RecognitionHistoryController {
     
     private final RecognitionHistoryService recognitionHistoryService;
+    private final TokenUtil tokenUtil;
 
     @Operation(summary = "获取识别历史列表", description = "分页获取用户的识别历史记录")
     @GetMapping
@@ -36,8 +38,11 @@ public class RecognitionHistoryController {
         log.info("获取识别历史列表请求: page={}, size={}", page, size);
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             RecognitionHistoryListResponseDto result = recognitionHistoryService.getRecognitionHistory(userId, page, size, category, status);
             return ApiResponse.success(result, "获取识别历史成功");
@@ -56,8 +61,11 @@ public class RecognitionHistoryController {
         log.info("获取识别历史详情请求: id={}", id);
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             RecognitionHistoryDetailResponseDto result = recognitionHistoryService.getRecognitionDetail(id, userId);
             return ApiResponse.success(result.getHistory(), "获取详情成功");
@@ -76,8 +84,11 @@ public class RecognitionHistoryController {
         log.info("删除识别历史请求: id={}", id);
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             recognitionHistoryService.deleteRecognitionHistory(id, userId);
             return ApiResponse.success(null, "删除成功");
@@ -96,8 +107,11 @@ public class RecognitionHistoryController {
         log.info("批量删除识别历史请求: ids={}", ids);
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             recognitionHistoryService.batchDeleteRecognitionHistory(ids, userId);
             return ApiResponse.success(null, String.format("成功删除 %d 条记录", ids.size()));
@@ -116,8 +130,11 @@ public class RecognitionHistoryController {
         log.info("切换收藏状态请求: id={}", id);
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             FavoriteToggleResponseDto result = recognitionHistoryService.toggleFavorite(id, userId);
             String message = result.getIsFavorite() ? "已收藏" : "已取消收藏";
@@ -136,8 +153,11 @@ public class RecognitionHistoryController {
         log.info("获取识别统计信息请求");
         
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
             
             RecognitionStatsDto result = recognitionHistoryService.getRecognitionStats(userId);
             return ApiResponse.success(result, "获取统计信息成功");

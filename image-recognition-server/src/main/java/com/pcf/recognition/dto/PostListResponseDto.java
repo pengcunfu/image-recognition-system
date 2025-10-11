@@ -9,14 +9,14 @@ import java.util.List;
  */
 @Data
 public class PostListResponseDto {
-    
+
     private List<PostDto> data;
-    
+
     private Long total;
-    
+
     private Long pages;
-    
+
     private Long current;
-    
+
     private Long size;
 }

@@ -9,18 +9,18 @@ import java.util.List;
  */
 @Data
 public class BatchRecognitionResponseDto {
-    
+
     private String batchId;
-    
+
     private String status;
-    
+
     private Integer totalFiles;
-    
+
     private Integer successFiles;
-    
+
     private Integer failedFiles;
-    
+
     private List<BatchFileResultDto> results;
-    
+
     private String batchName;
 }

@@ -9,16 +9,24 @@ import lombok.Builder;
 @Data
 @Builder
 public class LoginResponseDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
-    
-    /** 访问令牌 */
+
+    /**
+     * 访问令牌
+     */
     private String token;
-    
-    /** 用户信息 */
+
+    /**
+     * 用户信息
+     */
     private UserInfoDto user;
 }

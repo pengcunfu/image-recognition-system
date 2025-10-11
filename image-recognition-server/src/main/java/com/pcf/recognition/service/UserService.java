@@ -21,7 +21,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
-    
+
     private final UserRepository userRepository;
 
 
@@ -32,11 +32,11 @@ public class UserService {
         log.info("获取用户信息: userId={}", userId);
 
         User user = userRepository.selectById(userId);
-        
+
         if (user == null) {
             return null; // 或抛出异常
         }
-        
+
         return UserInfoDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -58,17 +58,17 @@ public class UserService {
      */
     public boolean updateUserInfo(Long userId, UserUpdateDto updateData) {
         log.info("更新用户信息: userId={}", userId);
-        
+
         User user = userRepository.selectById(userId);
-        
+
         if (user == null) {
             return false;
         }
-        
+
         // 使用LambdaUpdateWrapper进行更新
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(User::getId, userId);
-        
+
         if (updateData.getName() != null) {
             updateWrapper.set(User::getName, updateData.getName());
         }
@@ -81,7 +81,7 @@ public class UserService {
         if (updateData.getAvatar() != null) {
             updateWrapper.set(User::getAvatar, updateData.getAvatar());
         }
-        
+
         return userRepository.update(null, updateWrapper) > 0;
     }
 
@@ -90,23 +90,23 @@ public class UserService {
      */
     public boolean changePassword(Long userId, String oldPassword, String newPassword) {
         log.info("修改密码: userId={}", userId);
-        
+
         User user = userRepository.selectById(userId);
-        
+
         if (user == null) {
             return false;
         }
-        
+
         // 验证旧密码
         if (!oldPassword.equals(user.getPassword())) {
             throw new IllegalArgumentException("原密码错误");
         }
-        
+
         // 更新密码
-        return userRepository.update(null, 
-            new LambdaUpdateWrapper<User>()
-                .eq(User::getId, userId)
-                .set(User::getPassword, newPassword) // 生产环境应加密
+        return userRepository.update(null,
+                new LambdaUpdateWrapper<User>()
+                        .eq(User::getId, userId)
+                        .set(User::getPassword, newPassword) // 生产环境应加密
         ) > 0;
     }
 
@@ -115,13 +115,13 @@ public class UserService {
      */
     public UserStatsDto getUserStats(Long userId) {
         log.info("获取用户统计信息: userId={}", userId);
-        
+
         User user = userRepository.selectById(userId);
-        
+
         if (user == null) {
             return null;
         }
-        
+
         // 这里应该从相关表查询统计数据，暂时返回模拟数据
         return UserStatsDto.builder()
                 .totalRecognitions(156)
@@ -144,7 +144,7 @@ public class UserService {
      */
     public UserSettingsDto getUserSettings(Long userId) {
         log.info("获取用户设置: userId={}", userId);
-        
+
         // 模拟用户设置数据
         return UserSettingsDto.builder()
                 .theme("light")
@@ -172,22 +172,22 @@ public class UserService {
      */
     public boolean updateUserSettings(Long userId, UserSettingsDto settings) {
         log.info("更新用户设置: userId={}", userId);
-        
+
         // 实际应该将设置保存到数据库，这里只是模拟
         log.info("用户设置已更新: {}", settings);
-        
+
         return true; // 模拟更新成功
     }
-    
+
     /**
      * 获取用户活动记录
      */
     public List<UserActivityDto> getUserActivities(Long userId, Integer limit) {
         log.info("获取用户活动记录: userId={}, limit={}", userId, limit);
-        
+
         // 模拟活动记录，实际项目中应该从活动日志表查询
         List<UserActivityDto> activities = new ArrayList<>();
-        
+
         activities.add(UserActivityDto.builder()
                 .id(1L)
                 .type("recognition")
@@ -196,7 +196,7 @@ public class UserService {
                 .timeDisplay("2小时前")
                 .metadata(Map.of("result", "金毛犬", "confidence", 95))
                 .build());
-        
+
         activities.add(UserActivityDto.builder()
                 .id(2L)
                 .type("post")
@@ -205,7 +205,7 @@ public class UserService {
                 .timeDisplay("1天前")
                 .metadata(Map.of("postTitle", "AI识别技巧分享", "postId", 123))
                 .build());
-        
+
         activities.add(UserActivityDto.builder()
                 .id(3L)
                 .type("like")
@@ -214,11 +214,11 @@ public class UserService {
                 .timeDisplay("2天前")
                 .metadata(Map.of("postTitle", "深度学习在图像识别中的应用"))
                 .build());
-        
+
         // 取前limit个
         return activities.stream()
                 .limit(limit)
                 .toList();
     }
-    
+
 }

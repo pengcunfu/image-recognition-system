@@ -9,10 +9,14 @@ import lombok.Builder;
 @Data
 @Builder
 public class SmsCodeVerifyRequest {
-    
-    /** 手机号 */
+
+    /**
+     * 手机号
+     */
     private String phone;
-    
-    /** 验证码 */
+
+    /**
+     * 验证码
+     */
     private String code;
 }

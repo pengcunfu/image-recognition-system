@@ -9,10 +9,14 @@ import lombok.Builder;
 @Data
 @Builder
 public class OperationResultDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
 }

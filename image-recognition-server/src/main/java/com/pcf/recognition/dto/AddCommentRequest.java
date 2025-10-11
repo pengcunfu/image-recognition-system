@@ -11,11 +11,11 @@ import jakarta.validation.constraints.NotBlank;
 @Data
 
 public class AddCommentRequest {
-    
-    
+
+
     @NotBlank(message = "评论内容不能为空")
     private String content;
-    
-    
+
+
     private Long parentId;
 }

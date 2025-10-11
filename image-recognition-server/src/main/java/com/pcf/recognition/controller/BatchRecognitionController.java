@@ -5,7 +5,6 @@ import com.pcf.recognition.service.BatchRecognitionService;
 import com.pcf.recognition.util.TokenUtil;
 
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,14 +27,10 @@ public class BatchRecognitionController {
     private final BatchRecognitionService batchRecognitionService;
     private final TokenUtil tokenUtil;
 
-    
+
     @PostMapping("/recognize")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<BatchTaskCreateResponseDto> batchRecognize(
-            @RequestParam("images") MultipartFile[] images,
-            @RequestParam(required = false) String taskName,
-            @RequestParam(required = false) String description,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<BatchTaskCreateResponseDto> batchRecognize(@RequestParam("images") MultipartFile[] images, @RequestParam(required = false) String taskName, @RequestParam(required = false) String description, @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("批量图像识别请求: 图片数量={}", images.length);
 
@@ -50,9 +45,7 @@ public class BatchRecognitionController {
             taskName = "批量识别任务_" + System.currentTimeMillis();
         }
 
-        BatchTaskCreateResponseDto result = batchRecognitionService.createBatchTask(
-                userId, taskName, description, images
-        );
+        BatchTaskCreateResponseDto result = batchRecognitionService.createBatchTask(userId, taskName, description, images);
 
         if (result.getSuccess()) {
             return ApiResponse.success(result, result.getMessage());
@@ -61,14 +54,10 @@ public class BatchRecognitionController {
         }
     }
 
-    
+
     @GetMapping("/tasks")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<BatchTaskListResponseDto> getBatchTasks(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String status,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<BatchTaskListResponseDto> getBatchTasks(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String status, @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("获取批量任务列表请求: page={}, size={}, status={}", page, size, status);
 
@@ -87,12 +76,10 @@ public class BatchRecognitionController {
         }
     }
 
-    
+
     @GetMapping("/tasks/{id}")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<BatchTaskDetailDto> getBatchTaskDetail(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<BatchTaskDetailDto> getBatchTaskDetail(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("获取批量任务详情请求: id={}", id);
 
@@ -105,12 +92,10 @@ public class BatchRecognitionController {
         return batchRecognitionService.getBatchTaskDetail(id, userId);
     }
 
-    
+
     @DeleteMapping("/tasks/{id}")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<Void> deleteBatchTask(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<Void> deleteBatchTask(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("删除批量任务请求: id={}", id);
 
@@ -129,12 +114,10 @@ public class BatchRecognitionController {
         }
     }
 
-    
+
     @GetMapping("/tasks/{id}/progress")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<BatchTaskProgressDto> getTaskProgress(
-            @PathVariable Long id,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<BatchTaskProgressDto> getTaskProgress(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("获取批量任务进度请求: id={}", id);
 
@@ -149,15 +132,7 @@ public class BatchRecognitionController {
         if (result.getCode() == 200) {
             BatchTaskDetailDto taskData = result.getData();
 
-            BatchTaskProgressDto progress = BatchTaskProgressDto.builder()
-                    .taskId(id)
-                    .status(taskData.getTask().getStatus().name())
-                    .progress(taskData.getTask().getProgress())
-                    .totalCount(taskData.getTask().getTotalCount())
-                    .processedCount(taskData.getTask().getProcessedCount())
-                    .successCount(taskData.getTask().getSuccessCount())
-                    .failedCount(taskData.getTask().getFailedCount())
-                    .build();
+            BatchTaskProgressDto progress = BatchTaskProgressDto.builder().taskId(id).status(taskData.getTask().getStatus().name()).progress(taskData.getTask().getProgress()).totalCount(taskData.getTask().getTotalCount()).processedCount(taskData.getTask().getProcessedCount()).successCount(taskData.getTask().getSuccessCount()).failedCount(taskData.getTask().getFailedCount()).build();
 
             return ApiResponse.success(progress, "获取进度成功");
         } else {
@@ -165,11 +140,10 @@ public class BatchRecognitionController {
         }
     }
 
-    
+
     @GetMapping("/stats")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<BatchTaskStatsDto> getBatchStats(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<BatchTaskStatsDto> getBatchStats(@RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("获取批量任务统计请求");
 

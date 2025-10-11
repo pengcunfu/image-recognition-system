@@ -12,22 +12,34 @@ import java.util.Map;
 @Data
 @Builder
 public class UserActivityDto {
-    
-    /** 活动ID */
+
+    /**
+     * 活动ID
+     */
     private Long id;
-    
-    /** 活动类型 */
+
+    /**
+     * 活动类型
+     */
     private String type;
-    
-    /** 活动描述 */
+
+    /**
+     * 活动描述
+     */
     private String description;
-    
-    /** 活动时间 */
+
+    /**
+     * 活动时间
+     */
     private LocalDateTime createTime;
-    
-    /** 格式化的时间显示 */
+
+    /**
+     * 格式化的时间显示
+     */
     private String timeDisplay;
-    
-    /** 活动元数据 */
+
+    /**
+     * 活动元数据
+     */
     private Map<String, Object> metadata;
 }

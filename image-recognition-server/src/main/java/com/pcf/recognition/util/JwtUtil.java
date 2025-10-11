@@ -18,23 +18,23 @@ import java.util.Map;
 @Slf4j
 @Component
 public class JwtUtil {
-    
+
     @Value("${jwt.secret}")
     private String secret;
-    
+
     @Value("${jwt.expiration}")
     private Long expiration;
-    
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
-    
+
     /**
      * 生成JWT Token
-     * 
-     * @param userId 用户ID
+     *
+     * @param userId   用户ID
      * @param username 用户名
-     * @param role 用户角色
+     * @param role     用户角色
      * @return JWT Token
      */
     public String generateToken(Long userId, String username, String role) {
@@ -42,17 +42,17 @@ public class JwtUtil {
         claims.put("userId", userId);
         claims.put("username", username);
         claims.put("role", role);
-        
+
         return createToken(claims, username);
     }
-    
+
     /**
      * 创建Token
      */
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration * 1000);
-        
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
@@ -61,10 +61,10 @@ public class JwtUtil {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-    
+
     /**
      * 从Token中获取用户ID
-     * 
+     *
      * @param token JWT Token
      * @return 用户ID
      */
@@ -83,10 +83,10 @@ public class JwtUtil {
             return null;
         }
     }
-    
+
     /**
      * 从Token中获取用户名
-     * 
+     *
      * @param token JWT Token
      * @return 用户名
      */
@@ -99,10 +99,10 @@ public class JwtUtil {
             return null;
         }
     }
-    
+
     /**
      * 从Token中获取用户角色
-     * 
+     *
      * @param token JWT Token
      * @return 用户角色
      */
@@ -115,10 +115,10 @@ public class JwtUtil {
             return null;
         }
     }
-    
+
     /**
      * 从Token中获取过期时间
-     * 
+     *
      * @param token JWT Token
      * @return 过期时间
      */
@@ -131,10 +131,10 @@ public class JwtUtil {
             return null;
         }
     }
-    
+
     /**
      * 验证Token是否有效
-     * 
+     *
      * @param token JWT Token
      * @return 是否有效
      */
@@ -147,10 +147,10 @@ public class JwtUtil {
             return false;
         }
     }
-    
+
     /**
      * 检查Token是否过期
-     * 
+     *
      * @param token JWT Token
      * @return 是否过期
      */
@@ -163,7 +163,7 @@ public class JwtUtil {
             return true;
         }
     }
-    
+
     /**
      * 从Token中获取Claims
      */
@@ -172,17 +172,17 @@ public class JwtUtil {
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        
+
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
-    
+
     /**
      * 刷新Token
-     * 
+     *
      * @param token 原Token
      * @return 新Token
      */
@@ -192,7 +192,7 @@ public class JwtUtil {
             Long userId = getUserIdFromToken(token);
             String username = getUsernameFromToken(token);
             String role = getRoleFromToken(token);
-            
+
             if (userId != null && username != null && role != null) {
                 return generateToken(userId, username, role);
             }

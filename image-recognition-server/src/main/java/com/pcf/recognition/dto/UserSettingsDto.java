@@ -11,22 +11,32 @@ import java.util.Map;
 @Data
 @Builder
 public class UserSettingsDto {
-    
-    /** 主题设置 */
+
+    /**
+     * 主题设置
+     */
     private String theme;
-    
-    /** 语言设置 */
+
+    /**
+     * 语言设置
+     */
     private String language;
-    
-    /** 通知设置 */
+
+    /**
+     * 通知设置
+     */
     private NotificationSettings notifications;
-    
-    /** 隐私设置 */
+
+    /**
+     * 隐私设置
+     */
     private PrivacySettings privacy;
-    
-    /** 识别设置 */
+
+    /**
+     * 识别设置
+     */
     private RecognitionSettings recognition;
-    
+
     @Data
     @Builder
     public static class NotificationSettings {
@@ -34,7 +44,7 @@ public class UserSettingsDto {
         private Boolean push;
         private Boolean sms;
     }
-    
+
     @Data
     @Builder
     public static class PrivacySettings {
@@ -42,7 +52,7 @@ public class UserSettingsDto {
         private Boolean showHistory;
         private Boolean allowComments;
     }
-    
+
     @Data
     @Builder
     public static class RecognitionSettings {

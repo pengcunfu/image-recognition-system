@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class CommentCreateResponseDto {
-    
+
     private Long commentId;
 }

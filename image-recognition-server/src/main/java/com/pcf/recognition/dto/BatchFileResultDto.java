@@ -10,18 +10,18 @@ import java.util.List;
  */
 @Data
 public class BatchFileResultDto {
-    
+
     private String fileName;
-    
+
     private Integer index;
-    
+
     private String status;
-    
+
     private String recognitionId;
-    
+
     private List<RecognitionItem> results;
-    
+
     private String imageUrl;
-    
+
     private String error;
 }

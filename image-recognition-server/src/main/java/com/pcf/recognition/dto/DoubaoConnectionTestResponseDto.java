@@ -7,12 +7,12 @@ import lombok.Data;
  */
 @Data
 public class DoubaoConnectionTestResponseDto {
-    
+
     private Boolean connected;
-    
+
     private String message;
-    
+
     private Long timestamp;
-    
+
     private String error;
 }

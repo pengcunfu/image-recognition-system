@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TokenUtil {
-    
+
     private final JwtUtil jwtUtil;
-    
+
     /**
      * 从Authorization头中获取用户ID
-     * 
+     *
      * @param authorizationHeader Authorization请求头
      * @return 用户ID，如果获取失败返回null
      */
@@ -26,7 +26,7 @@ public class TokenUtil {
             log.warn("Authorization头为空");
             return null;
         }
-        
+
         try {
             return jwtUtil.getUserIdFromToken(authorizationHeader);
         } catch (Exception e) {
@@ -34,10 +34,10 @@ public class TokenUtil {
             return null;
         }
     }
-    
+
     /**
      * 从Authorization头中获取用户名
-     * 
+     *
      * @param authorizationHeader Authorization请求头
      * @return 用户名，如果获取失败返回null
      */
@@ -46,7 +46,7 @@ public class TokenUtil {
             log.warn("Authorization头为空");
             return null;
         }
-        
+
         try {
             return jwtUtil.getUsernameFromToken(authorizationHeader);
         } catch (Exception e) {
@@ -54,10 +54,10 @@ public class TokenUtil {
             return null;
         }
     }
-    
+
     /**
      * 从Authorization头中获取用户角色
-     * 
+     *
      * @param authorizationHeader Authorization请求头
      * @return 用户角色，如果获取失败返回null
      */
@@ -66,7 +66,7 @@ public class TokenUtil {
             log.warn("Authorization头为空");
             return null;
         }
-        
+
         try {
             return jwtUtil.getRoleFromToken(authorizationHeader);
         } catch (Exception e) {
@@ -74,10 +74,10 @@ public class TokenUtil {
             return null;
         }
     }
-    
+
     /**
      * 验证Authorization头中的Token是否有效
-     * 
+     *
      * @param authorizationHeader Authorization请求头
      * @return 是否有效
      */
@@ -85,7 +85,7 @@ public class TokenUtil {
         if (authorizationHeader == null || authorizationHeader.trim().isEmpty()) {
             return false;
         }
-        
+
         try {
             return jwtUtil.validateToken(authorizationHeader);
         } catch (Exception e) {

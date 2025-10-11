@@ -17,31 +17,31 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 
 public class ApiResponse<T> {
-    
+
     /**
      * 响应码
      */
-    
+
     private Integer code;
-    
+
     /**
      * 响应消息
      */
-    
+
     private String message;
-    
+
     /**
      * 响应数据
      */
-    
+
     private T data;
-    
+
     /**
      * 时间戳
      */
-    
+
     private LocalDateTime timestamp;
-    
+
     /**
      * 成功响应
      */
@@ -53,7 +53,7 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * 成功响应（带消息）
      */
@@ -65,7 +65,7 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * 失败响应
      */
@@ -76,14 +76,14 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * 失败响应（默认500错误码）
      */
     public static <T> ApiResponse<T> error(String message) {
         return error(500, message);
     }
-    
+
     /**
      * 失败响应（带数据）
      */
@@ -95,7 +95,7 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
-    
+
     /**
      * 失败响应（带错误码和数据）
      */

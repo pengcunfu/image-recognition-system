@@ -9,16 +9,24 @@ import lombok.Data;
 @Data
 @Builder
 public class BatchTaskCreateResponseDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
-    
-    /** 任务ID */
+
+    /**
+     * 任务ID
+     */
     private Long taskId;
-    
-    /** 总图片数量 */
+
+    /**
+     * 总图片数量
+     */
     private Integer totalCount;
 }

@@ -11,34 +11,54 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class KnowledgeCategoryDto {
-    
-    /** 分类ID */
+
+    /**
+     * 分类ID
+     */
     private Long id;
-    
-    /** 分类名称 */
+
+    /**
+     * 分类名称
+     */
     private String name;
-    
-    /** 分类键值 */
+
+    /**
+     * 分类键值
+     */
     private String key;
-    
-    /** 分类描述 */
+
+    /**
+     * 分类描述
+     */
     private String description;
-    
-    /** 分类图片 */
+
+    /**
+     * 分类图片
+     */
     private String image;
-    
-    /** 条目数量 */
+
+    /**
+     * 条目数量
+     */
     private Integer itemCount;
-    
-    /** 排序顺序 */
+
+    /**
+     * 排序顺序
+     */
     private Integer sortOrder;
-    
-    /** 分类状态 */
+
+    /**
+     * 分类状态
+     */
     private String status;
-    
-    /** 创建时间 */
+
+    /**
+     * 创建时间
+     */
     private LocalDateTime createTime;
-    
-    /** 更新时间 */
+
+    /**
+     * 更新时间
+     */
     private LocalDateTime updateTime;
 }

@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+
 import java.util.stream.Collectors;
 
 /**
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
+
     /**
      * 处理参数验证异常
      */
@@ -30,12 +31,12 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-        
+
         log.warn("参数验证失败: {}", message);
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "参数验证失败: " + message));
     }
-    
+
     /**
      * 处理绑定异常
      */
@@ -44,12 +45,12 @@ public class GlobalExceptionHandler {
         String message = e.getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
-        
+
         log.warn("参数绑定失败: {}", message);
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "参数绑定失败: " + message));
     }
-    
+
     /**
      * 处理约束违反异常
      */
@@ -58,12 +59,12 @@ public class GlobalExceptionHandler {
         String message = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", "));
-        
+
         log.warn("约束验证失败: {}", message);
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "约束验证失败: " + message));
     }
-    
+
     /**
      * 处理文件上传大小超限异常
      */
@@ -73,7 +74,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "文件大小超出限制"));
     }
-    
+
     /**
      * 处理非法参数异常
      */
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, e.getMessage()));
     }
-    
+
     /**
      * 处理运行时异常
      */
@@ -93,7 +94,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(500, "服务内部错误: " + e.getMessage()));
     }
-    
+
     /**
      * 处理其他异常
      */

@@ -25,10 +25,10 @@ public class StartupHealthCheck implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         log.info("========== 系统启动健康检查开始 ==========");
-        
+
         boolean mysqlHealthy = checkMySQLConnection();
         boolean redisHealthy = checkRedisConnection();
-        
+
         if (mysqlHealthy && redisHealthy) {
             log.info("✅ 所有依赖服务连接正常，系统启动成功！");
         } else {
@@ -40,7 +40,7 @@ public class StartupHealthCheck implements CommandLineRunner {
                 log.error("   - Redis 连接失败");
             }
         }
-        
+
         log.info("========== 系统启动健康检查结束 ==========");
     }
 
@@ -50,11 +50,11 @@ public class StartupHealthCheck implements CommandLineRunner {
     private boolean checkMySQLConnection() {
         try {
             log.info("🔍 检查 MySQL 连接...");
-            
+
             try (Connection connection = dataSource.getConnection()) {
                 // 执行一个简单的查询来验证连接
                 boolean isValid = connection.isValid(5); // 5秒超时
-                
+
                 if (isValid) {
                     String url = connection.getMetaData().getURL();
                     String username = connection.getMetaData().getUserName();
@@ -82,23 +82,23 @@ public class StartupHealthCheck implements CommandLineRunner {
     private boolean checkRedisConnection() {
         try {
             log.info("🔍 检查 Redis 连接...");
-            
+
             // 执行 PING 命令测试连接
             String pong = redisTemplate.getConnectionFactory()
-                .getConnection()
-                .ping();
-            
+                    .getConnection()
+                    .ping();
+
             if ("PONG".equals(pong)) {
                 log.info("✅ Redis 连接正常");
-                
+
                 // 测试基本的读写操作
                 String testKey = "startup_health_check";
                 String testValue = "test_" + System.currentTimeMillis();
-                
+
                 redisTemplate.opsForValue().set(testKey, testValue);
                 Object retrievedValue = redisTemplate.opsForValue().get(testKey);
                 redisTemplate.delete(testKey);
-                
+
                 if (testValue.equals(retrievedValue)) {
                     log.info("   - Redis 读写测试通过");
                     return true;

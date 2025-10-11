@@ -13,32 +13,32 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecognitionItem {
-    
+
     /**
      * 识别标签
      */
     private String label;
-    
+
     /**
      * 置信度 (0-1)
      */
     private Double confidence;
-    
+
     /**
      * 分类
      */
     private String category;
-    
+
     /**
      * 描述
      */
     private String description;
-    
+
     /**
      * 边界框
      */
     private BoundingBox boundingBox;
-    
+
     /**
      * 边界框定义
      */

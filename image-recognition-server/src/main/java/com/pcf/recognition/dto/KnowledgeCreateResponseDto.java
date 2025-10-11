@@ -9,13 +9,19 @@ import lombok.Builder;
 @Data
 @Builder
 public class KnowledgeCreateResponseDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
-    
-    /** 创建的ID */
+
+    /**
+     * 创建的ID
+     */
     private Long id;
 }

@@ -9,16 +9,24 @@ import lombok.Data;
 @Data
 @Builder
 public class BatchTaskStatsDto {
-    
-    /** 总任务数 */
+
+    /**
+     * 总任务数
+     */
     private Long totalTasks;
-    
-    /** 已完成任务数 */
+
+    /**
+     * 已完成任务数
+     */
     private Long completedTasks;
-    
-    /** 处理中任务数 */
+
+    /**
+     * 处理中任务数
+     */
     private Long processingTasks;
-    
-    /** 待处理任务数 */
+
+    /**
+     * 待处理任务数
+     */
     private Long pendingTasks;
 }

@@ -5,7 +5,6 @@ import com.pcf.recognition.service.CommunityService;
 import com.pcf.recognition.util.TokenUtil;
 
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,7 +26,7 @@ public class CommunityController {
     private final CommunityService communityService;
     private final TokenUtil tokenUtil;
 
-    
+
     @GetMapping("/posts")
     // 公开接口，无需权限验证
     public ApiResponse<PostListResponseDto> getPosts(
@@ -47,7 +46,7 @@ public class CommunityController {
         }
     }
 
-    
+
     @GetMapping("/posts/{id}")
     // 公开接口，无需权限验证
     public ApiResponse<PostDto> getPostDetail(
@@ -64,7 +63,7 @@ public class CommunityController {
         }
     }
 
-    
+
     @PostMapping("/posts")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<PostCreateResponseDto> createPost(
@@ -92,7 +91,7 @@ public class CommunityController {
         }
     }
 
-    
+
     @GetMapping("/posts/{id}/comments")
     // 公开接口，无需权限验证
     public ApiResponse<CommentListResponseDto> getPostComments(
@@ -111,7 +110,7 @@ public class CommunityController {
         }
     }
 
-    
+
     @PostMapping("/posts/{id}/comments")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<CommentCreateResponseDto> addComment(
@@ -139,7 +138,7 @@ public class CommunityController {
         }
     }
 
-    
+
     @PostMapping("/posts/{id}/like")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Void> likePost(

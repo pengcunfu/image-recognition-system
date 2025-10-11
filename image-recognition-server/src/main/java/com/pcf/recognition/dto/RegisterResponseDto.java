@@ -9,13 +9,19 @@ import lombok.Builder;
 @Data
 @Builder
 public class RegisterResponseDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
-    
-    /** 新用户ID */
+
+    /**
+     * 新用户ID
+     */
     private Long userId;
 }

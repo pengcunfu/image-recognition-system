@@ -23,14 +23,14 @@ import java.util.Base64;
 @RequiredArgsConstructor
 @Tag(name = "Doubao AI识别", description = "基于火山引擎Doubao AI模型的图像识别API")
 public class DoubaoImageRecognitionController {
-    
+
     private final DoubaoImageRecognitionService doubaoService;
-    
+
     /**
      * 通过文件上传进行图像识别
      */
     @Operation(
-            summary = "Doubao AI图像识别 (文件上传)", 
+            summary = "Doubao AI图像识别 (文件上传)",
             description = "使用Doubao AI模型识别上传的图片，支持自定义提示词和参数"
     )
     @PostMapping(value = "/recognize/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -45,7 +45,7 @@ public class DoubaoImageRecognitionController {
             @RequestParam(value = "maxTokens", required = false, defaultValue = "500") Integer maxTokens,
             @Parameter(description = "温度参数 (0.0-1.0)")
             @RequestParam(value = "temperature", required = false, defaultValue = "0.1") Double temperature) {
-        
+
         try {
             // 验证文件
             if (file.isEmpty()) {
@@ -53,10 +53,10 @@ public class DoubaoImageRecognitionController {
                         ApiResponse.error("上传文件不能为空")
                 );
             }
-            
+
             // 转换为Base64
             String imageBase64 = Base64.getEncoder().encodeToString(file.getBytes());
-            
+
             // 构建请求
             ImageRecognitionRequest request = new ImageRecognitionRequest();
             request.setImageBase64(imageBase64);
@@ -64,10 +64,10 @@ public class DoubaoImageRecognitionController {
             request.setDetailedAnalysis(detailedAnalysis);
             request.setMaxTokens(maxTokens);
             request.setTemperature(temperature);
-            
+
             // 调用识别服务
             ImageRecognitionResponse response = doubaoService.recognizeImage(request);
-            
+
             if (response.getSuccess()) {
                 return ResponseEntity.ok(ApiResponse.success(response, "图像识别成功"));
             } else {
@@ -75,7 +75,7 @@ public class DoubaoImageRecognitionController {
                         ApiResponse.error("识别失败: " + response.getErrorMessage())
                 );
             }
-            
+
         } catch (Exception e) {
             log.error("文件上传识别失败", e);
             return ResponseEntity.internalServerError().body(
@@ -83,19 +83,19 @@ public class DoubaoImageRecognitionController {
             );
         }
     }
-    
+
     /**
      * 通过JSON请求进行图像识别
      */
     @Operation(
-            summary = "Doubao AI图像识别 (JSON请求)", 
+            summary = "Doubao AI图像识别 (JSON请求)",
             description = "使用JSON格式的请求进行图像识别，支持Base64编码或图片URL"
     )
     @PostMapping("/recognize/json")
     public ResponseEntity<ApiResponse<ImageRecognitionResponse>> recognizeByJson(
             @Parameter(description = "图像识别请求参数", required = true)
             @RequestBody ImageRecognitionRequest request) {
-        
+
         try {
             // 验证请求
             if (request.getImageBase64() == null && request.getImageUrl() == null) {
@@ -103,10 +103,10 @@ public class DoubaoImageRecognitionController {
                         ApiResponse.error("必须提供imageBase64或imageUrl")
                 );
             }
-            
+
             // 调用识别服务
             ImageRecognitionResponse response = doubaoService.recognizeImage(request);
-            
+
             if (response.getSuccess()) {
                 return ResponseEntity.ok(ApiResponse.success(response, "图像识别成功"));
             } else {
@@ -114,7 +114,7 @@ public class DoubaoImageRecognitionController {
                         ApiResponse.error("识别失败: " + response.getErrorMessage())
                 );
             }
-            
+
         } catch (Exception e) {
             log.error("JSON请求识别失败", e);
             return ResponseEntity.internalServerError().body(
@@ -122,7 +122,7 @@ public class DoubaoImageRecognitionController {
             );
         }
     }
-    
+
     /**
      * 测试Doubao连接
      */
@@ -135,7 +135,7 @@ public class DoubaoImageRecognitionController {
             result.setConnected(connected);
             result.setMessage(connected ? "连接成功" : "连接失败");
             result.setTimestamp(System.currentTimeMillis());
-            
+
             if (connected) {
                 return ResponseEntity.ok(ApiResponse.success(result, "Doubao连接测试成功"));
             } else {
@@ -143,20 +143,20 @@ public class DoubaoImageRecognitionController {
                         ApiResponse.error("Doubao连接失败", result)
                 );
             }
-            
+
         } catch (Exception e) {
             log.error("连接测试失败", e);
             DoubaoConnectionTestResponseDto result = new DoubaoConnectionTestResponseDto();
             result.setConnected(false);
             result.setError(e.getMessage());
             result.setTimestamp(System.currentTimeMillis());
-            
+
             return ResponseEntity.internalServerError().body(
                     ApiResponse.error("连接测试异常: " + e.getMessage(), result)
             );
         }
     }
-    
+
     /**
      * 获取服务状态
      */
@@ -168,7 +168,7 @@ public class DoubaoImageRecognitionController {
         status.setStatus("running");
         status.setTimestamp(System.currentTimeMillis());
         status.setVersion("1.0.0");
-        
+
         return ResponseEntity.ok(ApiResponse.success(status, "服务状态正常"));
     }
 }

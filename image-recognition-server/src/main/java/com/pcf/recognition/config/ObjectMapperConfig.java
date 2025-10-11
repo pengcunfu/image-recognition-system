@@ -12,18 +12,18 @@ import org.springframework.context.annotation.Primary;
  */
 @Configuration
 public class ObjectMapperConfig {
-    
+
     @Bean
     @Primary
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        
+
         // 注册时间模块
         mapper.registerModule(new JavaTimeModule());
-        
+
         // 配置属性命名策略
         mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-        
+
         return mapper;
     }
 }

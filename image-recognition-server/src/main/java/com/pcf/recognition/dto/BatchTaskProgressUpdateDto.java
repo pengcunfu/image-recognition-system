@@ -9,13 +9,19 @@ import lombok.Data;
 @Data
 @Builder
 public class BatchTaskProgressUpdateDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 响应消息 */
+
+    /**
+     * 响应消息
+     */
     private String message;
-    
-    /** 进度百分比 */
+
+    /**
+     * 进度百分比
+     */
     private Integer progress;
 }

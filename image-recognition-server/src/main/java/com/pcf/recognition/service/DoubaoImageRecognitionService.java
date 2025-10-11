@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,12 +31,12 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class DoubaoImageRecognitionService {
-    
+
     private final DoubaoConfig doubaoConfig;
     private final ImageRecognitionConfig imageConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ArkService arkService;
-    
+
     /**
      * 初始化Ark服务客户端
      */
@@ -43,17 +44,17 @@ public class DoubaoImageRecognitionService {
     public void initArkService() {
         ConnectionPool connectionPool = new ConnectionPool(5, 1, TimeUnit.SECONDS);
         Dispatcher dispatcher = new Dispatcher();
-        
+
         this.arkService = ArkService.builder()
                 .apiKey(doubaoConfig.getKey())
                 .baseUrl(doubaoConfig.getBaseUrl())
                 .connectionPool(connectionPool)
                 .dispatcher(dispatcher)
                 .build();
-                
+
         log.info("Ark服务客户端初始化完成，baseUrl: {}", doubaoConfig.getBaseUrl());
     }
-    
+
     /**
      * 销毁资源
      */
@@ -64,17 +65,17 @@ public class DoubaoImageRecognitionService {
             log.info("Ark服务客户端已关闭");
         }
     }
-    
+
     /**
      * 识别图像 - 主要方法
      */
     public ImageRecognitionResponse recognizeImage(ImageRecognitionRequest request) {
         long startTime = System.currentTimeMillis();
-        
+
         try {
             // 构建消息
             List<ChatMessage> messages = buildChatMessages(request);
-            
+
             // 构建请求
             ChatCompletionRequest chatRequest = ChatCompletionRequest.builder()
                     .model(doubaoConfig.getModel())
@@ -82,18 +83,18 @@ public class DoubaoImageRecognitionService {
                     .maxTokens(request.getMaxTokens())
                     .temperature(request.getTemperature())
                     .build();
-            
+
             // 发送请求并获取响应
             ChatCompletionResult response = arkService.createChatCompletion(chatRequest);
-            
+
             // 解析响应
             ImageRecognitionResponse result = parseResponse(response);
-            
+
             // 设置处理时间
             result.setProcessingTime(System.currentTimeMillis() - startTime);
-            
+
             return result;
-            
+
         } catch (Exception e) {
             log.error("图像识别失败", e);
             return ImageRecognitionResponse.builder()
@@ -103,21 +104,21 @@ public class DoubaoImageRecognitionService {
                     .build();
         }
     }
-    
+
     /**
      * 构建聊天消息
      */
     private List<ChatMessage> buildChatMessages(ImageRecognitionRequest request) {
         // 选择提示词
-        String prompt = request.getCustomPrompt() != null ? 
-                request.getCustomPrompt() : 
-                (Boolean.TRUE.equals(request.getDetailedAnalysis()) ? 
-                    imageConfig.getDetailedPromptContent() : 
-                    imageConfig.getDefaultPromptContent());
-        
+        String prompt = request.getCustomPrompt() != null ?
+                request.getCustomPrompt() :
+                (Boolean.TRUE.equals(request.getDetailedAnalysis()) ?
+                        imageConfig.getDetailedPromptContent() :
+                        imageConfig.getDefaultPromptContent());
+
         // 构建多模态内容
         List<ChatCompletionContentPart> multiParts = new ArrayList<>();
-        
+
         // 添加图像部分
         if (request.getImageUrl() != null) {
             multiParts.add(ChatCompletionContentPart.builder()
@@ -136,25 +137,25 @@ public class DoubaoImageRecognitionService {
                     ))
                     .build());
         }
-        
+
         // 添加文本提示词
         multiParts.add(ChatCompletionContentPart.builder()
                 .type("text")
                 .text(prompt)
                 .build());
-        
+
         // 构建用户消息
         ChatMessage userMessage = ChatMessage.builder()
                 .role(ChatMessageRole.USER)
                 .multiContent(multiParts)
                 .build();
-        
+
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(userMessage);
-        
+
         return messages;
     }
-    
+
     /**
      * 解析响应结果
      */
@@ -163,23 +164,23 @@ public class DoubaoImageRecognitionService {
             if (response.getChoices() == null || response.getChoices().isEmpty()) {
                 throw new RuntimeException("API响应中没有选择项");
             }
-            
+
             String content = String.valueOf(response.getChoices().get(0).getMessage().getContent());
             log.debug("AI响应内容: {}", content);
-            
+
             // 尝试提取JSON
             String jsonContent = extractJsonFromText(content);
-            
+
             // 解析JSON为识别数据
             ImageRecognitionResponse.RecognitionData data = parseRecognitionData(jsonContent);
             data.setRawResponse(content);
-            
+
             return ImageRecognitionResponse.builder()
                     .success(true)
                     .data(data)
                     .tokenUsage(response.getUsage() != null ? (int) response.getUsage().getTotalTokens() : null)
                     .build();
-            
+
         } catch (Exception e) {
             log.error("解析响应失败", e);
             return ImageRecognitionResponse.builder()
@@ -188,7 +189,7 @@ public class DoubaoImageRecognitionService {
                     .build();
         }
     }
-    
+
     /**
      * 从文本中提取JSON
      */
@@ -196,15 +197,15 @@ public class DoubaoImageRecognitionService {
         // 尝试匹配JSON对象
         Pattern jsonPattern = Pattern.compile("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}", Pattern.DOTALL);
         Matcher matcher = jsonPattern.matcher(text);
-        
+
         if (matcher.find()) {
             return matcher.group();
         }
-        
+
         // 如果没找到完整JSON，返回原文本
         return text;
     }
-    
+
     /**
      * 解析识别数据
      */
@@ -214,7 +215,7 @@ public class DoubaoImageRecognitionService {
             return objectMapper.readValue(jsonContent, ImageRecognitionResponse.RecognitionData.class);
         } catch (Exception e) {
             log.warn("JSON解析失败，尝试手动解析: {}", e.getMessage());
-            
+
             // 如果JSON解析失败，创建一个基础的响应
             return ImageRecognitionResponse.RecognitionData.builder()
                     .category("未知")
@@ -227,7 +228,7 @@ public class DoubaoImageRecognitionService {
                     .build();
         }
     }
-    
+
     /**
      * 测试连接
      */
@@ -240,17 +241,17 @@ public class DoubaoImageRecognitionService {
                     .content("测试连接")
                     .build();
             messages.add(testMessage);
-            
+
             ChatCompletionRequest testRequest = ChatCompletionRequest.builder()
                     .model(doubaoConfig.getModel())
                     .messages(messages)
                     .maxTokens(10)
                     .temperature(0.1)
                     .build();
-            
+
             ChatCompletionResult response = arkService.createChatCompletion(testRequest);
             return response != null && response.getChoices() != null && !response.getChoices().isEmpty();
-            
+
         } catch (Exception e) {
             log.error("连接测试失败", e);
             return false;

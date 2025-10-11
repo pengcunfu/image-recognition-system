@@ -13,10 +13,14 @@ import java.util.List;
 @Data
 @Builder
 public class BatchTaskDetailDto {
-    
-    /** 批量任务信息 */
+
+    /**
+     * 批量任务信息
+     */
     private BatchRecognition task;
-    
-    /** 任务项列表 */
+
+    /**
+     * 任务项列表
+     */
     private List<BatchRecognitionItem> items;
 }

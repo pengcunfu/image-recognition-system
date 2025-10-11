@@ -7,16 +7,24 @@ import lombok.Data;
  */
 @Data
 public class UserUpdateDto {
-    
-    /** 真实姓名 */
+
+    /**
+     * 真实姓名
+     */
     private String name;
-    
-    /** 手机号 */
+
+    /**
+     * 手机号
+     */
     private String phone;
-    
-    /** 个人简介 */
+
+    /**
+     * 个人简介
+     */
     private String bio;
-    
-    /** 头像URL */
+
+    /**
+     * 头像URL
+     */
     private String avatar;
 }

@@ -9,15 +9,15 @@ import lombok.Data;
 @Data
 
 public class SmsCodeResponse {
-    
-    
+
+
     private String phone;
-    
+
     private Integer codeExpiry;
-    
-    
+
+
     private Long sendTime;
-    
-    
+
+
     private String status = "success";
 }

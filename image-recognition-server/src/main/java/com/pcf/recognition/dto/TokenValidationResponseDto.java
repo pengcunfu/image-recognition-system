@@ -9,10 +9,14 @@ import lombok.Builder;
 @Data
 @Builder
 public class TokenValidationResponseDto {
-    
-    /** Token是否有效 */
+
+    /**
+     * Token是否有效
+     */
     private Boolean valid;
-    
-    /** 用户信息 */
+
+    /**
+     * 用户信息
+     */
     private UserInfoDto userInfo;
 }

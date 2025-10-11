@@ -4,7 +4,6 @@ import com.pcf.recognition.dto.ApiResponse;
 import com.pcf.recognition.service.FileStorageService;
 
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -34,11 +33,11 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
 
-    
+
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileStorageService.FileUploadResult> uploadFile(
-            
+
             @RequestParam("file") MultipartFile file) {
         try {
             FileStorageService.FileUploadResult result = fileStorageService.uploadFile(file);
@@ -51,11 +50,11 @@ public class FileController {
         }
     }
 
-    
+
     @PostMapping("/upload/batch")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<List<FileStorageService.FileUploadResult>> uploadFiles(
-            
+
             @RequestParam("files") MultipartFile[] files) {
         try {
             List<FileStorageService.FileUploadResult> results = Arrays.stream(files)
@@ -77,13 +76,13 @@ public class FileController {
         }
     }
 
-    
+
     @GetMapping("/{fileId}")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> getFile(
-            
+
             @PathVariable String fileId,
-            
+
             @RequestParam(defaultValue = "false") boolean download) {
         try {
             Path filePath = fileStorageService.getFilePath(fileId);
@@ -118,29 +117,29 @@ public class FileController {
         }
     }
 
-    
+
     @GetMapping("/{fileId}/download")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> downloadFile(
-            
+
             @PathVariable String fileId) {
         return getFile(fileId, true);
     }
 
-    
+
     @GetMapping("/{fileId}/preview")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> previewFile(
-            
+
             @PathVariable String fileId) {
         return getFile(fileId, false);
     }
 
-    
+
     @DeleteMapping("/{fileId}")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Void> deleteFile(
-            
+
             @PathVariable String fileId) {
         try {
             boolean deleted = fileStorageService.deleteFile(fileId);
@@ -156,11 +155,11 @@ public class FileController {
         }
     }
 
-    
+
     @GetMapping("/{fileId}/info")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileInfo> getFileInfo(
-            
+
             @PathVariable String fileId) {
         try {
             Path filePath = fileStorageService.getFilePath(fileId);

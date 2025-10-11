@@ -9,16 +9,24 @@ import lombok.Builder;
 @Data
 @Builder
 public class CaptchaResponseDto {
-    
-    /** 是否成功 */
+
+    /**
+     * 是否成功
+     */
     private Boolean success;
-    
-    /** 验证码文本（用于测试，生产环境不应返回） */
+
+    /**
+     * 验证码文本（用于测试，生产环境不应返回）
+     */
     private String captcha;
-    
-    /** 验证码图片（Base64编码） */
+
+    /**
+     * 验证码图片（Base64编码）
+     */
     private String captchaImage;
-    
-    /** 验证码ID */
+
+    /**
+     * 验证码ID
+     */
     private String captchaId;
 }

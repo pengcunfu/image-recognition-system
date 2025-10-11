@@ -11,40 +11,64 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class UserInfoDto {
-    
-    /** 用户ID */
+
+    /**
+     * 用户ID
+     */
     private Long id;
-    
-    /** 用户名 */
+
+    /**
+     * 用户名
+     */
     private String username;
-    
-    /** 邮箱 */
+
+    /**
+     * 邮箱
+     */
     private String email;
-    
-    /** 真实姓名 */
+
+    /**
+     * 真实姓名
+     */
     private String name;
-    
-    /** 手机号 */
+
+    /**
+     * 手机号
+     */
     private String phone;
-    
-    /** 头像URL */
+
+    /**
+     * 头像URL
+     */
     private String avatar;
-    
-    /** 个人简介 */
+
+    /**
+     * 个人简介
+     */
     private String bio;
-    
-    /** 用户角色 */
+
+    /**
+     * 用户角色
+     */
     private String role;
-    
-    /** 用户状态 */
+
+    /**
+     * 用户状态
+     */
     private String status;
-    
-    /** VIP等级 */
+
+    /**
+     * VIP等级
+     */
     private Integer vipLevel;
-    
-    /** 最后登录时间 */
+
+    /**
+     * 最后登录时间
+     */
     private LocalDateTime lastLoginTime;
-    
-    /** 创建时间 */
+
+    /**
+     * 创建时间
+     */
     private LocalDateTime createTime;
 }

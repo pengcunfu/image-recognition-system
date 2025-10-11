@@ -9,14 +9,14 @@ import java.util.List;
  */
 @Data
 public class CommentListResponseDto {
-    
+
     private List<CommentDto> data;
-    
+
     private Long total;
-    
+
     private Long pages;
-    
+
     private Long current;
-    
+
     private Long size;
 }

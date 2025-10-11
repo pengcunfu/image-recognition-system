@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class PostDetailResponseDto {
-    
+
     private PostDto post;
 }

@@ -9,25 +9,39 @@ import lombok.Builder;
 @Data
 @Builder
 public class KnowledgeStatsDto {
-    
-    /** 总分类数 */
+
+    /**
+     * 总分类数
+     */
     private Long totalCategories;
-    
-    /** 总条目数 */
+
+    /**
+     * 总条目数
+     */
     private Long totalItems;
-    
-    /** 总浏览量 */
+
+    /**
+     * 总浏览量
+     */
     private Long totalViews;
-    
-    /** 月增长率 */
+
+    /**
+     * 月增长率
+     */
     private Double monthlyGrowth;
-    
-    /** 总点赞数 */
+
+    /**
+     * 总点赞数
+     */
     private Long totalLikes;
-    
-    /** 总收藏数 */
+
+    /**
+     * 总收藏数
+     */
     private Long totalFavorites;
-    
-    /** 平均难度 */
+
+    /**
+     * 平均难度
+     */
     private Double averageDifficulty;
 }

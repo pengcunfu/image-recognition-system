@@ -13,27 +13,27 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageMetadata {
-    
+
     /**
      * 图像尺寸
      */
     private ImageSize imageSize;
-    
+
     /**
      * 文件大小（字节）
      */
     private Long fileSize;
-    
+
     /**
      * 图像格式
      */
     private String format;
-    
+
     /**
      * 处理时间（秒）
      */
     private Double processingTime;
-    
+
     /**
      * 图像尺寸定义
      */

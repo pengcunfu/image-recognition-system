@@ -7,12 +7,12 @@ import lombok.Data;
  */
 @Data
 public class DoubaoServiceStatusResponseDto {
-    
+
     private String service;
-    
+
     private String status;
-    
+
     private Long timestamp;
-    
+
     private String version;
 }

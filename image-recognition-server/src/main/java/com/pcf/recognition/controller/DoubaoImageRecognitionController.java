@@ -1,8 +1,6 @@
 package com.pcf.recognition.controller;
 
-import com.pcf.recognition.dto.ApiResponse;
-import com.pcf.recognition.dto.ImageRecognitionRequest;
-import com.pcf.recognition.dto.ImageRecognitionResponse;
+import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.DoubaoImageRecognitionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,8 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Doubao图像识别控制器
@@ -132,13 +128,13 @@ public class DoubaoImageRecognitionController {
      */
     @Operation(summary = "测试Doubao AI连接", description = "测试与火山引擎Doubao AI服务的连接状态")
     @GetMapping("/test")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> testConnection() {
+    public ResponseEntity<ApiResponse<DoubaoConnectionTestResponseDto>> testConnection() {
         try {
             boolean connected = doubaoService.testConnection();
-            Map<String, Object> result = new HashMap<>();
-            result.put("connected", connected);
-            result.put("message", connected ? "连接成功" : "连接失败");
-            result.put("timestamp", System.currentTimeMillis());
+            DoubaoConnectionTestResponseDto result = new DoubaoConnectionTestResponseDto();
+            result.setConnected(connected);
+            result.setMessage(connected ? "连接成功" : "连接失败");
+            result.setTimestamp(System.currentTimeMillis());
             
             if (connected) {
                 return ResponseEntity.ok(ApiResponse.success(result, "Doubao连接测试成功"));
@@ -150,10 +146,10 @@ public class DoubaoImageRecognitionController {
             
         } catch (Exception e) {
             log.error("连接测试失败", e);
-            Map<String, Object> result = new HashMap<>();
-            result.put("connected", false);
-            result.put("error", e.getMessage());
-            result.put("timestamp", System.currentTimeMillis());
+            DoubaoConnectionTestResponseDto result = new DoubaoConnectionTestResponseDto();
+            result.setConnected(false);
+            result.setError(e.getMessage());
+            result.setTimestamp(System.currentTimeMillis());
             
             return ResponseEntity.internalServerError().body(
                     ApiResponse.error("连接测试异常: " + e.getMessage(), result)
@@ -166,12 +162,12 @@ public class DoubaoImageRecognitionController {
      */
     @Operation(summary = "获取Doubao服务状态", description = "获取Doubao图像识别服务的运行状态信息")
     @GetMapping("/status")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getStatus() {
-        Map<String, Object> status = new HashMap<>();
-        status.put("service", "DoubaoImageRecognitionService");
-        status.put("status", "running");
-        status.put("timestamp", System.currentTimeMillis());
-        status.put("version", "1.0.0");
+    public ResponseEntity<ApiResponse<DoubaoServiceStatusResponseDto>> getStatus() {
+        DoubaoServiceStatusResponseDto status = new DoubaoServiceStatusResponseDto();
+        status.setService("DoubaoImageRecognitionService");
+        status.setStatus("running");
+        status.setTimestamp(System.currentTimeMillis());
+        status.setVersion("1.0.0");
         
         return ResponseEntity.ok(ApiResponse.success(status, "服务状态正常"));
     }

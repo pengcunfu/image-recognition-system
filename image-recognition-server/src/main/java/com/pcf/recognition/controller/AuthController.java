@@ -142,12 +142,12 @@ public class AuthController {
             // 生成6位数字验证码
             String code = generateSmsCode();
             
+            // 将验证码存储到Redis
+            authService.storeSmsCode(request.getPhone(), code);
+            
             // TODO: 集成短信服务商发送短信
             // 这里模拟发送成功
             log.info("发送短信验证码到手机号: {}, 验证码: {}", request.getPhone(), code);
-            
-            // 实际项目中应该将验证码存储到Redis中，设置过期时间
-            // redisTemplate.opsForValue().set("SMS_CODE:" + request.getPhone(), code, 5, TimeUnit.MINUTES);
             
             SmsCodeResponse response = new SmsCodeResponse();
             response.setPhone(maskPhoneNumber(request.getPhone()));
@@ -166,25 +166,14 @@ public class AuthController {
     // 公开接口，无需权限验证
     public ApiResponse<Boolean> verifySmsCode(@RequestBody SmsCodeVerifyRequest request) {
         try {
-            // TODO: 从Redis中获取验证码进行验证
-            // String storedCode = redisTemplate.opsForValue().get("SMS_CODE:" + request.getPhone());
+            // 使用AuthService验证短信验证码
+            boolean isValid = authService.verifySmsCode(request.getPhone(), request.getCode());
             
-            // 这里模拟验证逻辑
-            String storedCode = "123456"; // 模拟存储的验证码
-            
-            if (storedCode == null) {
-                return ApiResponse.error("验证码已过期或不存在");
+            if (isValid) {
+                return ApiResponse.success(true, "验证码验证成功");
+            } else {
+                return ApiResponse.error("验证码错误或已过期");
             }
-            
-            if (!storedCode.equals(request.getCode())) {
-                return ApiResponse.error("验证码错误");
-            }
-            
-            // 验证成功后删除验证码
-            // redisTemplate.delete("SMS_CODE:" + request.getPhone());
-            
-            log.info("短信验证码验证成功，手机号: {}", request.getPhone());
-            return ApiResponse.success(true, "验证码验证成功");
         } catch (Exception e) {
             log.error("验证短信验证码失败", e);
             return ApiResponse.error("验证码验证失败");

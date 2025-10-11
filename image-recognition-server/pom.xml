@@ -119,6 +119,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Easy-Captcha 验证码生成库 -->
+        <dependency>
+            <groupId>com.github.whvcse</groupId>
+            <artifactId>easy-captcha</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

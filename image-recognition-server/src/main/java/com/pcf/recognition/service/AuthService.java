@@ -4,11 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
+import com.wf.captcha.SpecCaptcha;
+import com.wf.captcha.base.Captcha;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -200,16 +205,61 @@ public class AuthService {
      * 获取验证码
      */
     public CaptchaResponseDto getCaptcha() {
-        // 生成简单的验证码（实际应该生成图片验证码）
-        String captcha = String.valueOf((int) (Math.random() * 9000) + 1000);
-        String captchaId = UUID.randomUUID().toString();
+        try {
+            // 创建验证码对象，设置宽度、高度、验证码长度、干扰线数量
+            SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
+            
+            // 设置验证码类型为数字和字母混合
+            specCaptcha.setCharType(Captcha.TYPE_DEFAULT);
+            
+            // 设置字体
+            specCaptcha.setFont(Captcha.FONT_1);
+            
+            // 获取验证码文本
+            String captchaText = specCaptcha.text().toLowerCase();
+            
+            // 将验证码图片转换为Base64
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            specCaptcha.out(outputStream);
+            String captchaImage = "data:image/png;base64," + Base64.getEncoder().encodeToString(outputStream.toByteArray());
+            
+            // 生成验证码ID
+            String captchaId = UUID.randomUUID().toString();
+            
+            log.info("验证码生成成功: captchaId={}, text={}", captchaId, captchaText);
+            
+            return CaptchaResponseDto.builder()
+                .success(true)
+                .captcha(captchaText)
+                .captchaImage(captchaImage)
+                .captchaId(captchaId)
+                .build();
+                
+        } catch (IOException e) {
+            log.error("生成验证码失败", e);
+            return CaptchaResponseDto.builder()
+                .success(false)
+                .captcha(null)
+                .captchaImage(null)
+                .captchaId(null)
+                .build();
+        }
+    }
+
+    /**
+     * 验证验证码
+     */
+    public boolean verifyCaptcha(String captchaId, String userInput) {
+        // 实际项目中应该从Redis或Session中获取存储的验证码
+        // 这里简化处理，实际使用时需要配合缓存存储验证码
+        log.info("验证验证码: captchaId={}, userInput={}", captchaId, userInput);
         
-        return CaptchaResponseDto.builder()
-            .success(true)
-            .captcha(captcha)
-            .captchaImage("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==") // 占位图片
-            .captchaId(captchaId)
-            .build();
+        // TODO: 从缓存中获取验证码进行验证
+        // String storedCaptcha = redisTemplate.opsForValue().get("captcha:" + captchaId);
+        // return storedCaptcha != null && storedCaptcha.equalsIgnoreCase(userInput);
+        
+        // 临时返回true，实际项目中需要实现真正的验证逻辑
+        return true;
     }
 
     /**

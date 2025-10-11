@@ -2,9 +2,9 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
 import com.pcf.recognition.service.FileStorageService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * 文件管理控制器
  */
-@Tag(name = "文件管理", description = "文件上传、下载、预览等相关接口")
+
 @RestController
 @RequestMapping("/api/v1/files")
 @RequiredArgsConstructor
@@ -34,11 +34,11 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
 
-    @Operation(summary = "上传单个文件", description = "上传单个文件，支持图片、文档等格式")
+    
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileStorageService.FileUploadResult> uploadFile(
-            @Parameter(description = "要上传的文件", required = true)
+            
             @RequestParam("file") MultipartFile file) {
         try {
             FileStorageService.FileUploadResult result = fileStorageService.uploadFile(file);
@@ -51,11 +51,11 @@ public class FileController {
         }
     }
 
-    @Operation(summary = "批量上传文件", description = "批量上传多个文件")
+    
     @PostMapping("/upload/batch")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<List<FileStorageService.FileUploadResult>> uploadFiles(
-            @Parameter(description = "要上传的文件列表", required = true)
+            
             @RequestParam("files") MultipartFile[] files) {
         try {
             List<FileStorageService.FileUploadResult> results = Arrays.stream(files)
@@ -77,13 +77,13 @@ public class FileController {
         }
     }
 
-    @Operation(summary = "获取文件", description = "根据文件ID获取文件内容，支持在线预览")
+    
     @GetMapping("/{fileId}")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> getFile(
-            @Parameter(description = "文件ID", required = true)
+            
             @PathVariable String fileId,
-            @Parameter(description = "是否作为附件下载", example = "false")
+            
             @RequestParam(defaultValue = "false") boolean download) {
         try {
             Path filePath = fileStorageService.getFilePath(fileId);
@@ -118,29 +118,29 @@ public class FileController {
         }
     }
 
-    @Operation(summary = "下载文件", description = "根据文件ID下载文件")
+    
     @GetMapping("/{fileId}/download")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> downloadFile(
-            @Parameter(description = "文件ID", required = true)
+            
             @PathVariable String fileId) {
         return getFile(fileId, true);
     }
 
-    @Operation(summary = "预览文件", description = "根据文件ID预览文件（主要用于图片）")
+    
     @GetMapping("/{fileId}/preview")
     // 公开接口，无需权限验证
     public ResponseEntity<Resource> previewFile(
-            @Parameter(description = "文件ID", required = true)
+            
             @PathVariable String fileId) {
         return getFile(fileId, false);
     }
 
-    @Operation(summary = "删除文件", description = "根据文件ID删除文件")
+    
     @DeleteMapping("/{fileId}")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<Void> deleteFile(
-            @Parameter(description = "文件ID", required = true)
+            
             @PathVariable String fileId) {
         try {
             boolean deleted = fileStorageService.deleteFile(fileId);
@@ -156,11 +156,11 @@ public class FileController {
         }
     }
 
-    @Operation(summary = "获取文件信息", description = "根据文件ID获取文件的元信息")
+    
     @GetMapping("/{fileId}/info")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<FileInfo> getFileInfo(
-            @Parameter(description = "文件ID", required = true)
+            
             @PathVariable String fileId) {
         try {
             Path filePath = fileStorageService.getFilePath(fileId);

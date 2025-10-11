@@ -2,8 +2,8 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
 import com.pcf.recognition.dto.SystemInfoDto;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * 包含系统信息和欢迎页面功能
  */
 @Controller
-@Tag(name = "系统信息", description = "系统基本信息API")
+
 public class IndexController {
 
     /**
@@ -28,7 +28,7 @@ public class IndexController {
     /**
      * 系统信息接口
      */
-    @Operation(summary = "获取系统信息", description = "获取图像识别系统的基本信息和API文档链接")
+    
     @GetMapping("/api/v1/info")
     @ResponseBody
     public ApiResponse<SystemInfoDto> getSystemInfo() {
@@ -49,7 +49,7 @@ public class IndexController {
     /**
      * 系统健康检查接口
      */
-    @Operation(summary = "系统健康检查", description = "检查系统运行状态")
+    
     @GetMapping("/api/v1/health")
     @ResponseBody
     public ApiResponse<SystemInfoDto> healthCheck() {
@@ -66,7 +66,7 @@ public class IndexController {
     /**
      * 欢迎接口
      */
-    @Operation(summary = "欢迎页面", description = "系统欢迎信息")
+    
     @GetMapping("/api/v1/welcome")
     @ResponseBody
     public ApiResponse<SystemInfoDto> welcome() {

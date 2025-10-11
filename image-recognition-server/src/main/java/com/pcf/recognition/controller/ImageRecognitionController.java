@@ -5,12 +5,12 @@ import com.pcf.recognition.entity.RecognitionResult;
 import com.pcf.recognition.service.FileStorageService;
 import com.pcf.recognition.service.VolcengineImageService;
 import com.pcf.recognition.util.TokenUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+
+
+
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -31,47 +31,23 @@ import java.util.List;
 @RequestMapping("/api/v1/recognition")
 @RequiredArgsConstructor
 @Validated
-@Tag(name = "图像识别", description = "基于火山引擎的图像识别API")
+
 public class ImageRecognitionController {
     
     private final VolcengineImageService volcengineImageService;
     private final FileStorageService fileStorageService;
     private final TokenUtil tokenUtil;
-    
-    /**
-     * 单张图像识别
-     */
-    @Operation(
-            summary = "单张图像识别", 
-            description = "上传单张图片进行AI识别，支持多种识别模式"
-    )
-    @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "200", 
-                    description = "识别成功",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "400", 
-                    description = "请求参数错误"
-            ),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(
-                    responseCode = "500", 
-                    description = "服务器内部错误"
-            )
-    })
+
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<RecognitionResult> recognizeImage(
-            @Parameter(description = "要识别的图片文件", required = true)
+            
             @RequestParam("file") @NotNull MultipartFile file,
-            @Parameter(description = "识别模式", schema = @Schema(allowableValues = {"general", "animal", "plant", "food", "scene"}))
             @RequestParam(value = "mode", defaultValue = "general") String mode,
-            @Parameter(description = "置信度阈值 (0.0-1.0)")
             @RequestParam(value = "confidence", defaultValue = "0.5") Double confidence,
-            @Parameter(description = "最大结果数量")
+            
             @RequestParam(value = "maxResults", defaultValue = "5") Integer maxResults,
-            @Parameter(description = "标签过滤")
+            
             @RequestParam(value = "tags", required = false) List<String> tags,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
@@ -104,25 +80,16 @@ public class ImageRecognitionController {
         }
     }
     
-    /**
-     * 批量图像识别
-     */
-    @Operation(
-            summary = "批量图像识别", 
-            description = "上传多张图片进行批量AI识别，最多支持20张图片"
-    )
+
     @PostMapping(value = "/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
     public ApiResponse<BatchRecognitionResponseDto> batchRecognizeImages(
-            @Parameter(description = "要识别的图片文件列表 (最多20张)", required = true)
             @RequestParam("files") List<MultipartFile> files,
-            @Parameter(description = "识别模式", schema = @Schema(allowableValues = {"general", "animal", "plant", "food", "scene"}))
             @RequestParam(value = "mode", defaultValue = "general") String mode,
-            @Parameter(description = "置信度阈值 (0.0-1.0)")
             @RequestParam(value = "confidence", defaultValue = "0.5") Double confidence,
-            @Parameter(description = "最大结果数量")
+            
             @RequestParam(value = "maxResults", defaultValue = "5") Integer maxResults,
-            @Parameter(description = "批次名称")
+            
             @RequestParam(value = "batchName", required = false) String batchName,
             @RequestHeader(value = "Authorization", required = false) String token) {
         
@@ -206,7 +173,7 @@ public class ImageRecognitionController {
     /**
      * 获取支持的识别模式
      */
-    @Operation(summary = "获取支持的识别模式", description = "获取系统支持的所有图像识别模式列表")
+    
     @GetMapping("/modes")
     // 公开接口，无需权限验证
     public ApiResponse<List<RecognitionModeDto>> getSupportedModes() {
@@ -253,7 +220,7 @@ public class ImageRecognitionController {
     /**
      * 健康检查
      */
-    @Operation(summary = "健康检查", description = "检查图像识别服务的运行状态")
+    
     @GetMapping("/health")
     // 公开接口，无需权限验证
     public ApiResponse<HealthCheckResponseDto> healthCheck() {

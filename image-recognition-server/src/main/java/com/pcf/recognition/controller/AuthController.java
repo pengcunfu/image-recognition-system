@@ -3,9 +3,9 @@ package com.pcf.recognition.controller;
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.AuthService;
 import com.pcf.recognition.util.JwtUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
+
+
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
  * 用户认证控制器
  * 提供登录、注册、密码重置等功能
  */
-@Tag(name = "用户认证", description = "用户登录、注册、密码管理等认证相关接口")
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @Slf4j
@@ -27,11 +27,11 @@ public class AuthController {
     private final AuthService authService;
     private final JwtUtil jwtUtil;
 
-    @Operation(summary = "用户登录", description = "通过用户名/邮箱和密码进行登录认证")
+    
     @PostMapping("/login")
     // 公开接口，无需权限验证
     public ApiResponse<LoginResponseDto> login(
-            @Parameter(description = "登录请求数据") @Valid @RequestBody LoginRequest request) {
+            @Valid @RequestBody LoginRequest request) {
         
         try {
             LoginResponseDto result = authService.login(
@@ -60,11 +60,11 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "用户注册", description = "创建新用户账户")
+    
     @PostMapping("/register")
     // 公开接口，无需权限验证
     public ApiResponse<RegisterResponseDto> register(
-            @Parameter(description = "注册请求数据") @Valid @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
         
         try {
             RegisterResponseDto result = authService.register(
@@ -84,11 +84,11 @@ public class AuthController {
         }
     }
 
-    @Operation(summary = "忘记密码", description = "通过邮箱重置密码")
+    
     @PostMapping("/forgot-password")
     // 公开接口，无需权限验证
     public ApiResponse<String> forgotPassword(
-            @Parameter(description = "邮箱地址") @Valid @RequestBody ForgotPasswordRequest request) {
+            @Valid @RequestBody ForgotPasswordRequest request) {
         
         log.info("忘记密码请求: email={}", request.getEmail());
         
@@ -96,7 +96,7 @@ public class AuthController {
         return ApiResponse.success("密码重置邮件已发送到您的邮箱", "重置邮件发送成功");
     }
 
-    @Operation(summary = "刷新验证码", description = "获取新的验证码")
+    
     @GetMapping("/captcha")
     // 公开接口，无需权限验证
     public ApiResponse<CaptchaResponseDto> getCaptcha() {
@@ -104,7 +104,7 @@ public class AuthController {
         return ApiResponse.success(result, "验证码获取成功");
     }
 
-    @Operation(summary = "退出登录", description = "用户登出，清除会话")
+    
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
@@ -115,7 +115,7 @@ public class AuthController {
         return ApiResponse.success("退出登录成功");
     }
 
-    @Operation(summary = "验证Token", description = "验证用户token是否有效")
+    
     @GetMapping("/validate")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<TokenValidationResponseDto> validateToken(
@@ -155,7 +155,7 @@ public class AuthController {
         return ApiResponse.success(result, "Token验证成功");
     }
     
-    @Operation(summary = "发送短信验证码", description = "发送短信验证码到指定手机号")
+    
     @PostMapping("/sms-code")
     // 公开接口，无需权限验证
     public ApiResponse<SmsCodeResponse> sendSmsCode(@RequestBody SmsCodeRequest request) {
@@ -187,7 +187,7 @@ public class AuthController {
         }
     }
     
-    @Operation(summary = "验证短信验证码", description = "验证用户输入的短信验证码")
+    
     @PostMapping("/sms-code/verify")
     // 公开接口，无需权限验证
     public ApiResponse<Boolean> verifySmsCode(@RequestBody SmsCodeVerifyRequest request) {

@@ -2,7 +2,7 @@ spring:
   application:
     name: image-recognition-system
   
-  # MVC配置 - 解决Swagger兼容性问题
+  # MVC配置
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -110,18 +110,6 @@ doubao:
     model: doubao-1-5-thinking-vision-pro-250428
     timeout: 30000
     max-retries: 3
-
-# Swagger/OpenAPI 配置
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    tags-sorter: alpha
-    operations-sorter: alpha
-    display-request-duration: true
-    doc-expansion: none
-  show-actuator: true
-
 
 # 日志配置
 logging:

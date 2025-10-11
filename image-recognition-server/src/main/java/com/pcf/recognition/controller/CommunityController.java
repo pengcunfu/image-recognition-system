@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.CommunityService;
+import com.pcf.recognition.util.TokenUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +25,7 @@ import jakarta.validation.Valid;
 public class CommunityController {
 
     private final CommunityService communityService;
+    private final TokenUtil tokenUtil;
 
     @Operation(summary = "获取帖子列表", description = "分页获取社区帖子列表")
     @GetMapping("/posts")
@@ -72,8 +74,11 @@ public class CommunityController {
         log.info("发布帖子请求: title={}", request.getTitle());
 
         try {
-            // 模拟从token中解析用户ID
-            Long authorId = 1L;
+            // 从token中解析用户ID
+            Long authorId = tokenUtil.getUserIdFromHeader(token);
+            if (authorId == null) {
+                return ApiResponse.error("无效的Token");
+            }
 
             PostCreateResponseDto result = communityService.createPost(
                     authorId, request.getTitle(), request.getContent(),
@@ -117,8 +122,11 @@ public class CommunityController {
         log.info("添加评论请求: postId={}, content={}", id, request.getContent());
 
         try {
-            // 模拟从token中解析用户ID
-            Long authorId = 1L;
+            // 从token中解析用户ID
+            Long authorId = tokenUtil.getUserIdFromHeader(token);
+            if (authorId == null) {
+                return ApiResponse.error("无效的Token");
+            }
 
             CommentCreateResponseDto result = communityService.addComment(
                     id, authorId, request.getContent(), request.getParentId()
@@ -141,8 +149,11 @@ public class CommunityController {
         log.info("点赞帖子请求: postId={}", id);
 
         try {
-            // 模拟从token中解析用户ID
-            Long userId = 1L;
+            // 从token中解析用户ID
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
 
             communityService.likePost(id, userId);
 

@@ -1,6 +1,7 @@
 package com.pcf.recognition.service;
 
 import com.pcf.recognition.config.DoubaoConfig;
+import com.pcf.recognition.config.ImageRecognitionConfig;
 import com.pcf.recognition.dto.ImageRecognitionRequest;
 import com.pcf.recognition.dto.ImageRecognitionResponse;
 import com.volcengine.ark.runtime.model.completion.chat.*;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
 import okhttp3.Dispatcher;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -32,14 +32,9 @@ import java.util.regex.Pattern;
 public class DoubaoImageRecognitionService {
     
     private final DoubaoConfig doubaoConfig;
+    private final ImageRecognitionConfig imageConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private ArkService arkService;
-    
-    @Value("${image.recognition.prompt.default}")
-    private String defaultPrompt;
-    
-    @Value("${image.recognition.prompt.detailed}")
-    private String detailedPrompt;
     
     /**
      * 初始化Ark服务客户端
@@ -116,7 +111,9 @@ public class DoubaoImageRecognitionService {
         // 选择提示词
         String prompt = request.getCustomPrompt() != null ? 
                 request.getCustomPrompt() : 
-                (Boolean.TRUE.equals(request.getDetailedAnalysis()) ? detailedPrompt : defaultPrompt);
+                (Boolean.TRUE.equals(request.getDetailedAnalysis()) ? 
+                    imageConfig.getDetailedPromptContent() : 
+                    imageConfig.getDefaultPromptContent());
         
         // 构建多模态内容
         List<ChatCompletionContentPart> multiParts = new ArrayList<>();

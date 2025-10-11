@@ -1,0 +1,29 @@
+详细分析图像中的所有元素，包括主要物体、背景、环境、光线等，以结构化JSON格式输出详细信息:
+{
+  "category": "物体主类别",
+  "name": "具体名称",
+  "color": "主要颜色",
+  "shape": "形状特征",
+  "material": "材质纹理",
+  "attributes": ["关键属性1", "关键属性2", "关键属性3"],
+  "background": "背景描述",
+  "environment": "环境信息",
+  "lighting": "光线条件",
+  "composition": "构图特点",
+  "style": "风格特征",
+  "emotions": "情感色彩",
+  "technical_details": {
+    "quality": "图像质量",
+    "perspective": "视角",
+    "focus": "焦点"
+  },
+  "confidence": 0.95
+}
+
+要求：
+1. 全面分析图像的各个方面
+2. 提供详细的背景和环境描述
+3. 分析光线、构图、风格等技术细节
+4. 包含情感和氛围的描述
+5. 置信度0-1之间
+6. 仅输出JSON，无额外文字

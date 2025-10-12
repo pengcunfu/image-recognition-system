@@ -17,191 +17,7 @@
     </div>
 
     <div class="register-box">
-      <!-- 左侧注册表单 -->
-      <div class="register-form-container">
-        <div class="form-header">
-          <h2 class="form-title">创建账户</h2>
-          <p class="form-subtitle">填写以下信息完成注册，开启智能识别之旅</p>
-        </div>
-        
-        <!-- 步骤指示器 -->
-        <a-steps :current="currentStep - 1" size="small" class="step-indicator">
-          <a-step title="基本信息" />
-          <a-step title="邮箱验证" />
-          <a-step title="完成注册" />
-        </a-steps>
-        
-        <a-form
-          ref="formRef"
-          :model="formData"
-          :rules="rules"
-          class="register-form"
-          @finish="handleRegister"
-        >
-          <!-- 第一步：基本信息 -->
-          <div v-show="currentStep === 1" class="form-step">
-            <a-form-item name="username">
-              <a-input
-                v-model:value="formData.username"
-                size="large"
-                placeholder="请输入用户名（3-20位字符）"
-              >
-                <template #prefix>
-                  <i class="fas fa-user"></i>
-                </template>
-                <template #suffix>
-                  <i v-if="usernameValid" class="fas fa-check" style="color: #52c41a;"></i>
-                </template>
-              </a-input>
-            </a-form-item>
-            
-            <a-form-item name="password">
-              <a-input-password
-                v-model:value="formData.password"
-                size="large"
-                placeholder="请设置密码（至少6位）"
-                @input="updatePasswordStrength"
-              >
-                <template #prefix>
-                  <i class="fas fa-lock"></i>
-                </template>
-              </a-input-password>
-              
-              <!-- 密码强度指示器 -->
-              <div v-if="formData.password" class="password-strength">
-                <div class="strength-label">密码强度：<span>{{ strengthText }}</span></div>
-                <div class="strength-bar">
-                  <div 
-                    class="strength-fill" 
-                    :class="`strength-${passwordStrength}`"
-                  ></div>
-                </div>
-              </div>
-            </a-form-item>
-            
-            <a-form-item name="confirmPassword">
-              <a-input-password
-                v-model:value="formData.confirmPassword"
-                size="large"
-                placeholder="请再次输入密码"
-              >
-                <template #prefix>
-                  <i class="fas fa-lock"></i>
-                </template>
-              </a-input-password>
-            </a-form-item>
-            
-            <a-button type="primary" size="large" block @click="nextStep">
-              下一步
-              <template #icon>
-                <i class="fas fa-arrow-right"></i>
-              </template>
-            </a-button>
-          </div>
-          
-          <!-- 第二步：邮箱验证 -->
-          <div v-show="currentStep === 2" class="form-step">
-            <a-form-item name="email">
-              <a-input
-                v-model:value="formData.email"
-                size="large"
-                placeholder="请输入邮箱地址"
-                type="email"
-              >
-                <template #prefix>
-                  <i class="fas fa-envelope"></i>
-                </template>
-                <template #suffix>
-                  <i v-if="emailValid" class="fas fa-check" style="color: #52c41a;"></i>
-                </template>
-              </a-input>
-            </a-form-item>
-            
-            <a-form-item name="emailCode">
-              <div class="email-group">
-                <a-input
-                  v-model:value="formData.emailCode"
-                  size="large"
-                  placeholder="请输入邮箱验证码"
-                  maxlength="6"
-                  class="email-input"
-                >
-                  <template #prefix>
-                    <i class="fas fa-shield-alt"></i>
-                  </template>
-                </a-input>
-                <a-button 
-                  :disabled="codeCountdown > 0 || !emailValid"
-                  @click="sendEmailCode"
-                  class="send-code-btn"
-                >
-                  {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
-                </a-button>
-              </div>
-            </a-form-item>
-            
-            <div class="btn-group">
-              <a-button size="large" @click="prevStep">
-                <template #icon>
-                  <i class="fas fa-arrow-left"></i>
-                </template>
-                上一步
-              </a-button>
-              <a-button type="primary" size="large" @click="nextStep">
-                下一步
-                <template #icon>
-                  <i class="fas fa-arrow-right"></i>
-                </template>
-              </a-button>
-            </div>
-          </div>
-          
-          <!-- 第三步：完成注册 -->
-          <div v-show="currentStep === 3" class="form-step">
-            <a-form-item name="agreement">
-              <a-checkbox v-model:checked="formData.agreement">
-                我已阅读并同意
-                <router-link to="/terms" class="agreement-link">《用户服务协议》</router-link>
-                和
-                <router-link to="/privacy" class="agreement-link">《隐私政策》</router-link>
-              </a-checkbox>
-            </a-form-item>
-            
-            <a-form-item>
-              <a-checkbox v-model:checked="formData.newsletter">
-                订阅系统更新和功能推荐邮件
-              </a-checkbox>
-            </a-form-item>
-            
-            <div class="btn-group">
-              <a-button size="large" @click="prevStep">
-                <template #icon>
-                  <i class="fas fa-arrow-left"></i>
-                </template>
-                上一步
-              </a-button>
-              <a-button 
-                type="primary" 
-                size="large" 
-                html-type="submit"
-                :loading="loading"
-              >
-                <template #icon>
-                  <i class="fas fa-user-plus"></i>
-                </template>
-                完成注册
-              </a-button>
-            </div>
-          </div>
-        </a-form>
-        
-        <!-- 登录链接 -->
-        <div class="login-link">
-          已有账户？<router-link to="/login">立即登录</router-link>
-        </div>
-      </div>
-      
-      <!-- 右侧信息区域 -->
+      <!-- 左侧信息区域 -->
       <div class="register-info">
         <div class="info-icon">
           <i class="fas fa-rocket"></i>
@@ -236,6 +52,155 @@
           </li>
         </ul>
       </div>
+      
+      <!-- 右侧注册表单 -->
+      <div class="register-form-container">
+        <div class="form-header">
+          <h2 class="form-title">创建账户</h2>
+          <p class="form-subtitle">填写以下信息完成注册，开启智能识别之旅</p>
+        </div>
+        
+        <a-form
+          ref="formRef"
+          :model="formData"
+          :rules="rules"
+          class="register-form"
+          @finish="handleRegister"
+        >
+          <!-- 用户名输入 -->
+          <a-form-item name="username">
+            <a-input
+              v-model:value="formData.username"
+              size="large"
+              placeholder="请输入用户名（3-20位字符）"
+            >
+              <template #prefix>
+                <i class="fas fa-user"></i>
+              </template>
+              <template #suffix>
+                <i v-if="usernameValid" class="fas fa-check" style="color: #52c41a;"></i>
+              </template>
+            </a-input>
+          </a-form-item>
+          
+          <!-- 邮箱输入 -->
+          <a-form-item name="email">
+            <a-input
+              v-model:value="formData.email"
+              size="large"
+              placeholder="请输入邮箱地址"
+              type="email"
+            >
+              <template #prefix>
+                <i class="fas fa-envelope"></i>
+              </template>
+              <template #suffix>
+                <i v-if="emailValid" class="fas fa-check" style="color: #52c41a;"></i>
+              </template>
+            </a-input>
+          </a-form-item>
+          
+          <!-- 邮箱验证码 -->
+          <a-form-item name="emailCode">
+            <div class="email-group">
+              <a-input
+                v-model:value="formData.emailCode"
+                size="large"
+                placeholder="请输入邮箱验证码"
+                maxlength="6"
+                class="email-input"
+              >
+                <template #prefix>
+                  <i class="fas fa-shield-alt"></i>
+                </template>
+              </a-input>
+              <a-button 
+                :disabled="codeCountdown > 0 || !emailValid"
+                @click="sendEmailCode"
+                class="send-code-btn"
+              >
+                {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
+              </a-button>
+            </div>
+          </a-form-item>
+          
+          <!-- 密码输入 -->
+          <a-form-item name="password">
+            <a-input-password
+              v-model:value="formData.password"
+              size="large"
+              placeholder="请设置密码（至少6位）"
+              @input="updatePasswordStrength"
+            >
+              <template #prefix>
+                <i class="fas fa-lock"></i>
+              </template>
+            </a-input-password>
+            
+            <!-- 密码强度指示器 -->
+            <div v-if="formData.password" class="password-strength">
+              <div class="strength-label">密码强度：<span>{{ strengthText }}</span></div>
+              <div class="strength-bar">
+                <div 
+                  class="strength-fill" 
+                  :class="`strength-${passwordStrength}`"
+                ></div>
+              </div>
+            </div>
+          </a-form-item>
+          
+          <!-- 确认密码 -->
+          <a-form-item name="confirmPassword">
+            <a-input-password
+              v-model:value="formData.confirmPassword"
+              size="large"
+              placeholder="请再次输入密码"
+            >
+              <template #prefix>
+                <i class="fas fa-lock"></i>
+              </template>
+            </a-input-password>
+          </a-form-item>
+          
+          <!-- 协议同意 -->
+          <a-form-item name="agreement">
+            <a-checkbox v-model:checked="formData.agreement">
+              我已阅读并同意
+              <router-link to="/terms" class="agreement-link">《用户服务协议》</router-link>
+              和
+              <router-link to="/privacy" class="agreement-link">《隐私政策》</router-link>
+            </a-checkbox>
+          </a-form-item>
+          
+          <!-- 邮件订阅 -->
+          <a-form-item>
+            <a-checkbox v-model:checked="formData.newsletter">
+              订阅系统更新和功能推荐邮件
+            </a-checkbox>
+          </a-form-item>
+          
+          <!-- 注册按钮 -->
+          <a-form-item>
+            <a-button 
+              type="primary" 
+              size="large" 
+              block
+              html-type="submit"
+              :loading="loading"
+            >
+              <template #icon>
+                <i class="fas fa-user-plus"></i>
+              </template>
+              完成注册
+            </a-button>
+          </a-form-item>
+        </a-form>
+        
+        <!-- 登录链接 -->
+        <div class="login-link">
+          已有账户？<router-link to="/login">立即登录</router-link>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -250,7 +215,6 @@ import { AuthAPI } from '@/api/auth'
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
-const currentStep = ref(1)
 const codeCountdown = ref(0)
 const passwordStrength = ref('weak')
 
@@ -344,30 +308,6 @@ function updatePasswordStrength() {
     passwordStrength.value = 'medium'
   } else {
     passwordStrength.value = 'strong'
-  }
-}
-
-// 下一步
-async function nextStep() {
-  try {
-    if (currentStep.value === 1) {
-      // 验证第一步表单
-      await formRef.value?.validateFields(['username', 'password', 'confirmPassword'])
-      currentStep.value = 2
-    } else if (currentStep.value === 2) {
-      // 验证第二步表单
-      await formRef.value?.validateFields(['email', 'emailCode'])
-      currentStep.value = 3
-    }
-  } catch (error) {
-    // 验证失败
-  }
-}
-
-// 上一步
-function prevStep() {
-  if (currentStep.value > 1) {
-    currentStep.value--
   }
 }
 
@@ -506,154 +446,7 @@ async function handleRegister() {
   z-index: 1;
 }
 
-/* 左侧注册表单 */
-.register-form-container {
-  flex: 1.2;
-  padding: 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow-y: auto;
-}
-
-.form-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.form-title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #262626;
-  margin-bottom: 8px;
-}
-
-.form-subtitle {
-  color: #666;
-  font-size: 14px;
-}
-
-/* 步骤指示器 */
-.step-indicator {
-  margin-bottom: 32px;
-}
-
-.register-form {
-  max-width: 400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.form-step {
-  animation: slideIn 0.3s ease-in-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 密码强度指示器 */
-.password-strength {
-  margin-top: 8px;
-}
-
-.strength-label {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.strength-bar {
-  height: 4px;
-  background: #f0f0f0;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.strength-fill {
-  height: 100%;
-  transition: all 0.3s;
-  border-radius: 2px;
-}
-
-.strength-fill.strength-weak {
-  width: 33%;
-  background: #ff4d4f;
-}
-
-.strength-fill.strength-medium {
-  width: 66%;
-  background: #faad14;
-}
-
-.strength-fill.strength-strong {
-  width: 100%;
-  background: #52c41a;
-}
-
-/* 邮箱验证码 */
-.email-group {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.email-input {
-  flex: 1;
-}
-
-.send-code-btn {
-  height: 40px;
-  white-space: nowrap;
-}
-
-/* 按钮组 */
-.btn-group {
-  display: flex;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.btn-group .ant-btn {
-  flex: 1;
-}
-
-/* 协议链接 */
-.agreement-link {
-  color: #1890ff;
-  text-decoration: none;
-}
-
-.agreement-link:hover {
-  color: #40a9ff;
-}
-
-/* 登录链接 */
-.login-link {
-  text-align: center;
-  margin-top: 24px;
-  color: #666;
-  font-size: 14px;
-}
-
-.login-link a {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.login-link a:hover {
-  color: #40a9ff;
-}
-
-/* 右侧信息区域 */
+/* 左侧信息区域 */
 .register-info {
   flex: 0.8;
   background: #1890ff;
@@ -729,6 +522,123 @@ async function handleRegister() {
   text-align: center;
 }
 
+/* 右侧注册表单 */
+.register-form-container {
+  flex: 1.2;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.form-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #262626;
+  margin-bottom: 8px;
+}
+
+.form-subtitle {
+  color: #666;
+  font-size: 14px;
+}
+
+/* 表单 */
+.register-form {
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 密码强度指示器 */
+.password-strength {
+  margin-top: 8px;
+}
+
+.strength-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.strength-bar {
+  height: 4px;
+  background: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  transition: all 0.3s;
+  border-radius: 2px;
+}
+
+.strength-fill.strength-weak {
+  width: 33%;
+  background: #ff4d4f;
+}
+
+.strength-fill.strength-medium {
+  width: 66%;
+  background: #faad14;
+}
+
+.strength-fill.strength-strong {
+  width: 100%;
+  background: #52c41a;
+}
+
+/* 邮箱验证码 */
+.email-group {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.email-input {
+  flex: 1;
+}
+
+.send-code-btn {
+  height: 40px;
+  white-space: nowrap;
+}
+
+/* 协议链接 */
+.agreement-link {
+  color: #1890ff;
+  text-decoration: none;
+}
+
+.agreement-link:hover {
+  color: #40a9ff;
+}
+
+/* 登录链接 */
+.login-link {
+  text-align: center;
+  margin-top: 24px;
+  color: #666;
+  font-size: 14px;
+}
+
+.login-link a {
+  color: #1890ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  color: #40a9ff;
+}
+
 /* 响应式设计 */
 @media (max-width: 1024px) {
   .register-box {
@@ -743,17 +653,19 @@ async function handleRegister() {
 
 @media (max-width: 768px) {
   .register-box {
-    flex-direction: column-reverse;
+    flex-direction: column;
     width: 95vw;
     min-height: auto;
   }
   
   .register-info {
     padding: 30px 20px;
+    order: 2;
   }
   
   .register-form-container {
     padding: 30px 20px;
+    order: 1;
   }
   
   .info-title {
@@ -777,10 +689,6 @@ async function handleRegister() {
   
   .send-code-btn {
     width: 100%;
-  }
-  
-  .btn-group {
-    flex-direction: column;
   }
 }
 </style>

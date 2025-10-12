@@ -104,9 +104,8 @@ export class AuthAPI {
    * 修改密码
    */
   static changePassword(data: {
-    oldPassword: string
+    currentPassword: string
     newPassword: string
-    confirmPassword: string
   }) {
     return request.post<OperationResult>('/api/v1/auth/change-password', data)
   }

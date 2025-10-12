@@ -76,13 +76,6 @@ export interface ForgotPasswordRequest {
   newPassword: string
 }
 
-// 重置密码请求
-export interface ResetPasswordRequest {
-  email: string
-  newPassword: string
-  confirmPassword: string
-  emailCode: string
-}
 
 // 验证码响应
 export interface CaptchaResponse {

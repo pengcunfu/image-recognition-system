@@ -5,7 +5,6 @@ import type {
   RegisterRequest,
   RegisterResponse,
   ForgotPasswordRequest,
-  ResetPasswordRequest,
   TokenValidationResponse,
   SmsCodeRequest,
   SmsCodeResponse,

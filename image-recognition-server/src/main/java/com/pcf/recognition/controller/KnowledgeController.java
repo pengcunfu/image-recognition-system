@@ -1,6 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.AuthResponses.*;
 import com.pcf.recognition.service.KnowledgeService;
 
 

@@ -352,7 +352,7 @@ async function handleRegister() {
       acceptTerms: formData.agreement
     })
     
-    if (result.success && result.data.success) {
+    if (result.code == 200) {
       message.success('注册成功！即将跳转到登录页面')
       
       setTimeout(() => {

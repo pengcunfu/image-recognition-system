@@ -122,20 +122,32 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     // 公开接口，无需权限验证
-    public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         log.info("忘记密码请求: email={}", request.getEmail());
         try {
-            // 密码确认验证已在前端完成，此处不再需要验证
-            OperationResultDto result = authService.resetPassword(request.getEmail(), request.getNewPassword(), request.getEmailCode());
-
-            if (result.getSuccess()) {
-                return ApiResponse.success(result.getMessage());
-            } else {
-                return ApiResponse.error(result.getMessage());
+            // 1. 验证邮箱验证码（Controller层负责验证逻辑）
+            if (request.getEmailCode() != null && !request.getEmailCode().trim().isEmpty()) {
+                if (!emailService.verifyEmailCode(request.getEmail(), request.getEmailCode(), "reset_password")) {
+                    return ApiResponse.error("邮箱验证码错误或已过期");
+                }
             }
-        } catch (Exception e) {
+
+            // 2. 检查邮箱是否存在（Controller层负责业务验证）
+            if (!authService.isEmailExists(request.getEmail())) {
+                return ApiResponse.error("邮箱不存在");
+            }
+
+            // 3. 调用Service层更新密码（Service层只负责核心业务逻辑）
+            boolean success = authService.updateUserPassword(request.getEmail(), request.getNewPassword());
+
+            if (success) {
+                return ApiResponse.success(null, "密码重置成功");
+            } else {
+                return ApiResponse.error("密码重置失败");
+            }
+        } catch (RuntimeException e) {
             log.error("忘记密码处理异常", e);
-            return ApiResponse.error("重置密码失败，请稍后重试");
+            return ApiResponse.error(e.getMessage());
         }
     }
 

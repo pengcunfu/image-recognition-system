@@ -25,7 +25,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
-    private final EmailService emailService;
 
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
@@ -154,57 +153,39 @@ public class AuthService {
     }
 
     /**
-     * 重置密码
+     * 更新用户密码
+     * 职责：纯粹的密码更新业务逻辑，不包含验证
      */
-    public OperationResultDto resetPassword(String email, String newPassword, String emailCode) {
-        log.info("重置密码请求: email={}", email);
+    public boolean updateUserPassword(String email, String newPassword) {
+        log.info("更新用户密码: email={}", email);
 
         try {
-            // 验证邮箱验证码
-            if (emailCode == null || emailCode.trim().isEmpty()) {
-                return OperationResultDto.builder()
-                        .success(false)
-                        .message("邮箱验证码不能为空")
-                        .build();
-            }
-
-            if (!emailService.verifyEmailCode(email, emailCode, "reset_password")) {
-                return OperationResultDto.builder()
-                        .success(false)
-                        .message("邮箱验证码错误或已过期")
-                        .build();
-            }
-
-            // 检查邮箱是否存在
+            // 查找用户
             User user = userRepository.selectOne(
                     new LambdaQueryWrapper<User>()
                             .eq(User::getEmail, email)
             );
 
             if (user == null) {
-                return OperationResultDto.builder()
-                        .success(false)
-                        .message("邮箱不存在")
-                        .build();
+                log.error("用户不存在: email={}", email);
+                throw new RuntimeException("用户不存在");
             }
 
             // 更新密码
             user.setPassword(newPassword); // 生产环境应加密
-            userRepository.updateById(user);
+            int updateResult = userRepository.updateById(user);
 
-            log.info("密码重置成功: email={}, userId={}", email, user.getId());
-
-            return OperationResultDto.builder()
-                    .success(true)
-                    .message("密码重置成功")
-                    .build();
+            if (updateResult > 0) {
+                log.info("密码更新成功: email={}, userId={}", email, user.getId());
+                return true;
+            } else {
+                log.error("密码更新失败: email={}, userId={}", email, user.getId());
+                return false;
+            }
 
         } catch (Exception e) {
-            log.error("重置密码失败: email={}", email, e);
-            return OperationResultDto.builder()
-                    .success(false)
-                    .message("重置密码失败，请稍后重试")
-                    .build();
+            log.error("更新密码失败: email={}", email, e);
+            throw new RuntimeException("更新密码失败: " + e.getMessage());
         }
     }
 

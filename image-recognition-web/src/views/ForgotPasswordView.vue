@@ -245,8 +245,7 @@ async function handleSubmit() {
     await AuthAPI.forgotPassword({
       email: formData.email,
       emailCode: formData.verificationCode,
-      newPassword: formData.newPassword,
-      confirmPassword: formData.confirmNewPassword
+      newPassword: formData.newPassword
     })
     
     message.success('密码重置成功，请使用新密码登录')

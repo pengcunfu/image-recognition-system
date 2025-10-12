@@ -74,7 +74,6 @@ export interface ForgotPasswordRequest {
   email: string
   emailCode: string
   newPassword: string
-  confirmPassword: string
 }
 
 // 重置密码请求

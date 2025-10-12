@@ -84,9 +84,6 @@ public class AuthDto {
         @NotBlank(message = "新密码不能为空")
         @Size(min = 6, message = "新密码长度至少6位")
         private String newPassword;
-
-        @NotBlank(message = "确认密码不能为空")
-        private String confirmPassword;
     }
 
     /**

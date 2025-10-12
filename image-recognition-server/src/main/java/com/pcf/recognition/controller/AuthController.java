@@ -102,11 +102,7 @@ public class AuthController {
     public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         log.info("忘记密码请求: email={}", request.getEmail());
         try {
-            // 验证密码确认
-            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-                return ApiResponse.error("两次输入的密码不一致");
-            }
-
+            // 密码确认验证已在前端完成，此处不再需要验证
             OperationResultDto result = authService.resetPassword(request.getEmail(), request.getNewPassword(), request.getEmailCode());
 
             if (result.getSuccess()) {

@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.service.UserService;
 import com.pcf.recognition.util.TokenUtil;
 
@@ -56,7 +57,7 @@ public class UserController {
     @PutMapping("/profile")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<String> updateUserProfile(
-            @Valid @RequestBody UserUpdateDto request,
+            @Valid @RequestBody UserUpdateRequest request,
             @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("更新用户信息请求: name={}", request.getName());

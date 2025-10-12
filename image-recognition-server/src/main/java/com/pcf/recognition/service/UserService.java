@@ -1,8 +1,8 @@
 package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +57,7 @@ public class UserService {
     /**
      * 更新用户信息
      */
-    public boolean updateUserInfo(Long userId, UserUpdateDto updateData) {
+    public boolean updateUserInfo(Long userId, UserUpdateRequest updateData) {
         log.info("更新用户信息: userId={}", userId);
 
         User user = userRepository.selectById(userId);

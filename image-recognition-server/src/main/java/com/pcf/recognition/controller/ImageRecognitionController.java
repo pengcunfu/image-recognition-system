@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.RecognitionDto.*;
+import com.pcf.recognition.dto.BatchDto.*;
 import com.pcf.recognition.entity.RecognitionResult;
 import com.pcf.recognition.service.FileStorageService;
 import com.pcf.recognition.service.VolcengineImageService;

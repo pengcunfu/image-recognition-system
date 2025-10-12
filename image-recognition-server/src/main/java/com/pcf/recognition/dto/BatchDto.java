@@ -264,4 +264,62 @@ public class BatchDto {
          */
         private Integer affectedCount;
     }
+
+    /**
+     * 批量识别响应DTO (用于ImageRecognitionController)
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchRecognitionResponseDto {
+        private String batchId;
+        private String status;
+        private Integer totalFiles;
+        private Integer successFiles;
+        private Integer failedFiles;
+        private List<BatchFileResultDto> results;
+        private String batchName;
+    }
+
+    /**
+     * 批量文件处理结果DTO (用于ImageRecognitionController)
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchFileResultDto {
+        private String fileName;
+        private Integer index;
+        private String status;
+        private String recognitionId;
+        private List<com.pcf.recognition.entity.RecognitionItem> results;
+        private String imageUrl;
+        private String error;
+    }
+
+    /**
+     * 批量任务进度更新响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchTaskProgressUpdateDto {
+        /**
+         * 是否成功
+         */
+        private Boolean success;
+
+        /**
+         * 响应消息
+         */
+        private String message;
+
+        /**
+         * 进度百分比
+         */
+        private Integer progress;
+    }
 }

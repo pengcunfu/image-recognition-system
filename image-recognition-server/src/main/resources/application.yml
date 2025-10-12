@@ -7,6 +7,13 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
   
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+  
   # 静态资源配置
   web:
     resources:

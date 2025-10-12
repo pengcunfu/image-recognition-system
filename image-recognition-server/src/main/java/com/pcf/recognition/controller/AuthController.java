@@ -52,7 +52,7 @@ public class AuthController {
                 if (captchaSessionId == null) {
                     return ApiResponse.error("验证码会话已过期，请重新获取验证码");
                 }
-                
+
                 if (!authService.verifyCaptcha(captchaSessionId, request.getCaptcha())) {
                     return ApiResponse.error("验证码错误或已过期");
                 }
@@ -328,24 +328,6 @@ public class AuthController {
         }
     }
 
-
-    @PostMapping("/email-code/verify")
-    // 公开接口，无需权限验证
-    public ApiResponse<Boolean> verifyEmailCode(@Valid @RequestBody EmailCodeVerifyRequest request) {
-        try {
-            // 使用EmailService验证邮箱验证码
-            boolean isValid = emailService.verifyEmailCode(request.getEmail(), request.getCode(), request.getType());
-
-            if (isValid) {
-                return ApiResponse.success(true, "邮箱验证码验证成功");
-            } else {
-                return ApiResponse.error("邮箱验证码错误或已过期");
-            }
-        } catch (Exception e) {
-            log.error("验证邮箱验证码失败: email={}, type={}", request.getEmail(), request.getType(), e);
-            return ApiResponse.error("邮箱验证码验证失败");
-        }
-    }
 
     /**
      * 验证手机号格式

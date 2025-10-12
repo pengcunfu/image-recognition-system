@@ -118,31 +118,10 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     // 公开接口，无需权限验证
-    public ApiResponse<ForgotPasswordResponseDto> forgotPassword(
+    public ApiResponse<String> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
 
         log.info("忘记密码请求: email={}", request.getEmail());
-
-        try {
-            ForgotPasswordResponseDto result = authService.forgotPassword(request.getEmail());
-
-            if (result.getSuccess()) {
-                return ApiResponse.success(result, result.getMessage());
-            } else {
-                return ApiResponse.error(result.getMessage());
-            }
-        } catch (Exception e) {
-            log.error("忘记密码处理异常", e);
-            return ApiResponse.error("处理失败，请稍后重试");
-        }
-    }
-
-    @PostMapping("/reset-password")
-    // 公开接口，无需权限验证
-    public ApiResponse<String> resetPassword(
-            @Valid @RequestBody ResetPasswordRequest request) {
-
-        log.info("重置密码请求: email={}", request.getEmail());
 
         try {
             // 验证密码确认
@@ -151,8 +130,8 @@ public class AuthController {
             }
 
             OperationResultDto result = authService.resetPassword(
-                    request.getEmail(), 
-                    request.getNewPassword(), 
+                    request.getEmail(),
+                    request.getNewPassword(),
                     request.getEmailCode()
             );
 
@@ -162,11 +141,10 @@ public class AuthController {
                 return ApiResponse.error(result.getMessage());
             }
         } catch (Exception e) {
-            log.error("重置密码处理异常", e);
+            log.error("忘记密码处理异常", e);
             return ApiResponse.error("重置密码失败，请稍后重试");
         }
     }
-
 
     @GetMapping("/captcha")
     // 公开接口，无需权限验证

@@ -219,7 +219,7 @@ async function sendVerificationCode() {
     // 先验证邮箱格式
     await formRef.value?.validateFields(['email'])
     
-    await AuthAPI.forgotPassword({
+    await AuthAPI.sendForgotPasswordCode({
       email: formData.email
     })
     
@@ -244,11 +244,11 @@ async function handleSubmit() {
   try {
     loading.value = true
     
-    await AuthAPI.resetPassword({
+    await AuthAPI.forgotPassword({
       email: formData.email,
+      emailCode: formData.verificationCode,
       newPassword: formData.newPassword,
-      confirmPassword: formData.confirmNewPassword,
-      emailCode: formData.verificationCode
+      confirmPassword: formData.confirmNewPassword
     })
     
     message.success('密码重置成功，请使用新密码登录')

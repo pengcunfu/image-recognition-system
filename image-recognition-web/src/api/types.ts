@@ -72,7 +72,9 @@ export interface RegisterResponse {
 // 忘记密码请求
 export interface ForgotPasswordRequest {
   email: string
-  captcha?: string
+  emailCode: string
+  newPassword: string
+  confirmPassword: string
 }
 
 // 重置密码请求

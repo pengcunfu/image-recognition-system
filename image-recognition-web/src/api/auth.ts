@@ -32,17 +32,20 @@ export class AuthAPI {
   }
 
   /**
-   * 忘记密码
+   * 发送忘记密码验证码
    */
-  static forgotPassword(data: ForgotPasswordRequest) {
-    return request.post<string>('/api/v1/auth/forgot-password', data)
+  static sendForgotPasswordCode(data: { email: string }) {
+    return request.post<string>('/api/v1/auth/email-code', {
+      email: data.email,
+      type: 'reset_password'
+    })
   }
 
   /**
-   * 重置密码
+   * 忘记密码（重置密码）
    */
-  static resetPassword(data: ResetPasswordRequest) {
-    return request.post<string>('/api/v1/auth/reset-password', data)
+  static forgotPassword(data: ForgotPasswordRequest) {
+    return request.post<string>('/api/v1/auth/forgot-password', data)
   }
 
   /**

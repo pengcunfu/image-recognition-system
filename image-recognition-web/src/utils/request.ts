@@ -1,6 +1,9 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { message } from 'ant-design-vue'
 
+// 导出baseURL供其他模块使用
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
 // API响应接口
 export interface ApiResponse<T = any> {
   success: boolean
@@ -23,7 +26,7 @@ class RequestService {
   constructor() {
     // 创建axios实例
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+      baseURL: baseURL,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json'
@@ -270,8 +273,5 @@ class RequestService {
 
 // 创建请求实例
 const request = new RequestService()
-
-// 导出baseURL供其他模块使用
-export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 export default request

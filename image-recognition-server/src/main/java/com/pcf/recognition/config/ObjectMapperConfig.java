@@ -25,11 +25,11 @@ public class ObjectMapperConfig {
 
         // 创建JavaTimeModule并配置日期时间格式
         JavaTimeModule javaTimeModule = new JavaTimeModule();
-        
+
         // 配置LocalDateTime的序列化格式
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
-        
+
         // 注册时间模块
         mapper.registerModule(javaTimeModule);
 

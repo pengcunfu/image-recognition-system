@@ -1,6 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.AuthRequests.*;
 import com.pcf.recognition.service.AuthService;
 import com.pcf.recognition.service.EmailService;
 import com.pcf.recognition.util.AuthUtil;
@@ -27,7 +28,6 @@ import java.util.UUID;
  * 用户认证控制器
  * 提供登录、注册、密码重置等功能
  */
-
 @RestController
 @RequestMapping("/api/v1/auth")
 @Slf4j
@@ -38,13 +38,9 @@ public class AuthController {
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
 
-
     @PostMapping("/login")
     // 公开接口，无需权限验证
-    public ApiResponse<LoginResponseDto> login(
-            @Valid @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest) {
-
+    public ApiResponse<LoginResponseDto> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         try {
             // 验证验证码
             if (request.getCaptcha() != null && !request.getCaptcha().trim().isEmpty()) {
@@ -59,33 +55,19 @@ public class AuthController {
                 }
             }
 
-            LoginResponseDto result = authService.login(
-                    request.getUsername(),
-                    request.getPassword(),
-                    request.getCaptcha()
-            );
+            LoginResponseDto result = authService.login(request.getUsername(), request.getPassword(), request.getCaptcha());
 
             if (result.getSuccess()) {
                 // 生成JWT Token
-                String token = jwtUtil.generateToken(
-                        result.getUser().getId(),
-                        result.getUser().getUsername(),
-                        result.getUser().getRole()
-                );
+                String token = jwtUtil.generateToken(result.getUser().getId(), result.getUser().getUsername(), result.getUser().getRole());
 
                 // 将Token存储到Redis
-                authService.storeTokenToRedis(
-                        token,
-                        result.getUser().getId(),
-                        result.getUser().getUsername(),
-                        result.getUser().getRole()
-                );
+                authService.storeTokenToRedis(token, result.getUser().getId(), result.getUser().getUsername(), result.getUser().getRole());
 
                 // 设置Token到响应中
                 result.setToken(token);
 
-                log.info("用户登录成功: username={}, userId={}",
-                        result.getUser().getUsername(), result.getUser().getId());
+                log.info("用户登录成功: username={}, userId={}", result.getUser().getUsername(), result.getUser().getId());
 
                 return ApiResponse.success(result, result.getMessage());
             } else {
@@ -100,9 +82,7 @@ public class AuthController {
 
     @PostMapping("/register")
     // 公开接口，无需权限验证
-    public ApiResponse<RegisterResponseDto> register(
-            @Valid @RequestBody RegisterRequest request) {
-
+    public ApiResponse<RegisterResponseDto> register(@Valid @RequestBody RegisterRequest request) {
         try {
             RegisterResponseDto result = authService.register(request);
 
@@ -119,22 +99,15 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     // 公开接口，无需权限验证
-    public ApiResponse<String> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequest request) {
-
+    public ApiResponse<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
         log.info("忘记密码请求: email={}", request.getEmail());
-
         try {
             // 验证密码确认
             if (!request.getNewPassword().equals(request.getConfirmPassword())) {
                 return ApiResponse.error("两次输入的密码不一致");
             }
 
-            OperationResultDto result = authService.resetPassword(
-                    request.getEmail(),
-                    request.getNewPassword(),
-                    request.getEmailCode()
-            );
+            OperationResultDto result = authService.resetPassword(request.getEmail(), request.getNewPassword(), request.getEmailCode());
 
             if (result.getSuccess()) {
                 return ApiResponse.success(result.getMessage());
@@ -179,9 +152,7 @@ public class AuthController {
 
             log.info("验证码图片生成成功: captchaSessionId={}", captchaSessionId);
 
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(imageBytes);
+            return ResponseEntity.ok().headers(headers).body(imageBytes);
 
         } catch (Exception e) {
             log.error("生成验证码图片失败", e);
@@ -193,9 +164,7 @@ public class AuthController {
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
-
         log.info("用户退出登录请求: token={}", token);
-
         try {
             // 调用AuthService的logout方法，会从Redis删除token
             OperationResultDto result = authService.logout(token);
@@ -214,8 +183,7 @@ public class AuthController {
 
     @GetMapping("/validate")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<TokenValidationResponseDto> validateToken(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<TokenValidationResponseDto> validateToken(@RequestHeader(value = "Authorization", required = false) String token) {
 
         if (token == null) {
             return ApiResponse.error("Token不能为空");
@@ -245,17 +213,10 @@ public class AuthController {
             authService.refreshTokenExpiry(token);
 
             // 构建用户信息（实际项目中应该从数据库获取最新信息）
-            UserInfoDto userInfo = UserInfoDto.builder()
-                    .id(userId)
-                    .username(username)
-                    .name(username) // 简化处理，实际应从数据库获取
-                    .role(role)
-                    .build();
+            UserInfoDto userInfo = UserInfoDto.builder().id(userId).username(username).name(username) // 简化处理，实际应从数据库获取
+                    .role(role).build();
 
-            TokenValidationResponseDto result = TokenValidationResponseDto.builder()
-                    .valid(true)
-                    .userInfo(userInfo)
-                    .build();
+            TokenValidationResponseDto result = TokenValidationResponseDto.builder().valid(true).userInfo(userInfo).build();
 
             return ApiResponse.success(result, "Token验证成功");
         } catch (Exception e) {
@@ -263,10 +224,6 @@ public class AuthController {
             return ApiResponse.error("Token验证失败");
         }
     }
-
-
-
-
 
 
     @PostMapping("/email-code")
@@ -293,7 +250,4 @@ public class AuthController {
             return ApiResponse.error("邮箱验证码发送失败，请稍后重试");
         }
     }
-
-
-
 }

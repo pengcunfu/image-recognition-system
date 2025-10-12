@@ -2,6 +2,7 @@ package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.AuthRequests.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
 import com.wf.captcha.SpecCaptcha;
@@ -176,7 +177,7 @@ public class AuthService {
 
             userRepository.insert(newUser);
 
-            log.info("用户注册成功: username={}, email={}, userId={}", 
+            log.info("用户注册成功: username={}, email={}, userId={}",
                     request.getUsername(), request.getEmail(), newUser.getId());
 
             return RegisterResponseDto.builder()
@@ -218,7 +219,7 @@ public class AuthService {
             try {
                 emailService.sendEmailCode(email, "reset_password");
                 log.info("忘记密码验证码发送成功: email={}", email);
-                
+
                 return ForgotPasswordResponseDto.builder()
                         .success(true)
                         .message("重置密码验证码已发送到您的邮箱")

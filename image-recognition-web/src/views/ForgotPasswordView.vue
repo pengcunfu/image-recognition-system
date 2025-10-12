@@ -435,7 +435,7 @@ async function handleSubmit() {
 }
 
 .form-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: #262626;
   margin-bottom: 8px;
@@ -449,7 +449,7 @@ async function handleSubmit() {
 
 /* 表单 */
 .forgot-form {
-  max-width: 360px;
+  max-width: 320px;
   margin: 0 auto;
   width: 100%;
 }

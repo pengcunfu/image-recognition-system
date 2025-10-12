@@ -373,14 +373,14 @@ onMounted(() => {
 }
 
 .system-logo {
-  font-size: 48px;
-  margin-bottom: 24px;
-  animation: pulse 2s ease-in-out infinite;
+  font-size: 64px;
+  margin-bottom: 32px;
+  animation: pulse 3s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.1); }
 }
 
 .system-title {
@@ -589,7 +589,7 @@ onMounted(() => {
   }
   
   .system-logo {
-    font-size: 36px;
+    font-size: 48px;
   }
   
   .feature-list {

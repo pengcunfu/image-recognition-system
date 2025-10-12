@@ -437,7 +437,7 @@ async function handleRegister() {
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid #e8e8e8;
-  width: 1000px;
+  width: 900px;
   max-width: 95vw;
   min-height: 700px;
   display: flex;
@@ -448,7 +448,7 @@ async function handleRegister() {
 
 /* 左侧信息区域 */
 .register-info {
-  flex: 0.8;
+  flex: 1;
   background: #1890ff;
   padding: 60px 40px;
   display: flex;
@@ -487,7 +487,7 @@ async function handleRegister() {
 }
 
 .info-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   margin-bottom: 16px;
   text-align: center;
@@ -524,8 +524,8 @@ async function handleRegister() {
 
 /* 右侧注册表单 */
 .register-form-container {
-  flex: 1.2;
-  padding: 40px;
+  flex: 1;
+  padding: 60px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -534,11 +534,11 @@ async function handleRegister() {
 
 .form-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .form-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: bold;
   color: #262626;
   margin-bottom: 8px;
@@ -551,7 +551,7 @@ async function handleRegister() {
 
 /* 表单 */
 .register-form {
-  max-width: 400px;
+  max-width: 320px;
   margin: 0 auto;
   width: 100%;
 }
@@ -647,7 +647,7 @@ async function handleRegister() {
   
   .register-form-container,
   .register-info {
-    padding: 40px 30px;
+    padding: 40px 20px;
   }
 }
 
@@ -669,7 +669,7 @@ async function handleRegister() {
   }
   
   .info-title {
-    font-size: 20px;
+    font-size: 24px;
   }
   
   .info-icon {

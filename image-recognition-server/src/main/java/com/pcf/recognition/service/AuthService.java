@@ -34,10 +34,12 @@ public class AuthService {
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
     private static final String SMS_CODE_KEY_PREFIX = "sms_code:";
+    private static final String TOKEN_KEY_PREFIX = "token:";
 
     // 过期时间
     private static final long CAPTCHA_EXPIRE_TIME = 5; // 5分钟
     private static final long SMS_CODE_EXPIRE_TIME = 5; // 5分钟
+    private static final long TOKEN_EXPIRE_TIME = 24 * 60; // 24小时（分钟）
 
     /**
      * 用户登录
@@ -348,11 +350,84 @@ public class AuthService {
     public OperationResultDto logout(String token) {
         log.info("用户退出登录: token={}", token);
 
-        // 实际应该将token加入黑名单或清除会话
+        // 从Redis中删除token
+        if (token != null && !token.isEmpty()) {
+            deleteTokenFromRedis(token);
+        }
 
         return OperationResultDto.builder()
                 .success(true)
                 .message("退出登录成功")
                 .build();
+    }
+
+    /**
+     * 将Token存储到Redis
+     */
+    public void storeTokenToRedis(String token, Long userId, String username, String role) {
+        try {
+            String redisKey = TOKEN_KEY_PREFIX + token;
+            // 存储token相关信息
+            String tokenInfo = String.format("%d:%s:%s", userId, username, role);
+            stringRedisTemplate.opsForValue().set(redisKey, tokenInfo, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+            log.info("Token已存储到Redis: token={}, userId={}", token, userId);
+        } catch (Exception e) {
+            log.error("存储Token到Redis失败: token={}", token, e);
+        }
+    }
+
+    /**
+     * 从Redis中删除Token
+     */
+    public void deleteTokenFromRedis(String token) {
+        try {
+            String redisKey = TOKEN_KEY_PREFIX + token;
+            stringRedisTemplate.delete(redisKey);
+            log.info("Token已从Redis删除: token={}", token);
+        } catch (Exception e) {
+            log.error("从Redis删除Token失败: token={}", token, e);
+        }
+    }
+
+    /**
+     * 验证Token是否在Redis中存在
+     */
+    public boolean isTokenValidInRedis(String token) {
+        try {
+            String redisKey = TOKEN_KEY_PREFIX + token;
+            String tokenInfo = stringRedisTemplate.opsForValue().get(redisKey);
+            boolean isValid = tokenInfo != null && !tokenInfo.isEmpty();
+            log.debug("Token验证结果: token={}, valid={}", token, isValid);
+            return isValid;
+        } catch (Exception e) {
+            log.error("验证Token时发生异常: token={}", token, e);
+            return false;
+        }
+    }
+
+    /**
+     * 从Redis中获取Token信息
+     */
+    public String getTokenInfoFromRedis(String token) {
+        try {
+            String redisKey = TOKEN_KEY_PREFIX + token;
+            return stringRedisTemplate.opsForValue().get(redisKey);
+        } catch (Exception e) {
+            log.error("获取Token信息失败: token={}", token, e);
+            return null;
+        }
+    }
+
+    /**
+     * 刷新Token过期时间
+     */
+    public void refreshTokenExpiry(String token) {
+        try {
+            String redisKey = TOKEN_KEY_PREFIX + token;
+            stringRedisTemplate.expire(redisKey, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+            log.debug("Token过期时间已刷新: token={}", token);
+        } catch (Exception e) {
+            log.error("刷新Token过期时间失败: token={}", token, e);
+        }
     }
 }

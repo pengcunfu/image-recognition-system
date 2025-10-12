@@ -47,14 +47,26 @@ public class AuthController {
                         result.getUser().getRole()
                 );
 
+                // 将Token存储到Redis
+                authService.storeTokenToRedis(
+                        token,
+                        result.getUser().getId(),
+                        result.getUser().getUsername(),
+                        result.getUser().getRole()
+                );
+
                 // 设置Token到响应中
                 result.setToken(token);
+
+                log.info("用户登录成功: username={}, userId={}", 
+                        result.getUser().getUsername(), result.getUser().getId());
 
                 return ApiResponse.success(result, result.getMessage());
             } else {
                 return ApiResponse.error(result.getMessage());
             }
         } catch (RuntimeException e) {
+            log.error("登录处理异常", e);
             return ApiResponse.error(e.getMessage());
         }
     }
@@ -108,10 +120,21 @@ public class AuthController {
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
 
-        log.info("用户退出登录: token={}", token);
+        log.info("用户退出登录请求: token={}", token);
 
-        // 模拟清除会话逻辑
-        return ApiResponse.success("退出登录成功");
+        try {
+            // 调用AuthService的logout方法，会从Redis删除token
+            OperationResultDto result = authService.logout(token);
+            
+            if (result.getSuccess()) {
+                return ApiResponse.success(result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("退出登录处理异常", e);
+            return ApiResponse.error("退出登录失败，请稍后重试");
+        }
     }
 
 
@@ -124,34 +147,47 @@ public class AuthController {
             return ApiResponse.error("Token不能为空");
         }
 
-        // 验证Token
-        if (!jwtUtil.validateToken(token)) {
-            return ApiResponse.error("Token无效或已过期");
+        try {
+            // 首先验证JWT Token格式
+            if (!jwtUtil.validateToken(token)) {
+                return ApiResponse.error("Token无效或已过期");
+            }
+
+            // 验证Token是否在Redis中存在（检查是否已被注销）
+            if (!authService.isTokenValidInRedis(token)) {
+                return ApiResponse.error("Token已失效，请重新登录");
+            }
+
+            // 从Token中获取用户信息
+            Long userId = jwtUtil.getUserIdFromToken(token);
+            String username = jwtUtil.getUsernameFromToken(token);
+            String role = jwtUtil.getRoleFromToken(token);
+
+            if (userId == null || username == null || role == null) {
+                return ApiResponse.error("Token信息不完整");
+            }
+
+            // 刷新Token过期时间（活跃用户延长会话）
+            authService.refreshTokenExpiry(token);
+
+            // 构建用户信息（实际项目中应该从数据库获取最新信息）
+            UserInfoDto userInfo = UserInfoDto.builder()
+                    .id(userId)
+                    .username(username)
+                    .name(username) // 简化处理，实际应从数据库获取
+                    .role(role)
+                    .build();
+
+            TokenValidationResponseDto result = TokenValidationResponseDto.builder()
+                    .valid(true)
+                    .userInfo(userInfo)
+                    .build();
+
+            return ApiResponse.success(result, "Token验证成功");
+        } catch (Exception e) {
+            log.error("Token验证异常", e);
+            return ApiResponse.error("Token验证失败");
         }
-
-        // 从Token中获取用户信息
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        String username = jwtUtil.getUsernameFromToken(token);
-        String role = jwtUtil.getRoleFromToken(token);
-
-        if (userId == null || username == null || role == null) {
-            return ApiResponse.error("Token信息不完整");
-        }
-
-        // 构建用户信息（实际项目中应该从数据库获取最新信息）
-        UserInfoDto userInfo = UserInfoDto.builder()
-                .id(userId)
-                .username(username)
-                .name(username) // 简化处理，实际应从数据库获取
-                .role(role)
-                .build();
-
-        TokenValidationResponseDto result = TokenValidationResponseDto.builder()
-                .valid(true)
-                .userInfo(userInfo)
-                .build();
-
-        return ApiResponse.success(result, "Token验证成功");
     }
 
 

@@ -46,6 +46,16 @@ export class AuthAPI {
   }
 
   /**
+   * 获取验证码图片URL
+   */
+  static getCaptchaImageUrl(): string {
+    const { baseURL } = require('@/utils/request')
+    return `${baseURL}/api/v1/auth/captcha?t=${Date.now()}`
+  }
+
+
+
+  /**
    * 用户登出
    */
   static logout() {

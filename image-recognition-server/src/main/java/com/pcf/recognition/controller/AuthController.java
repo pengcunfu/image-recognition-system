@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.util.UUID;
 
 /**
  * 用户认证控制器
@@ -40,12 +43,15 @@ public class AuthController {
             HttpServletRequest httpRequest) {
 
         try {
-            // 获取客户端IP
-            String clientIp = getClientIpAddress(httpRequest);
-            
             // 验证验证码
             if (request.getCaptcha() != null && !request.getCaptcha().trim().isEmpty()) {
-                if (!authService.verifyCaptcha(clientIp, request.getCaptcha())) {
+                // 从Cookie中获取验证码会话ID
+                String captchaSessionId = getCaptchaSessionIdFromCookie(httpRequest);
+                if (captchaSessionId == null) {
+                    return ApiResponse.error("验证码会话已过期，请重新获取验证码");
+                }
+                
+                if (!authService.verifyCaptcha(captchaSessionId, request.getCaptcha())) {
                     return ApiResponse.error("验证码错误或已过期");
                 }
             }
@@ -75,7 +81,7 @@ public class AuthController {
                 // 设置Token到响应中
                 result.setToken(token);
 
-                log.info("用户登录成功: username={}, userId={}", 
+                log.info("用户登录成功: username={}, userId={}",
                         result.getUser().getUsername(), result.getUser().getId());
 
                 return ApiResponse.success(result, result.getMessage());
@@ -127,33 +133,41 @@ public class AuthController {
 
     @GetMapping("/captcha")
     // 公开接口，无需权限验证
-    public ResponseEntity<byte[]> getCaptcha(HttpServletRequest request) {
+    public ResponseEntity<byte[]> getCaptcha(HttpServletRequest request, HttpServletResponse response) {
         try {
-            // 获取客户端IP
-            String clientIp = getClientIpAddress(request);
-            
+            // 生成UUID作为验证码会话标识
+            String captchaSessionId = UUID.randomUUID().toString();
+
             // 生成验证码图片
-            Captcha captcha = authService.generateCaptcha(clientIp);
-            
+            Captcha captcha = authService.generateCaptcha(captchaSessionId);
+
             // 将验证码图片输出为字节数组
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             captcha.out(outputStream);
             byte[] imageBytes = outputStream.toByteArray();
-            
+
+            // 创建Cookie存储验证码会话ID
+            Cookie captchaCookie = new Cookie("CAPTCHA_SESSION_ID", captchaSessionId);
+            captchaCookie.setHttpOnly(true); // 防止XSS攻击
+            captchaCookie.setSecure(false); // 开发环境设为false，生产环境应设为true
+            captchaCookie.setPath("/"); // 整个应用可用
+            captchaCookie.setMaxAge(5 * 60); // 5分钟过期，与验证码过期时间一致
+            response.addCookie(captchaCookie);
+
             // 设置响应头
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.IMAGE_PNG);
             headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
             headers.set("Pragma", "no-cache");
             headers.set("Expires", "0");
-            
-            log.info("验证码图片生成成功: clientIp={}", clientIp);
-            
+
+            log.info("验证码图片生成成功: captchaSessionId={}", captchaSessionId);
+
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(imageBytes);
-                    
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             log.error("生成验证码图片失败", e);
             return ResponseEntity.internalServerError().build();
         }
@@ -169,7 +183,7 @@ public class AuthController {
         try {
             // 调用AuthService的logout方法，会从Redis删除token
             OperationResultDto result = authService.logout(token);
-            
+
             if (result.getSuccess()) {
                 return ApiResponse.success(result.getMessage());
             } else {
@@ -317,23 +331,38 @@ public class AuthController {
         if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
             return xForwardedFor.split(",")[0].trim();
         }
-        
+
         String xRealIp = request.getHeader("X-Real-IP");
         if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
             return xRealIp;
         }
-        
+
         String proxyClientIp = request.getHeader("Proxy-Client-IP");
         if (proxyClientIp != null && !proxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(proxyClientIp)) {
             return proxyClientIp;
         }
-        
+
         String wlProxyClientIp = request.getHeader("WL-Proxy-Client-IP");
         if (wlProxyClientIp != null && !wlProxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(wlProxyClientIp)) {
             return wlProxyClientIp;
         }
-        
+
         return request.getRemoteAddr();
+    }
+
+    /**
+     * 从Cookie中获取验证码会话ID
+     */
+    private String getCaptchaSessionIdFromCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("CAPTCHA_SESSION_ID".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 
 }

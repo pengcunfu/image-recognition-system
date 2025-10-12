@@ -218,7 +218,7 @@ public class AuthService {
     /**
      * 生成验证码图片
      */
-    public SpecCaptcha generateCaptcha(String clientIp) {
+    public SpecCaptcha generateCaptcha(String sessionId) {
         try {
             // 创建验证码对象，设置宽度、高度、验证码长度、干扰线数量
             SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
@@ -232,11 +232,11 @@ public class AuthService {
             // 获取验证码文本
             String captchaText = specCaptcha.text().toLowerCase();
 
-            // 使用客户端IP作为key存储验证码，设置过期时间
-            String redisKey = CAPTCHA_KEY_PREFIX + clientIp;
+            // 使用sessionId作为key存储验证码，设置过期时间
+            String redisKey = CAPTCHA_KEY_PREFIX + sessionId;
             stringRedisTemplate.opsForValue().set(redisKey, captchaText, CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
 
-            log.info("验证码生成成功: clientIp={}, text={}", clientIp, captchaText);
+            log.info("验证码生成成功: sessionId={}, text={}", sessionId, captchaText);
 
             return specCaptcha;
 
@@ -249,20 +249,20 @@ public class AuthService {
     /**
      * 验证验证码
      */
-    public boolean verifyCaptcha(String clientIp, String userInput) {
-        log.info("验证验证码: clientIp={}, userInput={}", clientIp, userInput);
+    public boolean verifyCaptcha(String sessionId, String userInput) {
+        log.info("验证验证码: sessionId={}, userInput={}", sessionId, userInput);
 
-        if (clientIp == null || userInput == null) {
+        if (sessionId == null || userInput == null) {
             return false;
         }
 
         try {
             // 从Redis中获取存储的验证码
-            String redisKey = CAPTCHA_KEY_PREFIX + clientIp;
+            String redisKey = CAPTCHA_KEY_PREFIX + sessionId;
             String storedCaptcha = stringRedisTemplate.opsForValue().get(redisKey);
 
             if (storedCaptcha == null || storedCaptcha.isEmpty()) {
-                log.warn("验证码不存在或已过期: clientIp={}", clientIp);
+                log.warn("验证码不存在或已过期: sessionId={}", sessionId);
                 return false;
             }
 
@@ -270,14 +270,14 @@ public class AuthService {
             boolean isValid = storedCaptcha.equalsIgnoreCase(userInput.trim());
             if (isValid) {
                 stringRedisTemplate.delete(redisKey);
-                log.info("验证码验证成功: clientIp={}", clientIp);
+                log.info("验证码验证成功: sessionId={}", sessionId);
             } else {
-                log.warn("验证码验证失败: clientIp={}, expected={}, actual={}", clientIp, storedCaptcha, userInput);
+                log.warn("验证码验证失败: sessionId={}, expected={}, actual={}", sessionId, storedCaptcha, userInput);
             }
 
             return isValid;
         } catch (Exception e) {
-            log.error("验证验证码时发生异常: clientIp={}", clientIp, e);
+            log.error("验证验证码时发生异常: sessionId={}", sessionId, e);
             return false;
         }
     }

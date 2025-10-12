@@ -1,8 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
-import com.pcf.recognition.dto.AuthRequests.*;
-import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.service.AuthService;
 import com.pcf.recognition.service.EmailService;
 import com.pcf.recognition.util.AuthUtil;

@@ -6,7 +6,7 @@ import com.pcf.recognition.entity.RecognitionHistory;
 import com.pcf.recognition.repository.UserRepository;
 import com.pcf.recognition.repository.UserFavoriteRepository;
 import com.pcf.recognition.repository.RecognitionHistoryRepository;
-import com.pcf.recognition.dto.AuthResponses.UserInfoDto;
+import com.pcf.recognition.dto.AuthDto.UserInfoDto;
 import com.pcf.recognition.dto.UserDto.UserStatsDto;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

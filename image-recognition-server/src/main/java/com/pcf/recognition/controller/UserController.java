@@ -1,7 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
-import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.service.UserService;
 import com.pcf.recognition.util.TokenUtil;
@@ -100,7 +100,7 @@ public class UserController {
     @PutMapping("/password")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
     public ApiResponse<String> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
+            @Valid @RequestBody UserDto.ChangePasswordRequest request,
             @RequestHeader(value = "Authorization", required = false) String token) {
 
         log.info("用户修改密码请求");

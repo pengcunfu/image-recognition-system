@@ -1,7 +1,7 @@
 package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;

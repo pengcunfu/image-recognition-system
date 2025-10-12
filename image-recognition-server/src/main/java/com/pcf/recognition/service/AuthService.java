@@ -2,8 +2,7 @@ package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pcf.recognition.dto.*;
-import com.pcf.recognition.dto.AuthRequests.*;
-import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
 import com.wf.captcha.SpecCaptcha;

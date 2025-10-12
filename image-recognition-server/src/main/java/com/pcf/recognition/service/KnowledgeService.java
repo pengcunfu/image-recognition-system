@@ -3,7 +3,7 @@ package com.pcf.recognition.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.KnowledgeDto.*;
 import com.pcf.recognition.entity.KnowledgeCategory;
 import com.pcf.recognition.entity.KnowledgeItem;

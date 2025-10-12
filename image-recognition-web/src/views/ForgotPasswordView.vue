@@ -59,7 +59,6 @@
         <!-- 步骤指示器 -->
         <a-steps :current="currentStep - 1" size="small" class="step-indicator">
           <a-step title="邮箱验证" />
-          <a-step title="输入验证码" />
           <a-step title="重置密码" />
           <a-step title="完成" />
         </a-steps>
@@ -73,14 +72,7 @@
         >
           <!-- 第一步：邮箱验证 -->
           <div v-show="currentStep === 1" class="form-step">
-            <a-alert
-              message="邮箱验证"
-              description="请输入注册时使用的邮箱地址，系统将向您发送验证码"
-              type="info"
-              show-icon
-              style="margin-bottom: 24px;"
-            />
-            
+
             <!-- 邮箱输入 -->
             <a-form-item name="email">
               <a-input
@@ -94,24 +86,7 @@
               </a-input>
             </a-form-item>
             
-            <a-button type="primary" size="large" block @click="nextStep">
-              发送验证码
-              <template #icon>
-                <i class="fas fa-paper-plane"></i>
-              </template>
-            </a-button>
-          </div>
-          
-          <!-- 第二步：身份验证 -->
-          <div v-show="currentStep === 2" class="form-step">
-            <a-alert
-              message="身份验证"
-              :description="verificationText"
-              type="warning"
-              show-icon
-              style="margin-bottom: 24px;"
-            />
-            
+            <!-- 验证码输入 -->
             <a-form-item name="verificationCode">
               <div class="code-group">
                 <a-input
@@ -126,33 +101,25 @@
                   </template>
                 </a-input>
                 <a-button 
-                  :disabled="codeCountdown > 0"
-                  @click="resendCode"
+                  :disabled="!formData.email || codeCountdown > 0"
+                  @click="sendVerificationCode"
                   class="resend-btn"
                 >
-                  {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '重新发送' }}
+                  {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
                 </a-button>
               </div>
             </a-form-item>
             
-            <div class="btn-group">
-              <a-button size="large" @click="prevStep">
-                <template #icon>
-                  <i class="fas fa-arrow-left"></i>
-                </template>
-                上一步
-              </a-button>
-              <a-button type="primary" size="large" @click="nextStep">
-                验证
-                <template #icon>
-                  <i class="fas fa-check"></i>
-                </template>
-              </a-button>
-            </div>
+            <a-button type="primary" size="large" block @click="nextStep">
+              下一步
+              <template #icon>
+                <i class="fas fa-arrow-right"></i>
+              </template>
+            </a-button>
           </div>
           
-          <!-- 第三步：重置密码 -->
-          <div v-show="currentStep === 3" class="form-step">
+          <!-- 第二步：重置密码 -->
+          <div v-show="currentStep === 2" class="form-step">
             <a-alert
               message="设置新密码"
               description="请设置一个安全的新密码，建议包含字母、数字和特殊字符"
@@ -240,8 +207,8 @@
             </div>
           </div>
           
-          <!-- 第四步：完成 -->
-          <div v-show="currentStep === 4" class="form-step">
+          <!-- 第三步：完成 -->
+          <div v-show="currentStep === 3" class="form-step">
             <div class="success-container">
               <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
@@ -271,7 +238,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
@@ -297,11 +264,6 @@ const requirements = reactive({
   letter: false,
   number: false,
   special: false
-})
-
-// 计算属性
-const verificationText = computed(() => {
-  return `验证码已发送至您的邮箱：${maskContact(formData.email)}，请查收并输入验证码`
 })
 
 // 验证规则
@@ -373,15 +335,13 @@ function checkPasswordRequirements() {
 async function nextStep() {
   try {
     if (currentStep.value === 1) {
-      // 验证邮箱并发送验证码
-      await formRef.value?.validateFields(['email'])
-      await sendVerificationCode()
+      // 验证邮箱和验证码
+      await formRef.value?.validateFields(['email', 'verificationCode'])
       currentStep.value = 2
       
     } else if (currentStep.value === 2) {
-      // 验证验证码
-      await formRef.value?.validateFields(['verificationCode'])
-      currentStep.value = 3
+      // 重置密码
+      await resetPassword()
     }
   } catch (error) {
     // 验证失败
@@ -398,19 +358,15 @@ function prevStep() {
 // 发送验证码
 async function sendVerificationCode() {
   try {
+    // 先验证邮箱格式
+    await formRef.value?.validateFields(['email'])
+    
     await AuthAPI.forgotPassword({
       email: formData.email
     })
+    
     message.success(`验证码已发送至您的邮箱：${maskContact(formData.email)}`)
-  } catch (error: any) {
-    message.error(error.message || '发送验证码失败，请重试')
-    throw error
-  }
-}
-
-// 重新发送验证码
-async function resendCode() {
-  try {
+    
     // 开始倒计时
     codeCountdown.value = 60
     const countdown = setInterval(() => {
@@ -420,10 +376,8 @@ async function resendCode() {
       }
     }, 1000)
     
-    await sendVerificationCode()
-  } catch (error) {
-    // 发送失败，停止倒计时
-    codeCountdown.value = 0
+  } catch (error: any) {
+    message.error(error.message || '发送验证码失败，请重试')
   }
 }
 
@@ -442,7 +396,7 @@ async function resetPassword() {
     })
     
     message.success('密码重置成功')
-    currentStep.value = 4
+    currentStep.value = 3
   } catch (error: any) {
     message.error(error.message || '重置密码失败，请重试')
   } finally {

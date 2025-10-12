@@ -16,6 +16,12 @@ import OrdersView from '@/views/OrdersView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 
+// 新增管理页面组件
+import PostsManagementView from '@/views/PostsManagementView.vue'
+import KnowledgeManagementView from '@/views/KnowledgeManagementView.vue'
+import VipManagementView from '@/views/VipManagementView.vue'
+import RecognitionManagementView from '@/views/RecognitionManagementView.vue'
+
 // 用户组件
 import UserLayout from '@/components/layout/UserLayout.vue'
 import UserDashboardView from '@/views/user/UserDashboardView.vue'
@@ -171,6 +177,79 @@ const routes: Array<RouteRecordRaw> = [
         component: SettingsView,
         meta: {
           title: '系统设置 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  // 新增管理页面路由
+  {
+    path: '/posts-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'PostsManagement',
+        component: PostsManagementView,
+        meta: {
+          title: '帖子管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/knowledge-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'KnowledgeManagement',
+        component: KnowledgeManagementView,
+        meta: {
+          title: '知识库管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/vip-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'VipManagement',
+        component: VipManagementView,
+        meta: {
+          title: 'VIP管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/recognition-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'RecognitionManagement',
+        component: RecognitionManagementView,
+        meta: {
+          title: '识别记录管理 - 智能图像识别系统'
         }
       }
     ]

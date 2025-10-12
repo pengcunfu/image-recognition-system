@@ -41,36 +41,80 @@
             </template>
             仪表板
           </a-menu-item>
-          <a-menu-item key="/products">
-            <template #icon>
-              <i class="fas fa-box"></i>
-            </template>
-            产品管理
-          </a-menu-item>
-          <a-menu-item key="/users">
-            <template #icon>
-              <i class="fas fa-users"></i>
-            </template>
-            用户管理
-          </a-menu-item>
-          <a-menu-item key="/orders">
-            <template #icon>
-              <i class="fas fa-shopping-cart"></i>
-            </template>
-            订单管理
-          </a-menu-item>
-          <a-menu-item key="/analytics">
-            <template #icon>
-              <i class="fas fa-chart-bar"></i>
-            </template>
-            数据分析
-          </a-menu-item>
-          <a-menu-item key="/settings">
-            <template #icon>
-              <i class="fas fa-cog"></i>
-            </template>
-            系统设置
-          </a-menu-item>
+          
+          <!-- 内容管理分组 -->
+          <a-menu-divider />
+          <a-menu-item-group title="内容管理">
+            <a-menu-item key="/posts-management">
+              <template #icon>
+                <i class="fas fa-clipboard-list"></i>
+              </template>
+              帖子管理
+            </a-menu-item>
+            <a-menu-item key="/knowledge-management">
+              <template #icon>
+                <i class="fas fa-book"></i>
+              </template>
+              知识库管理
+            </a-menu-item>
+          </a-menu-item-group>
+          
+          <!-- 用户管理分组 -->
+          <a-menu-divider />
+          <a-menu-item-group title="用户管理">
+            <a-menu-item key="/users">
+              <template #icon>
+                <i class="fas fa-users"></i>
+              </template>
+              用户管理
+            </a-menu-item>
+            <a-menu-item key="/vip-management">
+              <template #icon>
+                <i class="fas fa-crown"></i>
+              </template>
+              VIP管理
+            </a-menu-item>
+          </a-menu-item-group>
+          
+          <!-- 数据管理分组 -->
+          <a-menu-divider />
+          <a-menu-item-group title="数据管理">
+            <a-menu-item key="/recognition-management">
+              <template #icon>
+                <i class="fas fa-camera"></i>
+              </template>
+              识别记录
+            </a-menu-item>
+            <a-menu-item key="/analytics">
+              <template #icon>
+                <i class="fas fa-chart-bar"></i>
+              </template>
+              数据分析
+            </a-menu-item>
+          </a-menu-item-group>
+          
+          <!-- 系统管理分组 -->
+          <a-menu-divider />
+          <a-menu-item-group title="系统管理">
+            <a-menu-item key="/products">
+              <template #icon>
+                <i class="fas fa-box"></i>
+              </template>
+              产品管理
+            </a-menu-item>
+            <a-menu-item key="/orders">
+              <template #icon>
+                <i class="fas fa-shopping-cart"></i>
+              </template>
+              订单管理
+            </a-menu-item>
+            <a-menu-item key="/settings">
+              <template #icon>
+                <i class="fas fa-cog"></i>
+              </template>
+              系统设置
+            </a-menu-item>
+          </a-menu-item-group>
         </a-menu>
       </a-layout-sider>
       

@@ -271,4 +271,7 @@ class RequestService {
 // 创建请求实例
 const request = new RequestService()
 
+// 导出baseURL供其他模块使用
+export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
 export default request

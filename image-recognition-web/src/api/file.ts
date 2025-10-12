@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+import request, { baseURL } from '@/utils/request'
 import type {
   FileUploadResult,
   FileInfo,
@@ -76,21 +76,21 @@ export class FileAPI {
    * 获取文件（预览）
    */
   static getFileUrl(fileId: string): string {
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/v1/files/${fileId}`
+    return `${baseURL}/api/v1/files/${fileId}`
   }
 
   /**
    * 获取文件预览URL
    */
   static getPreviewUrl(fileId: string): string {
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/v1/files/${fileId}/preview`
+    return `${baseURL}/api/v1/files/${fileId}/preview`
   }
 
   /**
    * 获取文件下载URL
    */
   static getDownloadUrl(fileId: string): string {
-    return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/v1/files/${fileId}/download`
+    return `${baseURL}/api/v1/files/${fileId}/download`
   }
 
   /**

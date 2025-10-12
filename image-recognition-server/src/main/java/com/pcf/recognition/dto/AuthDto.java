@@ -60,17 +60,9 @@ public class AuthDto {
         @Size(min = 6, message = "密码长度至少6位")
         private String password;
 
-        @NotBlank(message = "确认密码不能为空")
-        private String confirmPassword;
-
-        private String captcha;
-
         @NotBlank(message = "邮箱验证码不能为空")
         @Pattern(regexp = "^\\d{6}$", message = "邮箱验证码必须为6位数字")
         private String emailCode;
-
-        @Builder.Default
-        private boolean acceptTerms = false;
     }
 
     /**

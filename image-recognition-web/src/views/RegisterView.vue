@@ -345,9 +345,7 @@ async function handleRegister() {
       username: formData.username,
       email: formData.email,
       password: formData.password,
-      confirmPassword: formData.confirmPassword,
-      emailCode: formData.emailCode,
-      acceptTerms: formData.agreement
+      emailCode: formData.emailCode
     })
     
     if (result.code == 200) {

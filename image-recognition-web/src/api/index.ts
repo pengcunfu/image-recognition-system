@@ -10,17 +10,20 @@ export * from './types'
 import AuthAPI from './auth'
 import KnowledgeAPI from './knowledge'
 import CommunityAPI from './community'
+import FileAPI from './file'
 
 // 导出API模块
 export { default as AuthAPI } from './auth'
 export { default as KnowledgeAPI } from './knowledge'
 export { default as CommunityAPI } from './community'
+export { default as FileAPI } from './file'
 
 // 创建API实例对象，方便使用
 const API = {
   auth: AuthAPI,
   knowledge: KnowledgeAPI,
-  community: CommunityAPI
+  community: CommunityAPI,
+  file: FileAPI
 }
 
 export default API
@@ -59,3 +62,15 @@ export const {
   likePost: likeCommunityPost,
   sharePost: shareCommunityPost
 } = CommunityAPI
+
+export const {
+  // 文件相关
+  uploadFile: uploadSingleFile,
+  uploadFiles: uploadMultipleFiles,
+  deleteFile: deleteUploadedFile,
+  getFileInfo: getUploadedFileInfo,
+  downloadFile: downloadUploadedFile,
+  getFileUrl: getUploadedFileUrl,
+  getPreviewUrl: getFilePreviewUrl,
+  getDownloadUrl: getFileDownloadUrl
+} = FileAPI

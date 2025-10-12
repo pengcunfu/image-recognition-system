@@ -363,6 +363,35 @@ export interface VipOrder {
   expireTime?: string
 }
 
+// ==================== 文件上传相关类型 ====================
+
+// 文件上传结果
+export interface FileUploadResult {
+  id: string
+  originalName: string
+  fileName: string
+  url: string
+  size: number
+  contentType: string
+  uploadTime: string
+}
+
+// 文件信息
+export interface FileInfo {
+  id: string
+  name: string
+  size: number
+  contentType: string
+  lastModified: number
+}
+
+// 文件上传配置
+export interface FileUploadConfig {
+  maxSize?: number // 最大文件大小（字节）
+  allowedTypes?: string[] // 允许的文件类型
+  multiple?: boolean // 是否允许多文件上传
+}
+
 // ==================== 系统设置相关类型 ====================
 
 // 系统设置

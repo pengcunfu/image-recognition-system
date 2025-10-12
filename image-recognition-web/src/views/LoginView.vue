@@ -223,15 +223,8 @@ async function handleLogin() {
       captcha: formData.captcha
     })
 
-    if (result.success && result.data.success) {
+    if (result.data && result.data.token && result.data.user) {
       message.success('登录成功')
-      
-      // 检查必要的数据是否存在
-      if (!result.data.token || !result.data.user) {
-        message.error('登录响应数据不完整')
-        refreshCaptcha()
-        return
-      }
       
       // 保存登录状态
       localStorage.setItem('userToken', result.data.token)
@@ -248,7 +241,7 @@ async function handleLogin() {
       const redirectPath = result.data.user.role === 'admin' ? '/dashboard' : '/user/dashboard'
       router.push(redirectPath)
     } else {
-      message.error(result.message || '登录失败')
+      message.error('登录响应数据不完整')
       refreshCaptcha() // 刷新验证码
     }
   } catch (error: any) {

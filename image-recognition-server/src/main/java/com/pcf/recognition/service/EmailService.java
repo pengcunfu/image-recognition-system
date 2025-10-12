@@ -91,7 +91,7 @@ public class EmailService {
                 stringRedisTemplate.delete(redisKey);
                 log.info("邮箱验证码验证成功: email={}, type={}", email, type);
             } else {
-                log.warn("邮箱验证码验证失败: email={}, type={}, expected={}, actual={}", 
+                log.warn("邮箱验证码验证失败: email={}, type={}, expected={}, actual={}",
                         email, type, storedCode, code);
             }
 
@@ -147,11 +147,11 @@ public class EmailService {
 
         return String.format(
                 "您好！\n\n" +
-                "您正在进行%s操作，验证码为：%s\n\n" +
-                "验证码有效期为5分钟，请及时使用。\n" +
-                "如果这不是您的操作，请忽略此邮件。\n\n" +
-                "图像识别系统\n" +
-                "%s",
+                        "您正在进行%s操作，验证码为：%s\n\n" +
+                        "验证码有效期为5分钟，请及时使用。\n" +
+                        "如果这不是您的操作，请忽略此邮件。\n\n" +
+                        "图像识别系统\n" +
+                        "%s",
                 action, code, java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
         );
     }

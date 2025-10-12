@@ -6,10 +6,10 @@ export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:80
 
 // API响应接口
 export interface ApiResponse<T = any> {
-  success: boolean
-  data: T
+  code: number
   message: string
-  code?: number
+  data: T
+  timestamp: string
 }
 
 // 请求配置接口
@@ -79,7 +79,7 @@ class RequestService {
         console.log(`[Response] ${response.config.url}`, data)
 
         // 检查业务状态码
-        if (data.success === false) {
+        if (data.code !== 200) {
           const config = response.config as RequestConfig
           if (config.showError !== false) {
             message.error(data.message || '请求失败')

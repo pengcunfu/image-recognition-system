@@ -42,7 +42,7 @@ public class AuthController {
     // 公开接口，无需权限验证
     public ApiResponse<LoginResponseDto> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         try {
-            // 验证验证码
+            // 1. 验证验证码（Controller层负责验证逻辑）
             if (request.getCaptcha() != null && !request.getCaptcha().trim().isEmpty()) {
                 // 从Cookie中获取验证码会话ID
                 String captchaSessionId = AuthUtil.getCaptchaSessionIdFromCookie(httpRequest);
@@ -55,24 +55,29 @@ public class AuthController {
                 }
             }
 
-            LoginResponseDto result = authService.login(request.getUsername(), request.getPassword(), request.getCaptcha());
-
-            if (result.getSuccess()) {
-                // 生成JWT Token
-                String token = jwtUtil.generateToken(result.getUser().getId(), result.getUser().getUsername(), result.getUser().getRole());
-
-                // 将Token存储到Redis
-                authService.storeTokenToRedis(token, result.getUser().getId(), result.getUser().getUsername(), result.getUser().getRole());
-
-                // 设置Token到响应中
-                result.setToken(token);
-
-                log.info("用户登录成功: username={}, userId={}", result.getUser().getUsername(), result.getUser().getId());
-
-                return ApiResponse.success(result, result.getMessage());
-            } else {
-                return ApiResponse.error(result.getMessage());
+            // 2. 调用Service层进行用户认证（Service层只负责核心业务逻辑）
+            UserInfoDto userInfo = authService.authenticateUser(request.getUsername(), request.getPassword());
+            
+            if (userInfo == null) {
+                return ApiResponse.error("用户名或密码错误");
             }
+
+            // 3. 生成JWT Token（Controller层负责Token管理）
+            String token = jwtUtil.generateToken(userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
+
+            // 4. 将Token存储到Redis（Controller层负责Token存储）
+            authService.storeTokenToRedis(token, userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
+
+            // 5. 构建登录响应
+            LoginResponseDto result = LoginResponseDto.builder()
+                    .token(token)
+                    .user(userInfo)
+                    .build();
+
+            log.info("用户登录成功: username={}, userId={}", userInfo.getUsername(), userInfo.getId());
+
+            return ApiResponse.success(result, "登录成功");
+
         } catch (RuntimeException e) {
             log.error("登录处理异常", e);
             return ApiResponse.error(e.getMessage());

@@ -144,16 +144,6 @@ public class AuthDto {
     @AllArgsConstructor
     public static class LoginResponseDto {
         /**
-         * 是否成功
-         */
-        private Boolean success;
-
-        /**
-         * 响应消息
-         */
-        private String message;
-
-        /**
          * 访问令牌
          */
         private String token;

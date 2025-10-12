@@ -12,7 +12,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,10 +38,11 @@ public class AuthService {
     private static final long TOKEN_EXPIRE_TIME = 24 * 60; // 24小时（分钟）
 
     /**
-     * 用户登录
+     * 用户认证
+     * 职责：验证用户凭据并返回用户信息，不包含Token生成等逻辑
      */
-    public LoginResponseDto login(String username, String password, String captcha) {
-        log.info("用户登录验证: username={}", username);
+    public UserInfoDto authenticateUser(String username, String password) {
+        log.info("用户认证: username={}", username);
 
         try {
             // 查找用户
@@ -54,33 +54,24 @@ public class AuthService {
             );
 
             if (user == null) {
-                return LoginResponseDto.builder()
-                        .success(false)
-                        .message("用户不存在")
-                        .build();
+                log.warn("用户不存在: username={}", username);
+                return null;
             }
 
             if (user.getStatus() != User.UserStatus.ACTIVE) {
-                return LoginResponseDto.builder()
-                        .success(false)
-                        .message("用户账户已被禁用")
-                        .build();
+                log.warn("用户账户已被禁用: username={}", username);
+                throw new RuntimeException("用户账户已被禁用");
             }
 
             // 简单密码验证（生产环境应使用加密）
             if (!password.equals(user.getPassword())) {
-                return LoginResponseDto.builder()
-                        .success(false)
-                        .message("密码错误")
-                        .build();
+                log.warn("密码错误: username={}", username);
+                return null;
             }
 
             // 更新最后登录时间
             user.setLastLoginTime(LocalDateTime.now());
             userRepository.updateById(user);
-
-            // 生成token（这里简单模拟）
-            String token = "Bearer_" + UUID.randomUUID().toString().replace("-", "");
 
             // 构建用户信息DTO
             UserInfoDto userInfo = UserInfoDto.builder()
@@ -95,19 +86,12 @@ public class AuthService {
                     .createTime(user.getCreateTime())
                     .build();
 
-            return LoginResponseDto.builder()
-                    .success(true)
-                    .message("登录成功")
-                    .token(token)
-                    .user(userInfo)
-                    .build();
+            log.info("用户认证成功: username={}, userId={}", username, user.getId());
+            return userInfo;
 
         } catch (Exception e) {
-            log.error("登录失败", e);
-            return LoginResponseDto.builder()
-                    .success(false)
-                    .message("登录失败，请稍后重试")
-                    .build();
+            log.error("用户认证失败: username={}", username, e);
+            throw new RuntimeException("认证失败: " + e.getMessage());
         }
     }
 

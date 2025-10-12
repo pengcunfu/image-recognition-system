@@ -106,45 +106,11 @@
               v-model:value="formData.newPassword"
               size="large"
               placeholder="请输入新密码"
-              @input="checkPasswordRequirements"
             >
               <template #prefix>
                 <i class="fas fa-lock"></i>
               </template>
             </a-input-password>
-            
-            <!-- 密码要求 -->
-            <div v-if="formData.newPassword" class="password-requirements">
-              <div class="requirements-title">密码要求：</div>
-              <div 
-                class="requirement-item" 
-                :class="{ valid: requirements.length }"
-              >
-                <i :class="requirements.length ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                <span>至少8位字符</span>
-              </div>
-              <div 
-                class="requirement-item" 
-                :class="{ valid: requirements.letter }"
-              >
-                <i :class="requirements.letter ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                <span>包含大小写字母</span>
-              </div>
-              <div 
-                class="requirement-item" 
-                :class="{ valid: requirements.number }"
-              >
-                <i :class="requirements.number ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                <span>包含数字</span>
-              </div>
-              <div 
-                class="requirement-item" 
-                :class="{ valid: requirements.special }"
-              >
-                <i :class="requirements.special ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                <span>包含特殊字符</span>
-              </div>
-            </div>
           </a-form-item>
           
           <!-- 确认密码输入 -->
@@ -206,14 +172,6 @@ const formData = reactive({
   confirmNewPassword: ''
 })
 
-// 密码要求检查
-const requirements = reactive({
-  length: false,
-  letter: false,
-  number: false,
-  special: false
-})
-
 // 验证规则
 const rules: Record<string, Rule[]> = {
   email: [
@@ -226,26 +184,12 @@ const rules: Record<string, Rule[]> = {
   ],
   newPassword: [
     { required: true, message: '请输入新密码' },
-    { validator: validateNewPassword }
+    { min: 6, message: '密码长度至少6位' }
   ],
   confirmNewPassword: [
     { required: true, message: '请确认新密码' },
     { validator: validateConfirmPassword }
   ]
-}
-
-// 新密码验证器
-function validateNewPassword(_rule: Rule, value: string) {
-  if (!value) {
-    return Promise.reject('请输入新密码')
-  }
-  
-  const allRequirementsMet = Object.values(requirements).every(req => req)
-  if (!allRequirementsMet) {
-    return Promise.reject('密码不符合安全要求')
-  }
-  
-  return Promise.resolve()
 }
 
 // 确认密码验证器
@@ -267,16 +211,6 @@ function maskContact(contact: string) {
     return maskedUsername + '@' + domain
   }
   return contact
-}
-
-// 检查密码要求
-function checkPasswordRequirements() {
-  const password = formData.newPassword
-  
-  requirements.length = password.length >= 8
-  requirements.letter = /[a-zA-Z]/.test(password)
-  requirements.number = /\d/.test(password)
-  requirements.special = /[^a-zA-Z0-9]/.test(password)
 }
 
 // 发送验证码
@@ -533,43 +467,6 @@ async function handleSubmit() {
 
 .resend-btn {
   white-space: nowrap;
-}
-
-/* 密码要求 */
-.password-requirements {
-  margin-top: 8px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #1890ff;
-}
-
-.requirements-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #262626;
-  margin-bottom: 8px;
-}
-
-.requirement-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
-  font-size: 12px;
-  color: #666;
-}
-
-.requirement-item i {
-  margin-right: 8px;
-  font-size: 10px;
-}
-
-.requirement-item.valid {
-  color: #52c41a;
-}
-
-.requirement-item.valid i {
-  color: #52c41a;
 }
 
 /* 返回登录 */

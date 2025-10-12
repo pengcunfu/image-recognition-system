@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { message } from 'ant-design-vue'
 
 // API响应接口
@@ -13,6 +13,7 @@ export interface ApiResponse<T = any> {
 export interface RequestConfig extends AxiosRequestConfig {
   showError?: boolean // 是否显示错误消息
   showLoading?: boolean // 是否显示加载状态
+  headers?: Record<string, string> // 请求头
 }
 
 class RequestService {
@@ -40,22 +41,22 @@ class RequestService {
    */
   private setupRequestInterceptor() {
     this.instance.interceptors.request.use(
-      (config) => {
+      (config: InternalAxiosRequestConfig) => {
         // 添加认证token
         const token = this.getToken()
-        if (token) {
+        if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
         }
 
         // 显示加载状态
-        if ((config as RequestConfig).showLoading !== false) {
+        if ((config as any).showLoading !== false) {
           this.showLoading()
         }
 
         console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || config.params)
         return config
       },
-      (error) => {
+      (error: any) => {
         this.hideLoading()
         return Promise.reject(error)
       }
@@ -84,7 +85,7 @@ class RequestService {
 
         return response
       },
-      (error) => {
+      (error: any) => {
         this.hideLoading()
         
         console.error('[Request Error]', error)
@@ -189,35 +190,35 @@ class RequestService {
    * GET请求
    */
   get<T = any>(url: string, params?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.get(url, { ...config, params }).then(res => res.data)
+    return this.instance.get(url, { ...config, params }).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
    * POST请求
    */
   post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.post(url, data, config).then(res => res.data)
+    return this.instance.post(url, data, config).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
    * PUT请求
    */
   put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.put(url, data, config).then(res => res.data)
+    return this.instance.put(url, data, config).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
    * DELETE请求
    */
   delete<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.delete(url, config).then(res => res.data)
+    return this.instance.delete(url, config).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
    * PATCH请求
    */
   patch<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance.patch(url, data, config).then(res => res.data)
+    return this.instance.patch(url, data, config).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
@@ -235,7 +236,7 @@ class RequestService {
         'Content-Type': 'multipart/form-data',
         ...config?.headers
       }
-    }).then(res => res.data)
+    }).then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
@@ -245,7 +246,7 @@ class RequestService {
     return this.instance.get(url, {
       ...config,
       responseType: 'blob'
-    }).then(response => {
+    }).then((response: AxiosResponse<Blob>) => {
       const blob = new Blob([response.data])
       const downloadUrl = window.URL.createObjectURL(blob)
       const link = document.createElement('a')

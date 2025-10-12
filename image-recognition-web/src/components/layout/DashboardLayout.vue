@@ -96,12 +96,6 @@
           <!-- 系统管理分组 -->
           <a-menu-divider />
           <a-menu-item-group title="系统管理">
-            <a-menu-item key="/products">
-              <template #icon>
-                <i class="fas fa-box"></i>
-              </template>
-              产品管理
-            </a-menu-item>
             <a-menu-item key="/orders">
               <template #icon>
                 <i class="fas fa-shopping-cart"></i>

@@ -10,7 +10,6 @@ import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
 // 管理员组件
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
 import DashboardView from '@/views/DashboardView.vue'
-import ProductsView from '@/views/ProductsView.vue'
 import UsersView from '@/views/UsersView.vue'
 import OrdersView from '@/views/OrdersView.vue'
 import AnalyticsView from '@/views/AnalyticsView.vue'
@@ -92,23 +91,6 @@ const routes: Array<RouteRecordRaw> = [
         component: DashboardView,
         meta: {
           title: '仪表板 - 智能图像识别系统'
-        }
-      }
-    ]
-  },
-  {
-    path: '/products',
-    component: DashboardLayout,
-    meta: {
-      requiresAuth: true
-    },
-    children: [
-      {
-        path: '',
-        name: 'Products',
-        component: ProductsView,
-        meta: {
-          title: '产品管理 - 智能图像识别系统'
         }
       }
     ]

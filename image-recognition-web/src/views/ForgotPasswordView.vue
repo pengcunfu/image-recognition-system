@@ -58,8 +58,8 @@
         
         <!-- 步骤指示器 -->
         <a-steps :current="currentStep - 1" size="small" class="step-indicator">
-          <a-step title="选择方式" />
-          <a-step title="身份验证" />
+          <a-step title="邮箱验证" />
+          <a-step title="输入验证码" />
           <a-step title="重置密码" />
           <a-step title="完成" />
         </a-steps>
@@ -71,29 +71,18 @@
           class="forgot-form"
           @finish="handleSubmit"
         >
-          <!-- 第一步：选择找回方式 -->
+          <!-- 第一步：邮箱验证 -->
           <div v-show="currentStep === 1" class="form-step">
             <a-alert
-              message="选择找回方式"
-              description="请选择邮箱或手机号找回密码，系统将向您发送验证码"
+              message="邮箱验证"
+              description="请输入注册时使用的邮箱地址，系统将向您发送验证码"
               type="info"
               show-icon
               style="margin-bottom: 24px;"
             />
             
-            <a-radio-group v-model:value="recoveryMethod" class="method-selector">
-              <a-radio-button value="email">
-                <i class="fas fa-envelope"></i>
-                邮箱找回
-              </a-radio-button>
-              <a-radio-button value="phone">
-                <i class="fas fa-mobile-alt"></i>
-                手机找回
-              </a-radio-button>
-            </a-radio-group>
-            
             <!-- 邮箱输入 -->
-            <a-form-item v-if="recoveryMethod === 'email'" name="email">
+            <a-form-item name="email">
               <a-input
                 v-model:value="formData.email"
                 size="large"
@@ -105,23 +94,10 @@
               </a-input>
             </a-form-item>
             
-            <!-- 手机号输入 -->
-            <a-form-item v-if="recoveryMethod === 'phone'" name="phone">
-              <a-input
-                v-model:value="formData.phone"
-                size="large"
-                placeholder="请输入注册时使用的手机号"
-              >
-                <template #prefix>
-                  <i class="fas fa-mobile-alt"></i>
-                </template>
-              </a-input>
-            </a-form-item>
-            
             <a-button type="primary" size="large" block @click="nextStep">
-              下一步
+              发送验证码
               <template #icon>
-                <i class="fas fa-arrow-right"></i>
+                <i class="fas fa-paper-plane"></i>
               </template>
             </a-button>
           </div>
@@ -299,18 +275,17 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
+import { AuthAPI } from '@/api/auth'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const currentStep = ref(1)
-const recoveryMethod = ref('email')
 const codeCountdown = ref(0)
 
 // 表单数据
 const formData = reactive({
   email: '',
-  phone: '',
   verificationCode: '',
   newPassword: '',
   confirmNewPassword: ''
@@ -326,9 +301,7 @@ const requirements = reactive({
 
 // 计算属性
 const verificationText = computed(() => {
-  const method = recoveryMethod.value === 'email' ? '邮箱' : '手机'
-  const target = recoveryMethod.value === 'email' ? formData.email : formData.phone
-  return `验证码已发送至您的${method}：${maskContact(target)}，请查收并输入验证码`
+  return `验证码已发送至您的邮箱：${maskContact(formData.email)}，请查收并输入验证码`
 })
 
 // 验证规则
@@ -337,14 +310,9 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请输入邮箱地址' },
     { type: 'email', message: '请输入正确的邮箱地址格式' }
   ],
-  phone: [
-    { required: true, message: '请输入手机号码' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码格式' }
-  ],
   verificationCode: [
     { required: true, message: '请输入验证码' },
-    { pattern: /^\d{6}$/, message: '请输入6位数字验证码' },
-    { validator: validateVerificationCode }
+    { pattern: /^\d{6}$/, message: '请输入6位数字验证码' }
   ],
   newPassword: [
     { required: true, message: '请输入新密码' },
@@ -354,15 +322,6 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请确认新密码' },
     { validator: validateConfirmPassword }
   ]
-}
-
-// 验证码验证器
-function validateVerificationCode(_rule: Rule, value: string) {
-  // 模拟验证码验证
-  if (value && value !== '123456') {
-    return Promise.reject('验证码错误，请重新输入')
-  }
-  return Promise.resolve()
 }
 
 // 新密码验证器
@@ -396,10 +355,8 @@ function maskContact(contact: string) {
     const [username, domain] = contact.split('@')
     const maskedUsername = username.substring(0, 3) + '****'
     return maskedUsername + '@' + domain
-  } else {
-    // 手机号掩码
-    return contact.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
   }
+  return contact
 }
 
 // 检查密码要求
@@ -416,16 +373,13 @@ function checkPasswordRequirements() {
 async function nextStep() {
   try {
     if (currentStep.value === 1) {
-      // 验证第一步
-      const fieldName = recoveryMethod.value
-      await formRef.value?.validateFields([fieldName])
-      
-      // 发送验证码
-      sendVerificationCode()
+      // 验证邮箱并发送验证码
+      await formRef.value?.validateFields(['email'])
+      await sendVerificationCode()
       currentStep.value = 2
       
     } else if (currentStep.value === 2) {
-      // 验证第二步
+      // 验证验证码
       await formRef.value?.validateFields(['verificationCode'])
       currentStep.value = 3
     }
@@ -442,25 +396,35 @@ function prevStep() {
 }
 
 // 发送验证码
-function sendVerificationCode() {
-  const method = recoveryMethod.value === 'email' ? '邮箱' : '手机'
-  const target = recoveryMethod.value === 'email' ? formData.email : formData.phone
-  
-  message.success(`验证码已发送至您的${method}：${maskContact(target)}`)
+async function sendVerificationCode() {
+  try {
+    await AuthAPI.forgotPassword({
+      email: formData.email
+    })
+    message.success(`验证码已发送至您的邮箱：${maskContact(formData.email)}`)
+  } catch (error: any) {
+    message.error(error.message || '发送验证码失败，请重试')
+    throw error
+  }
 }
 
 // 重新发送验证码
-function resendCode() {
-  // 开始倒计时
-  codeCountdown.value = 60
-  const countdown = setInterval(() => {
-    codeCountdown.value--
-    if (codeCountdown.value <= 0) {
-      clearInterval(countdown)
-    }
-  }, 1000)
-  
-  sendVerificationCode()
+async function resendCode() {
+  try {
+    // 开始倒计时
+    codeCountdown.value = 60
+    const countdown = setInterval(() => {
+      codeCountdown.value--
+      if (codeCountdown.value <= 0) {
+        clearInterval(countdown)
+      }
+    }, 1000)
+    
+    await sendVerificationCode()
+  } catch (error) {
+    // 发送失败，停止倒计时
+    codeCountdown.value = 0
+  }
 }
 
 // 重置密码
@@ -470,12 +434,17 @@ async function resetPassword() {
     
     loading.value = true
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await AuthAPI.resetPassword({
+      email: formData.email,
+      newPassword: formData.newPassword,
+      confirmPassword: formData.confirmNewPassword,
+      emailCode: formData.verificationCode
+    })
     
+    message.success('密码重置成功')
     currentStep.value = 4
-  } catch (error) {
-    // 验证失败
+  } catch (error: any) {
+    message.error(error.message || '重置密码失败，请重试')
   } finally {
     loading.value = false
   }
@@ -699,19 +668,6 @@ function handleSubmit() {
   }
 }
 
-/* 方式选择 */
-.method-selector {
-  width: 100%;
-  margin-bottom: 24px;
-}
-
-.method-selector .ant-radio-button-wrapper {
-  flex: 1;
-  text-align: center;
-  height: 48px;
-  line-height: 32px;
-}
-
 /* 验证码组合 */
 .code-group {
   display: flex;
@@ -862,10 +818,6 @@ function handleSubmit() {
   .forgot-info,
   .forgot-form-container {
     padding: 30px 20px;
-  }
-  
-  .method-selector {
-    flex-direction: column;
   }
   
   .code-group {

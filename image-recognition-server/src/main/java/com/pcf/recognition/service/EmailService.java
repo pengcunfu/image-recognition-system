@@ -1,8 +1,8 @@
 package com.pcf.recognition.service;
 
+import com.pcf.recognition.util.RedisClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisClient redisClient;
 
     private static final String EMAIL_CODE_KEY_PREFIX = "email_code:";
     private static final int EMAIL_CODE_EXPIRE_TIME = 5; // 5分钟过期
@@ -49,8 +49,8 @@ public class EmailService {
             mailSender.send(message);
 
             // 将验证码存储到Redis
-            String redisKey = EMAIL_CODE_KEY_PREFIX + type + ":" + email;
-            stringRedisTemplate.opsForValue().set(redisKey, code, EMAIL_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+            String redisKey = RedisClient.buildKey(EMAIL_CODE_KEY_PREFIX, type, email);
+            redisClient.setWithExpire(redisKey, code, EMAIL_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
 
             log.info("邮箱验证码发送成功: email={}, type={}, code={}", email, type, code);
             return code;
@@ -77,8 +77,8 @@ public class EmailService {
         }
 
         try {
-            String redisKey = EMAIL_CODE_KEY_PREFIX + type + ":" + email;
-            String storedCode = stringRedisTemplate.opsForValue().get(redisKey);
+            String redisKey = RedisClient.buildKey(EMAIL_CODE_KEY_PREFIX, type, email);
+            String storedCode = redisClient.get(redisKey);
 
             if (storedCode == null || storedCode.isEmpty()) {
                 log.warn("邮箱验证码不存在或已过期: email={}, type={}", email, type);
@@ -88,7 +88,7 @@ public class EmailService {
             boolean isValid = storedCode.equals(code.trim());
             if (isValid) {
                 // 验证成功后删除验证码
-                stringRedisTemplate.delete(redisKey);
+                redisClient.delete(redisKey);
                 log.info("邮箱验证码验证成功: email={}, type={}", email, type);
             } else {
                 log.warn("邮箱验证码验证失败: email={}, type={}, expected={}, actual={}",

@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
+import com.pcf.recognition.util.RedisClient;
 import com.wf.captcha.SpecCaptcha;
 import com.wf.captcha.base.Captcha;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisClient redisClient;
 
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
@@ -207,8 +207,8 @@ public class AuthService {
             String captchaText = specCaptcha.text().toLowerCase();
 
             // 使用sessionId作为key存储验证码，设置过期时间
-            String redisKey = CAPTCHA_KEY_PREFIX + sessionId;
-            stringRedisTemplate.opsForValue().set(redisKey, captchaText, CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
+            String redisKey = RedisClient.buildKey(CAPTCHA_KEY_PREFIX, sessionId);
+            redisClient.setWithExpire(redisKey, captchaText, CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
 
             log.info("验证码生成成功: sessionId={}, text={}", sessionId, captchaText);
 
@@ -232,8 +232,8 @@ public class AuthService {
 
         try {
             // 从Redis中获取存储的验证码
-            String redisKey = CAPTCHA_KEY_PREFIX + sessionId;
-            String storedCaptcha = stringRedisTemplate.opsForValue().get(redisKey);
+            String redisKey = RedisClient.buildKey(CAPTCHA_KEY_PREFIX, sessionId);
+            String storedCaptcha = redisClient.get(redisKey);
 
             if (storedCaptcha == null || storedCaptcha.isEmpty()) {
                 log.warn("验证码不存在或已过期: sessionId={}", sessionId);
@@ -243,7 +243,7 @@ public class AuthService {
             // 验证成功后删除验证码（防止重复使用）
             boolean isValid = storedCaptcha.equalsIgnoreCase(userInput.trim());
             if (isValid) {
-                stringRedisTemplate.delete(redisKey);
+                redisClient.delete(redisKey);
                 log.info("验证码验证成功: sessionId={}", sessionId);
             } else {
                 log.warn("验证码验证失败: sessionId={}, expected={}, actual={}", sessionId, storedCaptcha, userInput);
@@ -260,8 +260,8 @@ public class AuthService {
      * 存储短信验证码
      */
     public void storeSmsCode(String phone, String code) {
-        String redisKey = SMS_CODE_KEY_PREFIX + phone;
-        stringRedisTemplate.opsForValue().set(redisKey, code, SMS_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
+        String redisKey = RedisClient.buildKey(SMS_CODE_KEY_PREFIX, phone);
+        redisClient.setWithExpire(redisKey, code, SMS_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
         log.info("短信验证码已存储: phone={}, code={}", phone, code);
     }
 
@@ -276,8 +276,8 @@ public class AuthService {
         }
 
         try {
-            String redisKey = SMS_CODE_KEY_PREFIX + phone;
-            String storedCode = stringRedisTemplate.opsForValue().get(redisKey);
+            String redisKey = RedisClient.buildKey(SMS_CODE_KEY_PREFIX, phone);
+            String storedCode = redisClient.get(redisKey);
 
             if (storedCode == null) {
                 log.warn("短信验证码不存在或已过期: phone={}", phone);
@@ -287,7 +287,7 @@ public class AuthService {
             // 验证成功后删除验证码
             boolean isValid = storedCode.equals(userInput.trim());
             if (isValid) {
-                stringRedisTemplate.delete(redisKey);
+                redisClient.delete(redisKey);
                 log.info("短信验证码验证成功: phone={}", phone);
             } else {
                 log.warn("短信验证码验证失败: phone={}, expected={}, actual={}", phone, storedCode, userInput);
@@ -306,10 +306,10 @@ public class AuthService {
      */
     public void storeTokenToRedis(String token, Long userId, String username, String role) {
         try {
-            String redisKey = TOKEN_KEY_PREFIX + token;
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
             // 存储token相关信息
             String tokenInfo = String.format("%d:%s:%s", userId, username, role);
-            stringRedisTemplate.opsForValue().set(redisKey, tokenInfo, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+            redisClient.setWithExpire(redisKey, tokenInfo, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
             log.info("Token已存储到Redis: token={}, userId={}", token, userId);
         } catch (Exception e) {
             log.error("存储Token到Redis失败: token={}", token, e);
@@ -321,8 +321,8 @@ public class AuthService {
      */
     public void deleteTokenFromRedis(String token) {
         try {
-            String redisKey = TOKEN_KEY_PREFIX + token;
-            stringRedisTemplate.delete(redisKey);
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            redisClient.delete(redisKey);
             log.info("Token已从Redis删除: token={}", token);
         } catch (Exception e) {
             log.error("从Redis删除Token失败: token={}", token, e);
@@ -334,8 +334,8 @@ public class AuthService {
      */
     public boolean isTokenValidInRedis(String token) {
         try {
-            String redisKey = TOKEN_KEY_PREFIX + token;
-            String tokenInfo = stringRedisTemplate.opsForValue().get(redisKey);
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            String tokenInfo = redisClient.get(redisKey);
             boolean isValid = tokenInfo != null && !tokenInfo.isEmpty();
             log.debug("Token验证结果: token={}, valid={}", token, isValid);
             return isValid;
@@ -350,8 +350,8 @@ public class AuthService {
      */
     public String getTokenInfoFromRedis(String token) {
         try {
-            String redisKey = TOKEN_KEY_PREFIX + token;
-            return stringRedisTemplate.opsForValue().get(redisKey);
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            return redisClient.get(redisKey);
         } catch (Exception e) {
             log.error("获取Token信息失败: token={}", token, e);
             return null;
@@ -363,8 +363,8 @@ public class AuthService {
      */
     public void refreshTokenExpiry(String token) {
         try {
-            String redisKey = TOKEN_KEY_PREFIX + token;
-            stringRedisTemplate.expire(redisKey, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            redisClient.expire(redisKey, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
             log.debug("Token过期时间已刷新: token={}", token);
         } catch (Exception e) {
             log.error("刷新Token过期时间失败: token={}", token, e);

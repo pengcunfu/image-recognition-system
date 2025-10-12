@@ -128,13 +128,7 @@ public class AuthService {
                 }
             }
 
-            // 验证密码确认
-            if (!request.getPassword().equals(request.getConfirmPassword())) {
-                return RegisterResponseDto.builder()
-                        .success(false)
-                        .message("两次输入的密码不一致")
-                        .build();
-            }
+            // 密码确认验证已在前端完成，此处不再需要验证
 
             // 检查用户名是否已存在
             User existingUser = userRepository.selectOne(

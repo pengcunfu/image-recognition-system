@@ -451,4 +451,65 @@ public class RecognitionDto {
         private Boolean isPublic;
         private String description;
     }
+
+    /**
+     * 批量识别响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchRecognitionResponseDto {
+        private String batchId;
+        private String status;
+        private Integer totalFiles;
+        private Integer successFiles;
+        private Integer failedFiles;
+        private List<BatchFileResultDto> results;
+        private String batchName;
+    }
+
+    /**
+     * 批量文件处理结果DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchFileResultDto {
+        private String fileName;
+        private Integer index;
+        private String status;
+        private String recognitionId;
+        private List<com.pcf.recognition.entity.RecognitionItem> results;
+        private String imageUrl;
+        private String error;
+    }
+
+    /**
+     * 识别模式DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecognitionModeDto {
+        private String id;
+        private String name;
+        private String description;
+    }
+
+    /**
+     * 健康检查响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class HealthCheckResponseDto {
+        private String status;
+        private String service;
+        private Long timestamp;
+        private String version;
+    }
 }

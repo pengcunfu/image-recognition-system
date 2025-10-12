@@ -6,15 +6,15 @@ export { default as request } from '@/utils/request'
 // 导出类型定义
 export * from './types'
 
+// 导入API模块
+import AuthAPI from './auth'
+import KnowledgeAPI from './knowledge'
+import CommunityAPI from './community'
+
 // 导出API模块
 export { default as AuthAPI } from './auth'
 export { default as KnowledgeAPI } from './knowledge'
 export { default as CommunityAPI } from './community'
-
-// 导出具名API类
-export { AuthAPI, KnowledgeAPI, CommunityAPI } from './auth'
-export { AuthAPI, KnowledgeAPI, CommunityAPI } from './knowledge'
-export { AuthAPI, KnowledgeAPI, CommunityAPI } from './community'
 
 // 创建API实例对象，方便使用
 const API = {

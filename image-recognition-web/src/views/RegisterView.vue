@@ -369,7 +369,7 @@ async function handleRegister() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .register-container {
   background: #f5f5f5;
   min-height: 100vh;
@@ -396,34 +396,34 @@ async function handleRegister() {
   opacity: 0.06;
   animation: float 6s ease-in-out infinite;
   color: #1890ff;
-}
 
-.floating-shape:nth-child(1) {
-  top: 15%;
-  left: 15%;
-  animation-delay: 0s;
-  font-size: 50px;
-}
+  &:nth-child(1) {
+    top: 15%;
+    left: 15%;
+    animation-delay: 0s;
+    font-size: 50px;
+  }
 
-.floating-shape:nth-child(2) {
-  top: 30%;
-  right: 15%;
-  animation-delay: 2s;
-  font-size: 70px;
-}
+  &:nth-child(2) {
+    top: 30%;
+    right: 15%;
+    animation-delay: 2s;
+    font-size: 70px;
+  }
 
-.floating-shape:nth-child(3) {
-  bottom: 15%;
-  left: 25%;
-  animation-delay: 4s;
-  font-size: 60px;
-}
+  &:nth-child(3) {
+    bottom: 15%;
+    left: 25%;
+    animation-delay: 4s;
+    font-size: 60px;
+  }
 
-.floating-shape:nth-child(4) {
-  bottom: 30%;
-  right: 25%;
-  animation-delay: 1s;
-  font-size: 40px;
+  &:nth-child(4) {
+    bottom: 30%;
+    right: 25%;
+    animation-delay: 1s;
+    font-size: 40px;
+  }
 }
 
 @keyframes float {
@@ -457,17 +457,17 @@ async function handleRegister() {
   align-items: center;
   color: white;
   position: relative;
-}
 
-.register-info::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="30" r="2" fill="white" opacity="0.1"/><circle cx="30" cy="90" r="1.5" fill="white" opacity="0.1"/><circle cx="70" cy="70" r="1" fill="white" opacity="0.1"/></svg>');
-  animation: twinkle 4s ease-in-out infinite;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/><circle cx="90" cy="30" r="2" fill="white" opacity="0.1"/><circle cx="30" cy="90" r="1.5" fill="white" opacity="0.1"/><circle cx="70" cy="70" r="1" fill="white" opacity="0.1"/></svg>');
+    animation: twinkle 4s ease-in-out infinite;
+  }
 }
 
 @keyframes twinkle {
@@ -513,13 +513,13 @@ async function handleRegister() {
   margin-bottom: 16px;
   font-size: 14px;
   opacity: 0.9;
-}
 
-.benefit-item i {
-  margin-right: 12px;
-  font-size: 18px;
-  width: 20px;
-  text-align: center;
+  i {
+    margin-right: 12px;
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+  }
 }
 
 /* 右侧注册表单 */
@@ -578,21 +578,21 @@ async function handleRegister() {
   height: 100%;
   transition: all 0.3s;
   border-radius: 2px;
-}
 
-.strength-fill.strength-weak {
-  width: 33%;
-  background: #ff4d4f;
-}
+  &.strength-weak {
+    width: 33%;
+    background: #ff4d4f;
+  }
 
-.strength-fill.strength-medium {
-  width: 66%;
-  background: #faad14;
-}
+  &.strength-medium {
+    width: 66%;
+    background: #faad14;
+  }
 
-.strength-fill.strength-strong {
-  width: 100%;
-  background: #52c41a;
+  &.strength-strong {
+    width: 100%;
+    background: #52c41a;
+  }
 }
 
 /* 邮箱验证码 */
@@ -615,10 +615,10 @@ async function handleRegister() {
 .agreement-link {
   color: #1890ff;
   text-decoration: none;
-}
 
-.agreement-link:hover {
-  color: #40a9ff;
+  &:hover {
+    color: #40a9ff;
+  }
 }
 
 /* 登录链接 */
@@ -627,16 +627,16 @@ async function handleRegister() {
   margin-top: 24px;
   color: #666;
   font-size: 14px;
-}
 
-.login-link a {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 500;
-}
+  a {
+    color: #1890ff;
+    text-decoration: none;
+    font-weight: 500;
 
-.login-link a:hover {
-  color: #40a9ff;
+    &:hover {
+      color: #40a9ff;
+    }
+  }
 }
 
 /* 响应式设计 */
@@ -681,6 +681,11 @@ async function handleRegister() {
   .register-box {
     margin: 20px;
     border-radius: 16px;
+  }
+  
+  .register-info,
+  .register-form-container {
+    padding: 30px 20px;
   }
   
   .email-group {

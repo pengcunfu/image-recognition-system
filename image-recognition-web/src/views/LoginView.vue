@@ -273,7 +273,7 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .login-container {
   background: #f5f5f5;
   min-height: 100vh;
@@ -301,26 +301,26 @@ onMounted(() => {
   animation: float 6s ease-in-out infinite;
   font-size: 60px;
   color: #1890ff;
-}
 
-.floating-shape:nth-child(1) {
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
+  &:nth-child(1) {
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+  }
 
-.floating-shape:nth-child(2) {
-  top: 20%;
-  right: 10%;
-  animation-delay: 2s;
-  font-size: 80px;
-}
+  &:nth-child(2) {
+    top: 20%;
+    right: 10%;
+    animation-delay: 2s;
+    font-size: 80px;
+  }
 
-.floating-shape:nth-child(3) {
-  bottom: 10%;
-  left: 20%;
-  animation-delay: 4s;
-  font-size: 50px;
+  &:nth-child(3) {
+    bottom: 10%;
+    left: 20%;
+    animation-delay: 4s;
+    font-size: 50px;
+  }
 }
 
 @keyframes float {
@@ -354,17 +354,17 @@ onMounted(() => {
   align-items: center;
   color: white;
   position: relative;
-}
 
-.login-info::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="3" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
-  animation: twinkle 3s ease-in-out infinite;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="3" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
+    animation: twinkle 3s ease-in-out infinite;
+  }
 }
 
 @keyframes twinkle {
@@ -409,11 +409,11 @@ onMounted(() => {
   margin-bottom: 16px;
   font-size: 14px;
   opacity: 0.9;
-}
 
-.feature-item i {
-  margin-right: 12px;
-  font-size: 16px;
+  i {
+    margin-right: 12px;
+    font-size: 16px;
+  }
 }
 
 /* 右侧登录表单 */
@@ -475,22 +475,22 @@ onMounted(() => {
   user-select: none;
   transition: all 0.3s;
   overflow: hidden;
-}
 
-.captcha-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  &:hover {
+    border-color: #1890ff;
+  }
 }
 
 .captcha-loading {
   color: #1890ff;
   font-size: 14px;
-}
-
-.captcha-image:hover {
-  border-color: #1890ff;
 }
 
 /* 表单选项 */
@@ -504,10 +504,10 @@ onMounted(() => {
 .forgot-password {
   color: #1890ff;
   text-decoration: none;
-}
 
-.forgot-password:hover {
-  color: #40a9ff;
+  &:hover {
+    color: #40a9ff;
+  }
 }
 
 /* 登录按钮 */
@@ -516,11 +516,11 @@ onMounted(() => {
   border: none;
   height: 48px;
   margin-bottom: 16px;
-}
 
-.login-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
+  }
 }
 
 /* 第三方登录 */
@@ -537,16 +537,16 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-}
 
-.social-btn.github:hover {
-  border-color: #333;
-  color: #333;
-}
+  &.github:hover {
+    border-color: #333;
+    color: #333;
+  }
 
-.social-btn.gitee:hover {
-  border-color: #c71d23;
-  color: #c71d23;
+  &.gitee:hover {
+    border-color: #c71d23;
+    color: #c71d23;
+  }
 }
 
 /* 注册链接 */
@@ -554,16 +554,16 @@ onMounted(() => {
   text-align: center;
   color: #666;
   font-size: 14px;
-}
 
-.register-link a {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 500;
-}
+  a {
+    color: #1890ff;
+    text-decoration: none;
+    font-weight: 500;
 
-.register-link a:hover {
-  color: #40a9ff;
+    &:hover {
+      color: #40a9ff;
+    }
+  }
 }
 
 /* 响应式设计 */

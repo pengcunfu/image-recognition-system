@@ -266,7 +266,7 @@ async function handleSubmit() {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .forgot-container {
   background: #f5f5f5;
   min-height: 100vh;
@@ -293,34 +293,34 @@ async function handleSubmit() {
   opacity: 0.06;
   animation: float 8s ease-in-out infinite;
   color: #1890ff;
-}
 
-.floating-shape:nth-child(1) {
-  top: 20%;
-  left: 10%;
-  animation-delay: 0s;
-  font-size: 50px;
-}
+  &:nth-child(1) {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+    font-size: 50px;
+  }
 
-.floating-shape:nth-child(2) {
-  top: 10%;
-  right: 20%;
-  animation-delay: 3s;
-  font-size: 70px;
-}
+  &:nth-child(2) {
+    top: 10%;
+    right: 20%;
+    animation-delay: 3s;
+    font-size: 70px;
+  }
 
-.floating-shape:nth-child(3) {
-  bottom: 20%;
-  left: 15%;
-  animation-delay: 6s;
-  font-size: 60px;
-}
+  &:nth-child(3) {
+    bottom: 20%;
+    left: 15%;
+    animation-delay: 6s;
+    font-size: 60px;
+  }
 
-.floating-shape:nth-child(4) {
-  bottom: 30%;
-  right: 10%;
-  animation-delay: 2s;
-  font-size: 40px;
+  &:nth-child(4) {
+    bottom: 30%;
+    right: 10%;
+    animation-delay: 2s;
+    font-size: 40px;
+  }
 }
 
 @keyframes float {
@@ -354,17 +354,17 @@ async function handleSubmit() {
   align-items: center;
   color: white;
   position: relative;
-}
 
-.forgot-info::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="white" opacity="0.1"/><circle cx="75" cy="35" r="3" fill="white" opacity="0.1"/><circle cx="45" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="65" cy="15" r="1.5" fill="white" opacity="0.1"/></svg>');
-  animation: twinkle 5s ease-in-out infinite;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="white" opacity="0.1"/><circle cx="75" cy="35" r="3" fill="white" opacity="0.1"/><circle cx="45" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="65" cy="15" r="1.5" fill="white" opacity="0.1"/></svg>');
+    animation: twinkle 5s ease-in-out infinite;
+  }
 }
 
 @keyframes twinkle {
@@ -411,13 +411,13 @@ async function handleSubmit() {
   margin-bottom: 16px;
   font-size: 14px;
   opacity: 0.9;
-}
 
-.security-tip i {
-  margin-right: 12px;
-  font-size: 16px;
-  width: 20px;
-  text-align: center;
+  i {
+    margin-right: 12px;
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+  }
 }
 
 /* 右侧表单区域 */
@@ -466,6 +466,7 @@ async function handleSubmit() {
 }
 
 .resend-btn {
+  height: 40px; // 修复：与输入框高度一致
   white-space: nowrap;
 }
 
@@ -475,16 +476,16 @@ async function handleSubmit() {
   margin-top: 24px;
   color: #666;
   font-size: 14px;
-}
 
-.back-to-login a {
-  color: #1890ff;
-  text-decoration: none;
-  font-weight: 500;
-}
+  a {
+    color: #1890ff;
+    text-decoration: none;
+    font-weight: 500;
 
-.back-to-login a:hover {
-  color: #40a9ff;
+    &:hover {
+      color: #40a9ff;
+    }
+  }
 }
 
 /* 响应式设计 */

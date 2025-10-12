@@ -1,6 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.CommunityDto.*;
 import com.pcf.recognition.service.CommunityService;
 import com.pcf.recognition.util.TokenUtil;
 

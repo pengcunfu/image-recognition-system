@@ -3,7 +3,7 @@ package com.pcf.recognition.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.CommunityDto.*;
 import com.pcf.recognition.entity.CommunityPost;
 import com.pcf.recognition.entity.CommunityComment;
 import com.pcf.recognition.repository.CommunityPostRepository;
@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**

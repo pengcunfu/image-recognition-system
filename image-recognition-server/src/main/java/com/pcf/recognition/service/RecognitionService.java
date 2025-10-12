@@ -2,8 +2,8 @@ package com.pcf.recognition.service;
 
 import com.pcf.recognition.config.DoubaoConfig;
 import com.pcf.recognition.config.ImageRecognitionConfig;
-import com.pcf.recognition.dto.ImageRecognitionRequest;
-import com.pcf.recognition.dto.ImageRecognitionResponse;
+import com.pcf.recognition.dto.RecognitionDto.ImageRecognitionRequest;
+import com.pcf.recognition.dto.RecognitionDto.ImageRecognitionResponse;
 import com.volcengine.ark.runtime.model.completion.chat.*;
 import com.volcengine.ark.runtime.service.ArkService;
 import com.fasterxml.jackson.databind.ObjectMapper;

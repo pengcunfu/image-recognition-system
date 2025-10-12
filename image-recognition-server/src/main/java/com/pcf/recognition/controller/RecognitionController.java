@@ -1,6 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
+import com.pcf.recognition.dto.RecognitionDto.*;
 import com.pcf.recognition.service.RecognitionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

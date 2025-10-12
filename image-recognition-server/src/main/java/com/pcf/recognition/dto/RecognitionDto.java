@@ -12,9 +12,159 @@ import java.util.Map;
 
 /**
  * 识别相关DTO集合
- * 包含识别历史、识别统计、收藏等相关的请求和响应类
+ * 包含图像识别、识别历史、识别统计、收藏等相关的请求和响应类
  */
 public class RecognitionDto {
+
+    /**
+     * 图像识别请求DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ImageRecognitionRequest {
+        /**
+         * 图像的Base64编码数据
+         */
+        private String imageBase64;
+
+        /**
+         * 图像URL (可选, 与imageBase64二选一)
+         */
+        private String imageUrl;
+
+        /**
+         * 自定义提示词 (可选, 不提供则使用默认提示词)
+         */
+        private String customPrompt;
+
+        /**
+         * 是否详细分析 (默认false, true时会返回更多详细信息)
+         */
+        @Builder.Default
+        private Boolean detailedAnalysis = false;
+
+        /**
+         * 最大token数 (可选, 默认500)
+         */
+        @Builder.Default
+        private Integer maxTokens = 500;
+
+        /**
+         * 温度参数 (可选, 0.0-1.0, 默认0.1保证准确性)
+         */
+        @Builder.Default
+        private Double temperature = 0.1;
+    }
+
+    /**
+     * 图像识别响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ImageRecognitionResponse {
+        /**
+         * 识别是否成功
+         */
+        private Boolean success;
+
+        /**
+         * 错误信息 (失败时)
+         */
+        private String errorMessage;
+
+        /**
+         * 识别结果
+         */
+        private RecognitionData data;
+
+        /**
+         * 处理时间 (毫秒)
+         */
+        private Long processingTime;
+
+        /**
+         * 使用的token数量
+         */
+        private Integer tokenUsage;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class RecognitionData {
+            /**
+             * 物体类别
+             */
+            private String category;
+
+            /**
+             * 具体名称
+             */
+            private String name;
+
+            /**
+             * 主要颜色
+             */
+            private String color;
+
+            /**
+             * 形状特征
+             */
+            private String shape;
+
+            /**
+             * 材质纹理
+             */
+            private String material;
+
+            /**
+             * 关键属性列表
+             */
+            private List<String> attributes;
+
+            /**
+             * 置信度 (0-1之间)
+             */
+            private Double confidence;
+
+            /**
+             * 原始AI响应 (调试用)
+             */
+            private String rawResponse;
+        }
+    }
+
+    /**
+     * Doubao连接测试响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DoubaoConnectionTestResponseDto {
+        private Boolean connected;
+        private String message;
+        private Long timestamp;
+        private String error;
+    }
+
+    /**
+     * Doubao服务状态响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DoubaoServiceStatusResponseDto {
+        private String service;
+        private String status;
+        private Long timestamp;
+        private String version;
+    }
 
     /**
      * 识别历史记录DTO

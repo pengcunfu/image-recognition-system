@@ -30,6 +30,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final StringRedisTemplate stringRedisTemplate;
+    private final EmailService emailService;
 
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
@@ -117,10 +118,20 @@ public class AuthService {
     /**
      * 用户注册
      */
-    public RegisterResponseDto register(String username, String email, String password, String captcha) {
+    public RegisterResponseDto register(String username, String email, String password, String captcha, String emailCode) {
         log.info("用户注册: username={}, email={}", username, email);
 
         try {
+            // 验证邮箱验证码
+            if (emailCode != null && !emailCode.trim().isEmpty()) {
+                if (!emailService.verifyEmailCode(email, emailCode, "register")) {
+                    return RegisterResponseDto.builder()
+                            .success(false)
+                            .message("邮箱验证码错误或已过期")
+                            .build();
+                }
+            }
+
             // 检查用户名是否已存在
             User existingUser = userRepository.selectOne(
                     new LambdaQueryWrapper<User>()

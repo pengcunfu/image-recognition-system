@@ -98,6 +98,12 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot Mail Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- 参数验证 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

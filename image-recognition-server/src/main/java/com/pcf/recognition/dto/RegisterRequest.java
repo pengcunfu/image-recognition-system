@@ -36,6 +36,9 @@ public class RegisterRequest {
 
     private String captcha;
 
+    @NotBlank(message = "邮箱验证码不能为空")
+    @Size(min = 6, max = 6, message = "邮箱验证码必须为6位数字")
+    private String emailCode;
 
     private boolean acceptTerms = false;
 }

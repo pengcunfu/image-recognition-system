@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.AuthService;
+import com.pcf.recognition.service.EmailService;
 import com.pcf.recognition.util.JwtUtil;
 import com.wf.captcha.base.Captcha;
 
@@ -33,6 +34,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final EmailService emailService;
     private final JwtUtil jwtUtil;
 
 
@@ -105,7 +107,8 @@ public class AuthController {
                     request.getUsername(),
                     request.getEmail(),
                     request.getPassword(),
-                    request.getCaptcha()
+                    request.getCaptcha(),
+                    request.getEmailCode()
             );
 
             if (result.getSuccess()) {
@@ -296,6 +299,51 @@ public class AuthController {
         } catch (Exception e) {
             log.error("验证短信验证码失败", e);
             return ApiResponse.error("验证码验证失败");
+        }
+    }
+
+
+    @PostMapping("/email-code")
+    // 公开接口，无需权限验证
+    public ApiResponse<EmailCodeResponse> sendEmailCode(@Valid @RequestBody EmailCodeRequest request) {
+        try {
+            // 校验邮箱格式已通过@Valid注解完成
+
+            // 发送邮箱验证码
+            String code = emailService.sendEmailCode(request.getEmail(), request.getType());
+
+            // 构建响应
+            EmailCodeResponse response = new EmailCodeResponse();
+            response.setEmail(request.getEmail());
+            response.setMaskedEmail(emailService.maskEmail(request.getEmail()));
+            response.setCodeExpiry(300); // 5分钟过期
+            response.setSendTime(System.currentTimeMillis());
+
+            log.info("邮箱验证码发送成功: email={}, type={}", request.getEmail(), request.getType());
+            return ApiResponse.success(response, "邮箱验证码发送成功");
+
+        } catch (Exception e) {
+            log.error("发送邮箱验证码失败: email={}, type={}", request.getEmail(), request.getType(), e);
+            return ApiResponse.error("邮箱验证码发送失败，请稍后重试");
+        }
+    }
+
+
+    @PostMapping("/email-code/verify")
+    // 公开接口，无需权限验证
+    public ApiResponse<Boolean> verifyEmailCode(@Valid @RequestBody EmailCodeVerifyRequest request) {
+        try {
+            // 使用EmailService验证邮箱验证码
+            boolean isValid = emailService.verifyEmailCode(request.getEmail(), request.getCode(), request.getType());
+
+            if (isValid) {
+                return ApiResponse.success(true, "邮箱验证码验证成功");
+            } else {
+                return ApiResponse.error("邮箱验证码错误或已过期");
+            }
+        } catch (Exception e) {
+            log.error("验证邮箱验证码失败: email={}, type={}", request.getEmail(), request.getType(), e);
+            return ApiResponse.error("邮箱验证码验证失败");
         }
     }
 

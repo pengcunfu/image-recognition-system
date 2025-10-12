@@ -3,14 +3,20 @@ package com.pcf.recognition.controller;
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.service.AuthService;
 import com.pcf.recognition.util.JwtUtil;
-
+import com.wf.captcha.base.Captcha;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * 用户认证控制器
@@ -30,9 +36,20 @@ public class AuthController {
     @PostMapping("/login")
     // 公开接口，无需权限验证
     public ApiResponse<LoginResponseDto> login(
-            @Valid @RequestBody LoginRequest request) {
+            @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
 
         try {
+            // 获取客户端IP
+            String clientIp = getClientIpAddress(httpRequest);
+            
+            // 验证验证码
+            if (request.getCaptcha() != null && !request.getCaptcha().trim().isEmpty()) {
+                if (!authService.verifyCaptcha(clientIp, request.getCaptcha())) {
+                    return ApiResponse.error("验证码错误或已过期");
+                }
+            }
+
             LoginResponseDto result = authService.login(
                     request.getUsername(),
                     request.getPassword(),
@@ -110,9 +127,36 @@ public class AuthController {
 
     @GetMapping("/captcha")
     // 公开接口，无需权限验证
-    public ApiResponse<CaptchaResponseDto> getCaptcha() {
-        CaptchaResponseDto result = authService.getCaptcha();
-        return ApiResponse.success(result, "验证码获取成功");
+    public ResponseEntity<byte[]> getCaptcha(HttpServletRequest request) {
+        try {
+            // 获取客户端IP
+            String clientIp = getClientIpAddress(request);
+            
+            // 生成验证码图片
+            Captcha captcha = authService.generateCaptcha(clientIp);
+            
+            // 将验证码图片输出为字节数组
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            captcha.out(outputStream);
+            byte[] imageBytes = outputStream.toByteArray();
+            
+            // 设置响应头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.IMAGE_PNG);
+            headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+            headers.set("Pragma", "no-cache");
+            headers.set("Expires", "0");
+            
+            log.info("验证码图片生成成功: clientIp={}", clientIp);
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(imageBytes);
+                    
+        } catch (IOException e) {
+            log.error("生成验证码图片失败", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
 
@@ -263,6 +307,33 @@ public class AuthController {
             return phone;
         }
         return phone.substring(0, 3) + "****" + phone.substring(7);
+    }
+
+    /**
+     * 获取客户端真实IP地址
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty() && !"unknown".equalsIgnoreCase(xForwardedFor)) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty() && !"unknown".equalsIgnoreCase(xRealIp)) {
+            return xRealIp;
+        }
+        
+        String proxyClientIp = request.getHeader("Proxy-Client-IP");
+        if (proxyClientIp != null && !proxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(proxyClientIp)) {
+            return proxyClientIp;
+        }
+        
+        String wlProxyClientIp = request.getHeader("WL-Proxy-Client-IP");
+        if (wlProxyClientIp != null && !wlProxyClientIp.isEmpty() && !"unknown".equalsIgnoreCase(wlProxyClientIp)) {
+            return wlProxyClientIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 
 }

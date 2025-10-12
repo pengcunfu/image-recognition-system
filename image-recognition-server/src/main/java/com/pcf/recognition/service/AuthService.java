@@ -216,9 +216,9 @@ public class AuthService {
     }
 
     /**
-     * 获取验证码
+     * 生成验证码图片
      */
-    public CaptchaResponseDto getCaptcha() {
+    public SpecCaptcha generateCaptcha(String clientIp) {
         try {
             // 创建验证码对象，设置宽度、高度、验证码长度、干扰线数量
             SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
@@ -232,55 +232,37 @@ public class AuthService {
             // 获取验证码文本
             String captchaText = specCaptcha.text().toLowerCase();
 
-            // 将验证码图片转换为Base64
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            specCaptcha.out(outputStream);
-            String captchaImage = "data:image/png;base64," + Base64.getEncoder().encodeToString(outputStream.toByteArray());
-
-            // 生成验证码ID
-            String captchaId = UUID.randomUUID().toString();
-
-            // 将验证码存储到Redis，设置过期时间
-            String redisKey = CAPTCHA_KEY_PREFIX + captchaId;
+            // 使用客户端IP作为key存储验证码，设置过期时间
+            String redisKey = CAPTCHA_KEY_PREFIX + clientIp;
             stringRedisTemplate.opsForValue().set(redisKey, captchaText, CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
 
-            log.info("验证码生成成功: captchaId={}, text={}", captchaId, captchaText);
+            log.info("验证码生成成功: clientIp={}, text={}", clientIp, captchaText);
 
-            return CaptchaResponseDto.builder()
-                    .success(true)
-                    .captcha(captchaText)
-                    .captchaImage(captchaImage)
-                    .captchaId(captchaId)
-                    .build();
+            return specCaptcha;
 
-        } catch (IOException | FontFormatException e) {
+        } catch (Exception e) {
             log.error("生成验证码失败", e);
-            return CaptchaResponseDto.builder()
-                    .success(false)
-                    .captcha(null)
-                    .captchaImage(null)
-                    .captchaId(null)
-                    .build();
+            throw new RuntimeException("验证码生成失败", e);
         }
     }
 
     /**
      * 验证验证码
      */
-    public boolean verifyCaptcha(String captchaId, String userInput) {
-        log.info("验证验证码: captchaId={}, userInput={}", captchaId, userInput);
+    public boolean verifyCaptcha(String clientIp, String userInput) {
+        log.info("验证验证码: clientIp={}, userInput={}", clientIp, userInput);
 
-        if (captchaId == null || userInput == null) {
+        if (clientIp == null || userInput == null) {
             return false;
         }
 
         try {
             // 从Redis中获取存储的验证码
-            String redisKey = CAPTCHA_KEY_PREFIX + captchaId;
+            String redisKey = CAPTCHA_KEY_PREFIX + clientIp;
             String storedCaptcha = stringRedisTemplate.opsForValue().get(redisKey);
 
-            if (storedCaptcha.isEmpty()) {
-                log.warn("验证码不存在或已过期: captchaId={}", captchaId);
+            if (storedCaptcha == null || storedCaptcha.isEmpty()) {
+                log.warn("验证码不存在或已过期: clientIp={}", clientIp);
                 return false;
             }
 
@@ -288,14 +270,14 @@ public class AuthService {
             boolean isValid = storedCaptcha.equalsIgnoreCase(userInput.trim());
             if (isValid) {
                 stringRedisTemplate.delete(redisKey);
-                log.info("验证码验证成功: captchaId={}", captchaId);
+                log.info("验证码验证成功: clientIp={}", clientIp);
             } else {
-                log.warn("验证码验证失败: captchaId={}, expected={}, actual={}", captchaId, storedCaptcha, userInput);
+                log.warn("验证码验证失败: clientIp={}, expected={}, actual={}", clientIp, storedCaptcha, userInput);
             }
 
             return isValid;
         } catch (Exception e) {
-            log.error("验证验证码时发生异常: captchaId={}", captchaId, e);
+            log.error("验证验证码时发生异常: clientIp={}", clientIp, e);
             return false;
         }
     }

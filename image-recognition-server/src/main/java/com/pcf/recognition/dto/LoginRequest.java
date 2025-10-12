@@ -19,8 +19,7 @@ public class LoginRequest {
     @Size(min = 6, message = "密码长度至少6位")
     private String password;
 
-    @NotBlank(message = "验证码不能为空")
-    private String captcha;
+    private String captcha; // 验证码可以为空，某些情况下不需要验证码
 
     private boolean rememberMe = false;
 }

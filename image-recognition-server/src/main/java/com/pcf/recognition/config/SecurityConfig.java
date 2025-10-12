@@ -36,9 +36,11 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
                                 "/api/v1/auth/captcha",
                                 "/api/v1/auth/sms-code",
                                 "/api/v1/auth/sms-code/verify",
+                                "/api/v1/auth/email-code",
 
                                 // 验证码接口
                                 "/api/v1/captcha/**",

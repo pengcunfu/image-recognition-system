@@ -110,17 +110,6 @@ export class AuthAPI {
   }
 
   /**
-   * 重置密码
-   */
-  static resetPassword(data: {
-    token: string
-    newPassword: string
-    confirmPassword: string
-  }) {
-    return request.post<OperationResult>('/api/v1/auth/reset-password', data)
-  }
-
-  /**
    * 绑定手机号
    */
   static bindPhone(data: {

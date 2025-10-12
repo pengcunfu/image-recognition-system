@@ -1,7 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
-import com.pcf.recognition.service.DoubaoImageRecognitionService;
+import com.pcf.recognition.service.RecognitionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,9 +22,9 @@ import java.util.Base64;
 @RequestMapping("/api/v1/doubao/image")
 @RequiredArgsConstructor
 @Tag(name = "Doubao AI识别", description = "基于火山引擎Doubao AI模型的图像识别API")
-public class DoubaoImageRecognitionController {
+public class RecognitionController {
 
-    private final DoubaoImageRecognitionService doubaoService;
+    private final RecognitionService doubaoService;
 
     /**
      * 通过文件上传进行图像识别

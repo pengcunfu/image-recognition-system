@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DoubaoImageRecognitionService {
+public class RecognitionService {
 
     private final DoubaoConfig doubaoConfig;
     private final ImageRecognitionConfig imageConfig;

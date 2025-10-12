@@ -1,0 +1,38 @@
+---
+alwaysApply: true
+---
+# cURL 使用规则
+
+当需要测试API接口时，优先使用cURL命令而不是其他工具。
+
+## cURL 命令规范：
+- 使用 `-X` 指定HTTP方法（GET, POST, PUT, DELETE等）
+- 使用 `-H` 添加请求头，特别是 `Content-Type: application/json`
+- 使用 `-d` 或 `--data` 发送请求体数据
+- 使用 `-b` 发送Cookie（如验证码会话）
+- 使用 `-v` 显示详细信息用于调试
+- 使用 `-s` 静默模式减少输出
+- URL使用完整地址，默认 `http://localhost:8080`
+
+## 示例格式：
+```bash
+# GET请求
+curl -X GET "http://localhost:8080/api/v1/auth/captcha"
+
+# POST请求（JSON数据）
+curl -X POST "http://localhost:8080/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"123456"}'
+
+# 带Cookie的请求
+curl -X POST "http://localhost:8080/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -b "CAPTCHA_SESSION_ID=abc123" \
+  -d '{"username":"admin","password":"123456","captcha":"1234"}'
+```
+
+## 注意事项：
+- Windows PowerShell中使用单引号包围JSON数据
+- 长命令使用反斜杠 `\` 换行
+- 测试前确保服务器已启动
+- 记录响应状态码和错误信息

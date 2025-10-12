@@ -112,51 +112,38 @@ public class AuthService {
     }
 
     /**
-     * 用户注册
+     * 检查用户名是否已存在
+     * 职责：提供用户名唯一性检查服务
      */
-    public RegisterResponseDto register(RegisterRequest request) {
-        log.info("用户注册: username={}, email={}", request.getUsername(), request.getEmail());
+    public boolean isUsernameExists(String username) {
+        User existingUser = userRepository.selectOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getUsername, username)
+        );
+        return existingUser != null;
+    }
+
+    /**
+     * 检查邮箱是否已存在
+     * 职责：提供邮箱唯一性检查服务
+     */
+    public boolean isEmailExists(String email) {
+        User existingUser = userRepository.selectOne(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getEmail, email)
+        );
+        return existingUser != null;
+    }
+
+    /**
+     * 创建新用户
+     * 职责：纯粹的用户创建业务逻辑，不包含验证
+     */
+    public Long createUser(RegisterRequest request) {
+        log.info("创建新用户: username={}, email={}", request.getUsername(), request.getEmail());
 
         try {
-            // 验证邮箱验证码
-            if (request.getEmailCode() != null && !request.getEmailCode().trim().isEmpty()) {
-                if (!emailService.verifyEmailCode(request.getEmail(), request.getEmailCode(), "register")) {
-                    return RegisterResponseDto.builder()
-                            .success(false)
-                            .message("邮箱验证码错误或已过期")
-                            .build();
-                }
-            }
-
-            // 密码确认验证已在前端完成，此处不再需要验证
-
-            // 检查用户名是否已存在
-            User existingUser = userRepository.selectOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getUsername, request.getUsername())
-            );
-
-            if (existingUser != null) {
-                return RegisterResponseDto.builder()
-                        .success(false)
-                        .message("用户名已存在")
-                        .build();
-            }
-
-            // 检查邮箱是否已存在
-            existingUser = userRepository.selectOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getEmail, request.getEmail())
-            );
-
-            if (existingUser != null) {
-                return RegisterResponseDto.builder()
-                        .success(false)
-                        .message("邮箱已被注册")
-                        .build();
-            }
-
-            // 创建新用户
+            // 创建新用户对象
             User newUser = new User();
             newUser.setUsername(request.getUsername());
             newUser.setEmail(request.getEmail());
@@ -167,24 +154,18 @@ public class AuthService {
             newUser.setVipLevel(0);
             newUser.setCreateTime(LocalDateTime.now());
             newUser.setLastLoginTime(LocalDateTime.now());
-
+            
+            // 保存用户到数据库
             userRepository.insert(newUser);
 
-            log.info("用户注册成功: username={}, email={}, userId={}",
+            log.info("用户创建成功: username={}, email={}, userId={}",
                     request.getUsername(), request.getEmail(), newUser.getId());
 
-            return RegisterResponseDto.builder()
-                    .success(true)
-                    .message("注册成功")
-                    .userId(newUser.getId())
-                    .build();
+            return newUser.getId();
 
         } catch (Exception e) {
-            log.error("注册失败: username={}, email={}", request.getUsername(), request.getEmail(), e);
-            return RegisterResponseDto.builder()
-                    .success(false)
-                    .message("注册失败，请稍后重试")
-                    .build();
+            log.error("创建用户失败: username={}, email={}", request.getUsername(), request.getEmail(), e);
+            throw new RuntimeException("创建用户失败: " + e.getMessage());
         }
     }
 

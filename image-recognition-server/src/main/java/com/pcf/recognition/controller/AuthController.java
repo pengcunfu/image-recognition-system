@@ -82,14 +82,32 @@ public class AuthController {
 
     @PostMapping("/register")
     // 公开接口，无需权限验证
-    public ApiResponse<RegisterResponseDto> register(@Valid @RequestBody RegisterRequest request) {
+    public ApiResponse<Void> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            RegisterResponseDto result = authService.register(request);
+            // 1. 验证邮箱验证码（Controller层负责验证逻辑）
+            if (request.getEmailCode() != null && !request.getEmailCode().trim().isEmpty()) {
+                if (!emailService.verifyEmailCode(request.getEmail(), request.getEmailCode(), "register")) {
+                    return ApiResponse.error("邮箱验证码错误或已过期");
+                }
+            }
 
-            if (result.getSuccess()) {
-                return ApiResponse.success(result, result.getMessage());
+            // 2. 检查用户名是否已存在（Controller层负责业务验证）
+            if (authService.isUsernameExists(request.getUsername())) {
+                return ApiResponse.error("用户名已存在");
+            }
+
+            // 3. 检查邮箱是否已存在（Controller层负责业务验证）
+            if (authService.isEmailExists(request.getEmail())) {
+                return ApiResponse.error("邮箱已被注册");
+            }
+
+            // 4. 调用Service层创建用户（Service层只负责核心业务逻辑）
+            Long userId = authService.createUser(request);
+
+            if (userId > 0) {
+                return ApiResponse.success(null, "注册成功");
             } else {
-                return ApiResponse.error(result.getMessage());
+                return ApiResponse.error("注册失败");
             }
         } catch (RuntimeException e) {
             return ApiResponse.error(e.getMessage());

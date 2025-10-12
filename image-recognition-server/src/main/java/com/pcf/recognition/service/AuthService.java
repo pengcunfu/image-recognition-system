@@ -11,11 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.awt.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -118,13 +114,13 @@ public class AuthService {
     /**
      * 用户注册
      */
-    public RegisterResponseDto register(String username, String email, String password, String captcha, String emailCode) {
-        log.info("用户注册: username={}, email={}", username, email);
+    public RegisterResponseDto register(RegisterRequest request) {
+        log.info("用户注册: username={}, email={}", request.getUsername(), request.getEmail());
 
         try {
             // 验证邮箱验证码
-            if (emailCode != null && !emailCode.trim().isEmpty()) {
-                if (!emailService.verifyEmailCode(email, emailCode, "register")) {
+            if (request.getEmailCode() != null && !request.getEmailCode().trim().isEmpty()) {
+                if (!emailService.verifyEmailCode(request.getEmail(), request.getEmailCode(), "register")) {
                     return RegisterResponseDto.builder()
                             .success(false)
                             .message("邮箱验证码错误或已过期")
@@ -132,10 +128,18 @@ public class AuthService {
                 }
             }
 
+            // 验证密码确认
+            if (!request.getPassword().equals(request.getConfirmPassword())) {
+                return RegisterResponseDto.builder()
+                        .success(false)
+                        .message("两次输入的密码不一致")
+                        .build();
+            }
+
             // 检查用户名是否已存在
             User existingUser = userRepository.selectOne(
                     new LambdaQueryWrapper<User>()
-                            .eq(User::getUsername, username)
+                            .eq(User::getUsername, request.getUsername())
             );
 
             if (existingUser != null) {
@@ -148,7 +152,7 @@ public class AuthService {
             // 检查邮箱是否已存在
             existingUser = userRepository.selectOne(
                     new LambdaQueryWrapper<User>()
-                            .eq(User::getEmail, email)
+                            .eq(User::getEmail, request.getEmail())
             );
 
             if (existingUser != null) {
@@ -160,15 +164,20 @@ public class AuthService {
 
             // 创建新用户
             User newUser = new User();
-            newUser.setUsername(username);
-            newUser.setEmail(email);
-            newUser.setPassword(password); // 生产环境应加密
-            newUser.setName(username);
+            newUser.setUsername(request.getUsername());
+            newUser.setEmail(request.getEmail());
+            newUser.setPassword(request.getPassword()); // 生产环境应加密
+            newUser.setName(request.getUsername());
             newUser.setRole(User.UserRole.USER);
             newUser.setStatus(User.UserStatus.ACTIVE);
             newUser.setVipLevel(0);
+            newUser.setCreateTime(LocalDateTime.now());
+            newUser.setLastLoginTime(LocalDateTime.now());
 
             userRepository.insert(newUser);
+
+            log.info("用户注册成功: username={}, email={}, userId={}", 
+                    request.getUsername(), request.getEmail(), newUser.getId());
 
             return RegisterResponseDto.builder()
                     .success(true)
@@ -177,7 +186,7 @@ public class AuthService {
                     .build();
 
         } catch (Exception e) {
-            log.error("注册失败", e);
+            log.error("注册失败: username={}, email={}", request.getUsername(), request.getEmail(), e);
             return RegisterResponseDto.builder()
                     .success(false)
                     .message("注册失败，请稍后重试")

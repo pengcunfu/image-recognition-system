@@ -103,13 +103,7 @@ public class AuthController {
             @Valid @RequestBody RegisterRequest request) {
 
         try {
-            RegisterResponseDto result = authService.register(
-                    request.getUsername(),
-                    request.getEmail(),
-                    request.getPassword(),
-                    request.getCaptcha(),
-                    request.getEmailCode()
-            );
+            RegisterResponseDto result = authService.register(request);
 
             if (result.getSuccess()) {
                 return ApiResponse.success(result, result.getMessage());

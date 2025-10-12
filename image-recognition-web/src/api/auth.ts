@@ -5,6 +5,7 @@ import type {
   RegisterRequest,
   RegisterResponse,
   ForgotPasswordRequest,
+  ResetPasswordRequest,
   TokenValidationResponse,
   SmsCodeRequest,
   SmsCodeResponse,
@@ -35,6 +36,13 @@ export class AuthAPI {
    */
   static forgotPassword(data: ForgotPasswordRequest) {
     return request.post<string>('/api/v1/auth/forgot-password', data)
+  }
+
+  /**
+   * 重置密码
+   */
+  static resetPassword(data: ResetPasswordRequest) {
+    return request.post<string>('/api/v1/auth/reset-password', data)
   }
 
   /**

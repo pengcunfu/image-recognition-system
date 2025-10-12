@@ -214,23 +214,83 @@ public class AuthService {
                         .build();
             }
 
-            // 生成重置令牌（这里简单模拟）
-            String resetToken = UUID.randomUUID().toString();
-
-            // 实际应该发送邮件，这里只是模拟
-            log.info("重置密码令牌已生成: {}", resetToken);
-
-            return ForgotPasswordResponseDto.builder()
-                    .success(true)
-                    .message("重置密码邮件已发送")
-                    .resetToken(resetToken) // 仅用于测试
-                    .build();
+            // 发送邮箱验证码
+            try {
+                String code = emailService.sendEmailCode(email, "reset_password");
+                log.info("忘记密码验证码发送成功: email={}", email);
+                
+                return ForgotPasswordResponseDto.builder()
+                        .success(true)
+                        .message("重置密码验证码已发送到您的邮箱")
+                        .build();
+            } catch (Exception e) {
+                log.error("发送重置密码验证码失败: email={}", email, e);
+                return ForgotPasswordResponseDto.builder()
+                        .success(false)
+                        .message("发送验证码失败，请稍后重试")
+                        .build();
+            }
 
         } catch (Exception e) {
             log.error("忘记密码处理失败", e);
             return ForgotPasswordResponseDto.builder()
                     .success(false)
                     .message("处理失败，请稍后重试")
+                    .build();
+        }
+    }
+
+    /**
+     * 重置密码
+     */
+    public OperationResultDto resetPassword(String email, String newPassword, String emailCode) {
+        log.info("重置密码请求: email={}", email);
+
+        try {
+            // 验证邮箱验证码
+            if (emailCode == null || emailCode.trim().isEmpty()) {
+                return OperationResultDto.builder()
+                        .success(false)
+                        .message("邮箱验证码不能为空")
+                        .build();
+            }
+
+            if (!emailService.verifyEmailCode(email, emailCode, "reset_password")) {
+                return OperationResultDto.builder()
+                        .success(false)
+                        .message("邮箱验证码错误或已过期")
+                        .build();
+            }
+
+            // 检查邮箱是否存在
+            User user = userRepository.selectOne(
+                    new LambdaQueryWrapper<User>()
+                            .eq(User::getEmail, email)
+            );
+
+            if (user == null) {
+                return OperationResultDto.builder()
+                        .success(false)
+                        .message("邮箱不存在")
+                        .build();
+            }
+
+            // 更新密码
+            user.setPassword(newPassword); // 生产环境应加密
+            userRepository.updateById(user);
+
+            log.info("密码重置成功: email={}, userId={}", email, user.getId());
+
+            return OperationResultDto.builder()
+                    .success(true)
+                    .message("密码重置成功")
+                    .build();
+
+        } catch (Exception e) {
+            log.error("重置密码失败: email={}", email, e);
+            return OperationResultDto.builder()
+                    .success(false)
+                    .message("重置密码失败，请稍后重试")
                     .build();
         }
     }

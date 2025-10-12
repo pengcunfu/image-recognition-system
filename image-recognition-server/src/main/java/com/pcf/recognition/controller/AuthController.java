@@ -118,13 +118,53 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     // 公开接口，无需权限验证
-    public ApiResponse<String> forgotPassword(
+    public ApiResponse<ForgotPasswordResponseDto> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
 
         log.info("忘记密码请求: email={}", request.getEmail());
 
-        // 模拟发送重置邮件
-        return ApiResponse.success("密码重置邮件已发送到您的邮箱", "重置邮件发送成功");
+        try {
+            ForgotPasswordResponseDto result = authService.forgotPassword(request.getEmail());
+
+            if (result.getSuccess()) {
+                return ApiResponse.success(result, result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("忘记密码处理异常", e);
+            return ApiResponse.error("处理失败，请稍后重试");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    // 公开接口，无需权限验证
+    public ApiResponse<String> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        log.info("重置密码请求: email={}", request.getEmail());
+
+        try {
+            // 验证密码确认
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                return ApiResponse.error("两次输入的密码不一致");
+            }
+
+            OperationResultDto result = authService.resetPassword(
+                    request.getEmail(), 
+                    request.getNewPassword(), 
+                    request.getEmailCode()
+            );
+
+            if (result.getSuccess()) {
+                return ApiResponse.success(result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("重置密码处理异常", e);
+            return ApiResponse.error("重置密码失败，请稍后重试");
+        }
     }
 
 

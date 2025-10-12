@@ -53,15 +53,8 @@
       <div class="forgot-form-container">
         <div class="form-header">
           <h2 class="form-title">找回密码</h2>
-          <p class="form-subtitle">请按照以下步骤验证身份并重置密码</p>
+          <p class="form-subtitle">请输入邮箱地址和验证码，然后设置新密码</p>
         </div>
-        
-        <!-- 步骤指示器 -->
-        <a-steps :current="currentStep - 1" size="small" class="step-indicator">
-          <a-step title="邮箱验证" />
-          <a-step title="重置密码" />
-          <a-step title="完成" />
-        </a-steps>
         
         <a-form
           ref="formRef"
@@ -70,162 +63,118 @@
           class="forgot-form"
           @finish="handleSubmit"
         >
-          <!-- 第一步：邮箱验证 -->
-          <div v-show="currentStep === 1" class="form-step">
-
-            <!-- 邮箱输入 -->
-            <a-form-item name="email">
+          <!-- 邮箱输入 -->
+          <a-form-item name="email">
+            <a-input
+              v-model:value="formData.email"
+              size="large"
+              placeholder="请输入注册时使用的邮箱"
+            >
+              <template #prefix>
+                <i class="fas fa-envelope"></i>
+              </template>
+            </a-input>
+          </a-form-item>
+          
+          <!-- 验证码输入 -->
+          <a-form-item name="verificationCode">
+            <div class="code-group">
               <a-input
-                v-model:value="formData.email"
+                v-model:value="formData.verificationCode"
                 size="large"
-                placeholder="请输入注册时使用的邮箱"
+                placeholder="请输入6位验证码"
+                maxlength="6"
+                class="code-input"
               >
                 <template #prefix>
-                  <i class="fas fa-envelope"></i>
+                  <i class="fas fa-shield-alt"></i>
                 </template>
               </a-input>
-            </a-form-item>
+              <a-button 
+                :disabled="!formData.email || codeCountdown > 0"
+                @click="sendVerificationCode"
+                class="resend-btn"
+              >
+                {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
+              </a-button>
+            </div>
+          </a-form-item>
+          
+          <!-- 新密码输入 -->
+          <a-form-item name="newPassword">
+            <a-input-password
+              v-model:value="formData.newPassword"
+              size="large"
+              placeholder="请输入新密码"
+              @input="checkPasswordRequirements"
+            >
+              <template #prefix>
+                <i class="fas fa-lock"></i>
+              </template>
+            </a-input-password>
             
-            <!-- 验证码输入 -->
-            <a-form-item name="verificationCode">
-              <div class="code-group">
-                <a-input
-                  v-model:value="formData.verificationCode"
-                  size="large"
-                  placeholder="请输入6位验证码"
-                  maxlength="6"
-                  class="code-input"
-                >
-                  <template #prefix>
-                    <i class="fas fa-shield-alt"></i>
-                  </template>
-                </a-input>
-                <a-button 
-                  :disabled="!formData.email || codeCountdown > 0"
-                  @click="sendVerificationCode"
-                  class="resend-btn"
-                >
-                  {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
-                </a-button>
+            <!-- 密码要求 -->
+            <div v-if="formData.newPassword" class="password-requirements">
+              <div class="requirements-title">密码要求：</div>
+              <div 
+                class="requirement-item" 
+                :class="{ valid: requirements.length }"
+              >
+                <i :class="requirements.length ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
+                <span>至少8位字符</span>
               </div>
-            </a-form-item>
-            
-            <a-button type="primary" size="large" block @click="nextStep">
-              下一步
+              <div 
+                class="requirement-item" 
+                :class="{ valid: requirements.letter }"
+              >
+                <i :class="requirements.letter ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
+                <span>包含大小写字母</span>
+              </div>
+              <div 
+                class="requirement-item" 
+                :class="{ valid: requirements.number }"
+              >
+                <i :class="requirements.number ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
+                <span>包含数字</span>
+              </div>
+              <div 
+                class="requirement-item" 
+                :class="{ valid: requirements.special }"
+              >
+                <i :class="requirements.special ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
+                <span>包含特殊字符</span>
+              </div>
+            </div>
+          </a-form-item>
+          
+          <!-- 确认密码输入 -->
+          <a-form-item name="confirmNewPassword">
+            <a-input-password
+              v-model:value="formData.confirmNewPassword"
+              size="large"
+              placeholder="请再次输入新密码"
+            >
+              <template #prefix>
+                <i class="fas fa-lock"></i>
+              </template>
+            </a-input-password>
+          </a-form-item>
+          
+          <!-- 重置密码按钮 -->
+          <a-form-item>
+            <a-button 
+              type="primary" 
+              size="large" 
+              block
+              :loading="loading"
+              html-type="submit"
+            >
+              重置密码
               <template #icon>
-                <i class="fas fa-arrow-right"></i>
+                <i class="fas fa-save"></i>
               </template>
             </a-button>
-          </div>
-          
-          <!-- 第二步：重置密码 -->
-          <div v-show="currentStep === 2" class="form-step">
-            <a-alert
-              message="设置新密码"
-              description="请设置一个安全的新密码，建议包含字母、数字和特殊字符"
-              type="success"
-              show-icon
-              style="margin-bottom: 24px;"
-            />
-            
-            <a-form-item name="newPassword">
-              <a-input-password
-                v-model:value="formData.newPassword"
-                size="large"
-                placeholder="请输入新密码"
-                @input="checkPasswordRequirements"
-              >
-                <template #prefix>
-                  <i class="fas fa-lock"></i>
-                </template>
-              </a-input-password>
-              
-              <!-- 密码要求 -->
-              <div v-if="formData.newPassword" class="password-requirements">
-                <div class="requirements-title">密码要求：</div>
-                <div 
-                  class="requirement-item" 
-                  :class="{ valid: requirements.length }"
-                >
-                  <i :class="requirements.length ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                  <span>至少8位字符</span>
-                </div>
-                <div 
-                  class="requirement-item" 
-                  :class="{ valid: requirements.letter }"
-                >
-                  <i :class="requirements.letter ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                  <span>包含大小写字母</span>
-                </div>
-                <div 
-                  class="requirement-item" 
-                  :class="{ valid: requirements.number }"
-                >
-                  <i :class="requirements.number ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                  <span>包含数字</span>
-                </div>
-                <div 
-                  class="requirement-item" 
-                  :class="{ valid: requirements.special }"
-                >
-                  <i :class="requirements.special ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
-                  <span>包含特殊字符</span>
-                </div>
-              </div>
-            </a-form-item>
-            
-            <a-form-item name="confirmNewPassword">
-              <a-input-password
-                v-model:value="formData.confirmNewPassword"
-                size="large"
-                placeholder="请再次输入新密码"
-              >
-                <template #prefix>
-                  <i class="fas fa-lock"></i>
-                </template>
-              </a-input-password>
-            </a-form-item>
-            
-            <div class="btn-group">
-              <a-button size="large" @click="prevStep">
-                <template #icon>
-                  <i class="fas fa-arrow-left"></i>
-                </template>
-                上一步
-              </a-button>
-              <a-button 
-                type="primary" 
-                size="large" 
-                :loading="loading"
-                @click="resetPassword"
-              >
-                重置密码
-                <template #icon>
-                  <i class="fas fa-save"></i>
-                </template>
-              </a-button>
-            </div>
-          </div>
-          
-          <!-- 第三步：完成 -->
-          <div v-show="currentStep === 3" class="form-step">
-            <div class="success-container">
-              <div class="success-icon">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <h3 class="success-title">密码重置成功</h3>
-              <p class="success-text">
-                您的密码已成功重置，请使用新密码登录系统。<br>
-                为了账户安全，建议您定期更换密码。
-              </p>
-              <a-button type="primary" size="large" @click="goToLogin">
-                立即登录
-                <template #icon>
-                  <i class="fas fa-sign-in-alt"></i>
-                </template>
-              </a-button>
-            </div>
-          </div>
+          </a-form-item>
         </a-form>
         
         <!-- 返回登录 -->
@@ -247,7 +196,6 @@ import { AuthAPI } from '@/api/auth'
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
-const currentStep = ref(1)
 const codeCountdown = ref(0)
 
 // 表单数据
@@ -331,30 +279,6 @@ function checkPasswordRequirements() {
   requirements.special = /[^a-zA-Z0-9]/.test(password)
 }
 
-// 下一步
-async function nextStep() {
-  try {
-    if (currentStep.value === 1) {
-      // 验证邮箱和验证码
-      await formRef.value?.validateFields(['email', 'verificationCode'])
-      currentStep.value = 2
-      
-    } else if (currentStep.value === 2) {
-      // 重置密码
-      await resetPassword()
-    }
-  } catch (error) {
-    // 验证失败
-  }
-}
-
-// 上一步
-function prevStep() {
-  if (currentStep.value > 1) {
-    currentStep.value--
-  }
-}
-
 // 发送验证码
 async function sendVerificationCode() {
   try {
@@ -381,11 +305,9 @@ async function sendVerificationCode() {
   }
 }
 
-// 重置密码
-async function resetPassword() {
+// 表单提交 - 重置密码
+async function handleSubmit() {
   try {
-    await formRef.value?.validateFields(['newPassword', 'confirmNewPassword'])
-    
     loading.value = true
     
     await AuthAPI.resetPassword({
@@ -395,23 +317,18 @@ async function resetPassword() {
       emailCode: formData.verificationCode
     })
     
-    message.success('密码重置成功')
-    currentStep.value = 3
+    message.success('密码重置成功，请使用新密码登录')
+    
+    // 延迟跳转到登录页面
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
+    
   } catch (error: any) {
     message.error(error.message || '重置密码失败，请重试')
   } finally {
     loading.value = false
   }
-}
-
-// 跳转到登录页面
-function goToLogin() {
-  router.push('/login')
-}
-
-// 表单提交（不使用）
-function handleSubmit() {
-  // 这个方法不会被调用，因为我们使用自定义的步骤控制
 }
 </script>
 
@@ -596,30 +513,11 @@ function handleSubmit() {
   line-height: 1.5;
 }
 
-/* 步骤指示器 */
-.step-indicator {
-  margin-bottom: 40px;
-}
-
+/* 表单 */
 .forgot-form {
   max-width: 360px;
   margin: 0 auto;
   width: 100%;
-}
-
-.form-step {
-  animation: slideIn 0.4s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 /* 验证码组合 */
@@ -672,50 +570,6 @@ function handleSubmit() {
 
 .requirement-item.valid i {
   color: #52c41a;
-}
-
-/* 按钮组 */
-.btn-group {
-  display: flex;
-  gap: 16px;
-  margin-top: 32px;
-}
-
-.btn-group .ant-btn {
-  flex: 1;
-}
-
-/* 成功页面 */
-.success-container {
-  text-align: center;
-  padding: 40px 0;
-}
-
-.success-icon {
-  font-size: 64px;
-  color: #52c41a;
-  margin-bottom: 24px;
-  animation: bounce 1s ease-in-out;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
-}
-
-.success-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #262626;
-  margin-bottom: 16px;
-}
-
-.success-text {
-  color: #666;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-bottom: 32px;
 }
 
 /* 返回登录 */
@@ -780,10 +634,6 @@ function handleSubmit() {
   
   .resend-btn {
     width: 100%;
-  }
-  
-  .btn-group {
-    flex-direction: column;
   }
 }
 </style>

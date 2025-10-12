@@ -28,9 +28,9 @@ public class EmailService {
      *
      * @param email 邮箱地址
      * @param type  验证码类型
-     * @return 验证码
+     * @return 是否发送成功
      */
-    public String sendEmailCode(String email, String type) {
+    public boolean sendEmailCode(String email, String type) {
         try {
             // 生成6位数字验证码
             String code = generateEmailCode();
@@ -53,11 +53,11 @@ public class EmailService {
             redisClient.setWithExpire(redisKey, code, EMAIL_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
 
             log.info("邮箱验证码发送成功: email={}, type={}, code={}", email, type, code);
-            return code;
+            return true;
 
         } catch (Exception e) {
             log.error("发送邮箱验证码失败: email={}, type={}", email, type, e);
-            throw new RuntimeException("邮箱验证码发送失败", e);
+            return false;
         }
     }
 

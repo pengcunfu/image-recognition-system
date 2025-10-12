@@ -266,17 +266,22 @@ public class AuthController {
             // 校验邮箱格式已通过@Valid注解完成
 
             // 发送邮箱验证码
-            emailService.sendEmailCode(request.getEmail(), request.getType());
+            boolean success = emailService.sendEmailCode(request.getEmail(), request.getType());
 
-            // 构建响应
-            EmailCodeResponse response = new EmailCodeResponse();
-            response.setEmail(request.getEmail());
-            response.setMaskedEmail(emailService.maskEmail(request.getEmail()));
-            response.setCodeExpiry(300); // 5分钟过期
-            response.setSendTime(System.currentTimeMillis());
+            if (success) {
+                // 构建响应
+                EmailCodeResponse response = EmailCodeResponse.builder()
+                        .email(request.getEmail())
+                        .maskedEmail(emailService.maskEmail(request.getEmail()))
+                        .codeExpiry(300) // 5分钟过期
+                        .sendTime(System.currentTimeMillis())
+                        .build();
 
-            log.info("邮箱验证码发送成功: email={}, type={}", request.getEmail(), request.getType());
-            return ApiResponse.success(response, "邮箱验证码发送成功");
+                log.info("邮箱验证码发送成功: email={}, type={}", request.getEmail(), request.getType());
+                return ApiResponse.success(response, "邮箱验证码发送成功");
+            } else {
+                return ApiResponse.error("邮箱验证码发送失败，请稍后重试");
+            }
 
         } catch (Exception e) {
             log.error("发送邮箱验证码失败: email={}, type={}", request.getEmail(), request.getType(), e);

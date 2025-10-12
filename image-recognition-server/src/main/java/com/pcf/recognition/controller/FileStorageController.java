@@ -1,6 +1,7 @@
 package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.dto.FileStorageDto.*;
 import com.pcf.recognition.service.FileStorageService;
 
 
@@ -15,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -29,18 +29,18 @@ import java.util.List;
 @RequestMapping("/api/v1/files")
 @RequiredArgsConstructor
 @Slf4j
-public class FileController {
+public class FileStorageController {
 
     private final FileStorageService fileStorageService;
 
 
     @PostMapping("/upload")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<FileStorageService.FileUploadResult> uploadFile(
+    public ApiResponse<FileUploadResult> uploadFile(
 
             @RequestParam("file") MultipartFile file) {
         try {
-            FileStorageService.FileUploadResult result = fileStorageService.uploadFile(file);
+            FileUploadResult result = fileStorageService.uploadFile(file);
             return ApiResponse.success(result, "文件上传成功");
         } catch (IllegalArgumentException e) {
             return ApiResponse.error(e.getMessage());
@@ -53,11 +53,11 @@ public class FileController {
 
     @PostMapping("/upload/batch")
     @PreAuthorize("hasAnyRole('VIP', 'ADMIN')")
-    public ApiResponse<List<FileStorageService.FileUploadResult>> uploadFiles(
+    public ApiResponse<List<FileUploadResult>> uploadFiles(
 
             @RequestParam("files") MultipartFile[] files) {
         try {
-            List<FileStorageService.FileUploadResult> results = Arrays.stream(files)
+            List<FileUploadResult> results = Arrays.stream(files)
                     .map(file -> {
                         try {
                             return fileStorageService.uploadFile(file);
@@ -168,12 +168,13 @@ public class FileController {
                 return ApiResponse.error("文件不存在");
             }
 
-            FileInfo fileInfo = new FileInfo();
-            fileInfo.setId(fileId);
-            fileInfo.setName(filePath.getFileName().toString());
-            fileInfo.setSize(Files.size(filePath));
-            fileInfo.setContentType(Files.probeContentType(filePath));
-            fileInfo.setLastModified(Files.getLastModifiedTime(filePath).toMillis());
+            FileInfo fileInfo = FileInfo.builder()
+                    .id(fileId)
+                    .name(filePath.getFileName().toString())
+                    .size(Files.size(filePath))
+                    .contentType(Files.probeContentType(filePath))
+                    .lastModified(Files.getLastModifiedTime(filePath).toMillis())
+                    .build();
 
             return ApiResponse.success(fileInfo, "获取文件信息成功");
         } catch (Exception e) {
@@ -182,55 +183,4 @@ public class FileController {
         }
     }
 
-    /**
-     * 文件信息类
-     */
-    public static class FileInfo {
-        private String id;
-        private String name;
-        private long size;
-        private String contentType;
-        private long lastModified;
-
-        // Getters and Setters
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public long getSize() {
-            return size;
-        }
-
-        public void setSize(long size) {
-            this.size = size;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
-
-        public long getLastModified() {
-            return lastModified;
-        }
-
-        public void setLastModified(long lastModified) {
-            this.lastModified = lastModified;
-        }
-    }
 }

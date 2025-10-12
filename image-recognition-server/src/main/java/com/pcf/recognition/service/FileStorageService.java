@@ -1,5 +1,6 @@
 package com.pcf.recognition.service;
 
+import com.pcf.recognition.dto.FileStorageDto.FileUploadResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -53,15 +54,16 @@ public class FileStorageService {
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         // 构建返回结果
-        FileUploadResult result = new FileUploadResult();
-        result.setId(UUID.randomUUID().toString());
-        result.setOriginalName(file.getOriginalFilename());
-        result.setFilename(filename);
-        result.setSize(file.getSize());
-        result.setContentType(file.getContentType());
-        result.setUploadTime(System.currentTimeMillis());
-        result.setPath(filePath.toString());
-        result.setUrl("/api/v1/files/" + result.getId());
+        FileUploadResult result = FileUploadResult.builder()
+                .id(UUID.randomUUID().toString())
+                .originalName(file.getOriginalFilename())
+                .filename(filename)
+                .size(file.getSize())
+                .contentType(file.getContentType())
+                .uploadTime(System.currentTimeMillis())
+                .path(filePath.toString())
+                .url("/api/v1/files/" + UUID.randomUUID().toString())
+                .build();
 
         log.info("文件上传成功: {}", result);
         return result;
@@ -143,95 +145,5 @@ public class FileStorageService {
         }
 
         return UUID.randomUUID().toString() + extension;
-    }
-
-    /**
-     * 文件上传结果
-     */
-    public static class FileUploadResult {
-        private String id;
-        private String originalName;
-        private String filename;
-        private long size;
-        private String contentType;
-        private long uploadTime;
-        private String path;
-        private String url;
-
-        // Getters and Setters
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getOriginalName() {
-            return originalName;
-        }
-
-        public void setOriginalName(String originalName) {
-            this.originalName = originalName;
-        }
-
-        public String getFilename() {
-            return filename;
-        }
-
-        public void setFilename(String filename) {
-            this.filename = filename;
-        }
-
-        public long getSize() {
-            return size;
-        }
-
-        public void setSize(long size) {
-            this.size = size;
-        }
-
-        public String getContentType() {
-            return contentType;
-        }
-
-        public void setContentType(String contentType) {
-            this.contentType = contentType;
-        }
-
-        public long getUploadTime() {
-            return uploadTime;
-        }
-
-        public void setUploadTime(long uploadTime) {
-            this.uploadTime = uploadTime;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public void setPath(String path) {
-            this.path = path;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        @Override
-        public String toString() {
-            return "FileUploadResult{" +
-                    "id='" + id + '\'' +
-                    ", originalName='" + originalName + '\'' +
-                    ", filename='" + filename + '\'' +
-                    ", size=" + size +
-                    ", contentType='" + contentType + '\'' +
-                    '}';
-        }
     }
 }

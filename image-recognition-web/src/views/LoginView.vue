@@ -226,9 +226,16 @@ async function handleLogin() {
     if (result.success && result.data.success) {
       message.success('登录成功')
       
+      // 检查必要的数据是否存在
+      if (!result.data.token || !result.data.user) {
+        message.error('登录响应数据不完整')
+        refreshCaptcha()
+        return
+      }
+      
       // 保存登录状态
       localStorage.setItem('userToken', result.data.token)
-      localStorage.setItem('userRole', result.data.user.role)
+      localStorage.setItem('userRole', result.data.user.role || 'user')
       localStorage.setItem('userInfo', JSON.stringify(result.data.user))
       
       if (formData.rememberMe) {

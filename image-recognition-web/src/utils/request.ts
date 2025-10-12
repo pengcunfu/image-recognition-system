@@ -28,6 +28,7 @@ class RequestService {
     this.instance = axios.create({
       baseURL: baseURL,
       timeout: 30000,
+      withCredentials: true, // 支持跨域携带Cookie
       headers: {
         'Content-Type': 'application/json'
       }

@@ -1,11 +1,10 @@
-import request from '@/utils/request'
+import request, { baseURL } from '@/utils/request'
 import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
   ForgotPasswordRequest,
-  CaptchaResponse,
   TokenValidationResponse,
   SmsCodeRequest,
   SmsCodeResponse,
@@ -39,10 +38,11 @@ export class AuthAPI {
   }
 
   /**
-   * 获取验证码
+   * 获取验证码图片URL
    */
-  static getCaptcha() {
-    return request.get<CaptchaResponse>('/api/v1/auth/captcha')
+  static getCaptchaUrl() {
+    const timestamp = new Date().getTime()
+    return `${baseURL}/api/v1/auth/captcha?t=${timestamp}`
   }
 
 

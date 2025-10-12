@@ -97,7 +97,15 @@
                 </template>
               </a-input>
               <div class="captcha-image" @click="refreshCaptcha">
-                {{ currentCaptcha }}
+                <img 
+                  v-if="captchaImageUrl" 
+                  :src="captchaImageUrl" 
+                  alt="验证码"
+                  :key="captchaKey"
+                />
+                <div v-else class="captcha-loading">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </div>
               </div>
             </div>
           </a-form-item>
@@ -154,11 +162,13 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
+import { AuthAPI } from '@/api/auth'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
-const currentCaptcha = ref('A8K2')
+const captchaImageUrl = ref('')
+const captchaKey = ref(0) // 用于强制刷新图片
 
 // 表单数据
 const formData = reactive({
@@ -180,32 +190,24 @@ const rules: Record<string, Rule[]> = {
   ],
   captcha: [
     { required: true, message: '请输入验证码' },
-    { len: 4, message: '请输入4位验证码' },
-    { validator: validateCaptcha }
+    { min: 1, message: '请输入验证码' }
   ]
 }
 
-// 验证码验证器
-function validateCaptcha(_rule: Rule, value: string) {
-  if (value && value.toUpperCase() !== currentCaptcha.value) {
-    return Promise.reject('验证码错误，请重新输入')
+// 获取验证码图片
+async function getCaptchaImage() {
+  try {
+    captchaImageUrl.value = AuthAPI.getCaptchaUrl()
+    captchaKey.value = Date.now()
+  } catch (error) {
+    console.error('获取验证码失败:', error)
+    message.error('获取验证码失败，请重试')
   }
-  return Promise.resolve()
-}
-
-// 生成随机验证码
-function generateCaptcha() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  let result = ''
-  for (let i = 0; i < 4; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return result
 }
 
 // 刷新验证码
 function refreshCaptcha() {
-  currentCaptcha.value = generateCaptcha()
+  getCaptchaImage()
   formData.captcha = ''
 }
 
@@ -214,39 +216,20 @@ async function handleLogin() {
   try {
     loading.value = true
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // 模拟登录验证
-    let userRole = 'user'
-    let redirectPath = '/user/dashboard'
-    let loginSuccess = false
-    
-    // 管理员登录
-    if (formData.username === 'admin' && formData.password === '123456') {
-      userRole = 'admin'
-      redirectPath = '/dashboard'
-      loginSuccess = true
-    }
-    // 普通用户登录
-    else if ((formData.username === 'user' || formData.username === 'zhangsan@example.com') && formData.password === '123456') {
-      userRole = 'user'
-      redirectPath = '/user/dashboard'
-      loginSuccess = true
-    }
-    // VIP用户登录
-    else if ((formData.username === 'vip' || formData.username === 'vip@example.com') && formData.password === '123456') {
-      userRole = 'vip'
-      redirectPath = '/user/dashboard'
-      loginSuccess = true
-    }
-    
-    if (loginSuccess) {
+    // 调用AuthAPI的login方法
+    const result = await AuthAPI.login({
+      username: formData.username,
+      password: formData.password,
+      captcha: formData.captcha
+    })
+
+    if (result.success && result.data.success) {
       message.success('登录成功')
       
       // 保存登录状态
-      localStorage.setItem('userToken', 'demo-token-123456')
-      localStorage.setItem('userRole', userRole)
+      localStorage.setItem('userToken', result.data.token)
+      localStorage.setItem('userRole', result.data.user.role)
+      localStorage.setItem('userInfo', JSON.stringify(result.data.user))
       
       if (formData.rememberMe) {
         localStorage.setItem('rememberedUser', JSON.stringify({
@@ -254,14 +237,17 @@ async function handleLogin() {
         }))
       }
       
-      // 跳转到对应页面
+      // 根据用户角色跳转
+      const redirectPath = result.data.user.role === 'admin' ? '/dashboard' : '/user/dashboard'
       router.push(redirectPath)
     } else {
-      message.error('用户名或密码错误')
-      refreshCaptcha()
+      message.error(result.message || '登录失败')
+      refreshCaptcha() // 刷新验证码
     }
-  } catch (error) {
-    message.error('登录失败，请重试')
+  } catch (error: any) {
+    console.error('登录请求失败:', error)
+    message.error(error.message || '网络错误，请重试')
+    refreshCaptcha() // 刷新验证码
   } finally {
     loading.value = false
   }
@@ -488,6 +474,19 @@ onMounted(() => {
   color: #1890ff;
   user-select: none;
   transition: all 0.3s;
+  overflow: hidden;
+}
+
+.captcha-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.captcha-loading {
+  color: #1890ff;
+  font-size: 14px;
 }
 
 .captcha-image:hover {

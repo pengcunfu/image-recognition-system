@@ -58,8 +58,8 @@ export interface RegisterRequest {
   password: string
   confirmPassword?: string
   captcha?: string
-  smsCode?: string
-  phone?: string
+  emailCode: string
+  acceptTerms?: boolean
 }
 
 // 注册响应

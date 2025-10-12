@@ -45,6 +45,20 @@ export class AuthAPI {
     return `${baseURL}/api/v1/auth/captcha?t=${timestamp}`
   }
 
+  /**
+   * 发送邮箱验证码
+   */
+  static sendEmailCode(data: { email: string; type: string }) {
+    return request.post('/api/v1/auth/email-code', data)
+  }
+
+  /**
+   * 验证邮箱验证码
+   */
+  static verifyEmailCode(data: { email: string; code: string; type: string }) {
+    return request.post<boolean>('/api/v1/auth/email-code/verify', data)
+  }
+
 
 
 

@@ -27,7 +27,7 @@
         <!-- 步骤指示器 -->
         <a-steps :current="currentStep - 1" size="small" class="step-indicator">
           <a-step title="基本信息" />
-          <a-step title="验证手机" />
+          <a-step title="邮箱验证" />
           <a-step title="完成注册" />
         </a-steps>
         
@@ -51,22 +51,6 @@
                 </template>
                 <template #suffix>
                   <i v-if="usernameValid" class="fas fa-check" style="color: #52c41a;"></i>
-                </template>
-              </a-input>
-            </a-form-item>
-            
-            <a-form-item name="email">
-              <a-input
-                v-model:value="formData.email"
-                size="large"
-                placeholder="请输入邮箱地址"
-                type="email"
-              >
-                <template #prefix>
-                  <i class="fas fa-envelope"></i>
-                </template>
-                <template #suffix>
-                  <i v-if="emailValid" class="fas fa-check" style="color: #52c41a;"></i>
                 </template>
               </a-input>
             </a-form-item>
@@ -115,36 +99,40 @@
             </a-button>
           </div>
           
-          <!-- 第二步：手机验证 -->
+          <!-- 第二步：邮箱验证 -->
           <div v-show="currentStep === 2" class="form-step">
-            <a-form-item name="phone">
+            <a-form-item name="email">
               <a-input
-                v-model:value="formData.phone"
+                v-model:value="formData.email"
                 size="large"
-                placeholder="请输入手机号码"
+                placeholder="请输入邮箱地址"
+                type="email"
               >
                 <template #prefix>
-                  <i class="fas fa-phone"></i>
+                  <i class="fas fa-envelope"></i>
+                </template>
+                <template #suffix>
+                  <i v-if="emailValid" class="fas fa-check" style="color: #52c41a;"></i>
                 </template>
               </a-input>
             </a-form-item>
             
-            <a-form-item name="smsCode">
-              <div class="phone-group">
+            <a-form-item name="emailCode">
+              <div class="email-group">
                 <a-input
-                  v-model:value="formData.smsCode"
+                  v-model:value="formData.emailCode"
                   size="large"
-                  placeholder="请输入验证码"
+                  placeholder="请输入邮箱验证码"
                   maxlength="6"
-                  class="phone-input"
+                  class="email-input"
                 >
                   <template #prefix>
                     <i class="fas fa-shield-alt"></i>
                   </template>
                 </a-input>
                 <a-button 
-                  :disabled="codeCountdown > 0"
-                  @click="sendSmsCode"
+                  :disabled="codeCountdown > 0 || !emailValid"
+                  @click="sendEmailCode"
                   class="send-code-btn"
                 >
                   {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
@@ -257,6 +245,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
+import { AuthAPI } from '@/api/auth'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -268,11 +257,10 @@ const passwordStrength = ref('weak')
 // 表单数据
 const formData = reactive({
   username: '',
-  email: '',
   password: '',
   confirmPassword: '',
-  phone: '',
-  smsCode: '',
+  email: '',
+  emailCode: '',
   agreement: false,
   newsletter: false
 })
@@ -301,10 +289,6 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请输入用户名' },
     { pattern: /^[a-zA-Z0-9_]{3,20}$/, message: '用户名长度为3-20位，只能包含字母、数字和下划线' }
   ],
-  email: [
-    { required: true, message: '请输入邮箱地址' },
-    { type: 'email', message: '请输入正确的邮箱地址格式' }
-  ],
   password: [
     { required: true, message: '请设置密码' },
     { min: 6, message: '密码长度至少6位，建议包含字母、数字和特殊字符' }
@@ -313,12 +297,12 @@ const rules: Record<string, Rule[]> = {
     { required: true, message: '请确认密码' },
     { validator: validateConfirmPassword }
   ],
-  phone: [
-    { required: true, message: '请输入手机号码' },
-    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码格式' }
+  email: [
+    { required: true, message: '请输入邮箱地址' },
+    { type: 'email', message: '请输入正确的邮箱地址格式' }
   ],
-  smsCode: [
-    { required: true, message: '请输入验证码' },
+  emailCode: [
+    { required: true, message: '请输入邮箱验证码' },
     { pattern: /^\d{6}$/, message: '请输入正确的6位验证码' }
   ],
   agreement: [
@@ -368,11 +352,11 @@ async function nextStep() {
   try {
     if (currentStep.value === 1) {
       // 验证第一步表单
-      await formRef.value?.validateFields(['username', 'email', 'password', 'confirmPassword'])
+      await formRef.value?.validateFields(['username', 'password', 'confirmPassword'])
       currentStep.value = 2
     } else if (currentStep.value === 2) {
       // 验证第二步表单
-      await formRef.value?.validateFields(['phone', 'smsCode'])
+      await formRef.value?.validateFields(['email', 'emailCode'])
       currentStep.value = 3
     }
   } catch (error) {
@@ -387,10 +371,16 @@ function prevStep() {
   }
 }
 
-// 发送短信验证码
-async function sendSmsCode() {
+// 发送邮箱验证码
+async function sendEmailCode() {
   try {
-    await formRef.value?.validateFields(['phone'])
+    await formRef.value?.validateFields(['email'])
+    
+    // 调用邮箱验证码API
+    await AuthAPI.sendEmailCode({
+      email: formData.email,
+      type: 'register'
+    })
     
     // 开始倒计时
     codeCountdown.value = 60
@@ -401,12 +391,9 @@ async function sendSmsCode() {
       }
     }, 1000)
     
-    // 模拟发送验证码
-    setTimeout(() => {
-      message.success('验证码已发送到您的手机，请注意查收（演示用验证码：123456）')
-    }, 1000)
-  } catch (error) {
-    // 验证失败
+    message.success('验证码已发送到您的邮箱，请注意查收')
+  } catch (error: any) {
+    message.error(error.message || '发送验证码失败，请重试')
   }
 }
 
@@ -415,16 +402,27 @@ async function handleRegister() {
   try {
     loading.value = true
     
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // 调用注册API
+    const result = await AuthAPI.register({
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
+      emailCode: formData.emailCode,
+      acceptTerms: formData.agreement
+    })
     
-    message.success('注册成功！即将跳转到登录页面')
-    
-    setTimeout(() => {
-      router.push('/login')
-    }, 1500)
-  } catch (error) {
-    message.error('注册失败，请重试')
+    if (result.success && result.data.success) {
+      message.success('注册成功！即将跳转到登录页面')
+      
+      setTimeout(() => {
+        router.push('/login')
+      }, 1500)
+    } else {
+      message.error(result.message || '注册失败，请重试')
+    }
+  } catch (error: any) {
+    message.error(error.message || '注册失败，请重试')
   } finally {
     loading.value = false
   }
@@ -600,14 +598,14 @@ async function handleRegister() {
   background: #52c41a;
 }
 
-/* 手机验证码 */
-.phone-group {
+/* 邮箱验证码 */
+.email-group {
   display: flex;
   gap: 12px;
   align-items: flex-start;
 }
 
-.phone-input {
+.email-input {
   flex: 1;
 }
 
@@ -773,7 +771,7 @@ async function handleRegister() {
     border-radius: 16px;
   }
   
-  .phone-group {
+  .email-group {
     flex-direction: column;
   }
   

@@ -26,7 +26,14 @@ public class JwtUtil {
     private Long expiration;
 
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        // 确保密钥长度至少256位（32字节）
+        byte[] keyBytes = secret.getBytes();
+        if (keyBytes.length < 32) {
+            log.warn("JWT密钥长度不足32字节，当前长度: {} 字节", keyBytes.length);
+            // 如果密钥不够长，使用安全的密钥生成器
+            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**

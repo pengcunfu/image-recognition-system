@@ -105,7 +105,7 @@ image:
 
 # JWT配置
 jwt:
-  secret: mySecretKey
+  secret: myVerySecureSecretKeyForJWTTokenGeneration2024ImageRecognitionSystem
   expiration: 86400
 
 # Doubao AI配置

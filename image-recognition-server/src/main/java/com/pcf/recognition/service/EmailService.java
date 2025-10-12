@@ -41,7 +41,7 @@ public class EmailService {
 
             // 发送邮件
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("huaqiwill@qq.com");
+            message.setFrom("图像识别系统 <huaqiwill@qq.com>");
             message.setTo(email);
             message.setSubject(subject);
             message.setText(content);

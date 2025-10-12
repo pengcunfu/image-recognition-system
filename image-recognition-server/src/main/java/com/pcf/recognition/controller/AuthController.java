@@ -344,7 +344,7 @@ public class AuthController {
             // 校验邮箱格式已通过@Valid注解完成
 
             // 发送邮箱验证码
-            String code = emailService.sendEmailCode(request.getEmail(), request.getType());
+            emailService.sendEmailCode(request.getEmail(), request.getType());
 
             // 构建响应
             EmailCodeResponse response = new EmailCodeResponse();

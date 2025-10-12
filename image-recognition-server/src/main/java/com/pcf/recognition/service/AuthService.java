@@ -216,7 +216,7 @@ public class AuthService {
 
             // 发送邮箱验证码
             try {
-                String code = emailService.sendEmailCode(email, "reset_password");
+                emailService.sendEmailCode(email, "reset_password");
                 log.info("忘记密码验证码发送成功: email={}", email);
                 
                 return ForgotPasswordResponseDto.builder()

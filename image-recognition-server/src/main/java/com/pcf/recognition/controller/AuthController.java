@@ -194,16 +194,16 @@ public class AuthController {
 
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<String> logout(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<Void> logout(@RequestHeader(value = "Authorization", required = false) String token) {
         log.info("用户退出登录请求: token={}", token);
         try {
-            // 调用AuthService的logout方法，会从Redis删除token
-            OperationResultDto result = authService.logout(token);
-
-            if (result.getSuccess()) {
-                return ApiResponse.success(result.getMessage());
+            // 直接从Redis删除token（Controller层处理简单的Token管理）
+            if (token != null && !token.isEmpty()) {
+                authService.deleteTokenFromRedis(token);
+                log.info("用户退出登录成功: token={}", token);
+                return ApiResponse.success(null, "退出登录成功");
             } else {
-                return ApiResponse.error(result.getMessage());
+                return ApiResponse.error("Token不能为空");
             }
         } catch (Exception e) {
             log.error("退出登录处理异常", e);

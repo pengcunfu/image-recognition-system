@@ -300,22 +300,6 @@ public class AuthService {
         }
     }
 
-    /**
-     * 用户退出登录
-     */
-    public OperationResultDto logout(String token) {
-        log.info("用户退出登录: token={}", token);
-
-        // 从Redis中删除token
-        if (token != null && !token.isEmpty()) {
-            deleteTokenFromRedis(token);
-        }
-
-        return OperationResultDto.builder()
-                .success(true)
-                .message("退出登录成功")
-                .build();
-    }
 
     /**
      * 将Token存储到Redis

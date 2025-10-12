@@ -214,7 +214,7 @@ public class AuthController {
 
     @GetMapping("/validate")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<TokenValidationResponseDto> validateToken(@RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<UserInfoDto> validateToken(@RequestHeader(value = "Authorization", required = false) String token) {
 
         if (token == null) {
             return ApiResponse.error("Token不能为空");
@@ -244,12 +244,14 @@ public class AuthController {
             authService.refreshTokenExpiry(token);
 
             // 构建用户信息（实际项目中应该从数据库获取最新信息）
-            UserInfoDto userInfo = UserInfoDto.builder().id(userId).username(username).name(username) // 简化处理，实际应从数据库获取
-                    .role(role).build();
+            UserInfoDto userInfo = UserInfoDto.builder()
+                    .id(userId)
+                    .username(username)
+                    .name(username) // 简化处理，实际应从数据库获取
+                    .role(role)
+                    .build();
 
-            TokenValidationResponseDto result = TokenValidationResponseDto.builder().valid(true).userInfo(userInfo).build();
-
-            return ApiResponse.success(result, "Token验证成功");
+            return ApiResponse.success(userInfo, "Token验证成功");
         } catch (Exception e) {
             log.error("Token验证异常", e);
             return ApiResponse.error("Token验证失败");

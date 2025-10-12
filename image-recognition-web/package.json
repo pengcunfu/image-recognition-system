@@ -17,8 +17,10 @@
     "@ant-design/icons-vue": "^7.0.1",
     "@fortawesome/fontawesome-free": "^7.0.1",
     "ant-design-vue": "^4.2.6",
+    "echarts": "^6.0.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
+    "vue-echarts": "^8.0.1",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {

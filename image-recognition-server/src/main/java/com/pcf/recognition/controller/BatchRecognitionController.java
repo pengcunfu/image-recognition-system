@@ -2,6 +2,7 @@ package com.pcf.recognition.controller;
 
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.BatchDto.*;
 import com.pcf.recognition.service.BatchRecognitionService;
 import com.pcf.recognition.util.TokenUtil;
 
@@ -11,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.*;
 
 /**
  * 批量识别控制器

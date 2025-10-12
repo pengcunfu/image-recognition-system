@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthResponses.*;
+import com.pcf.recognition.dto.BatchDto.*;
 import com.pcf.recognition.entity.BatchRecognition;
 import com.pcf.recognition.entity.BatchRecognitionItem;
 import com.pcf.recognition.repository.BatchRecognitionRepository;

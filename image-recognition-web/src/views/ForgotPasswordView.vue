@@ -134,11 +134,9 @@
               block
               :loading="loading"
               html-type="submit"
+              class="reset-btn"
             >
               重置密码
-              <template #icon>
-                <i class="fas fa-save"></i>
-              </template>
             </a-button>
           </a-form-item>
         </a-form>
@@ -468,6 +466,17 @@ async function handleSubmit() {
 .resend-btn {
   height: 40px; // 修复：与输入框高度一致
   white-space: nowrap;
+}
+
+/* 重置密码按钮 */
+.reset-btn {
+  height: 48px;
+  margin-bottom: 16px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
+  }
 }
 
 /* 返回登录 */

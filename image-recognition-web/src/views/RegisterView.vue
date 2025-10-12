@@ -187,10 +187,8 @@
               block
               html-type="submit"
               :loading="loading"
+              class="register-btn"
             >
-              <template #icon>
-                <i class="fas fa-user-plus"></i>
-              </template>
               完成注册
             </a-button>
           </a-form-item>
@@ -609,6 +607,17 @@ async function handleRegister() {
 .send-code-btn {
   height: 40px;
   white-space: nowrap;
+}
+
+/* 注册按钮 */
+.register-btn {
+  height: 48px;
+  margin-bottom: 16px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
+  }
 }
 
 /* 协议链接 */

@@ -126,9 +126,6 @@
               :loading="loading"
               class="login-btn"
             >
-              <template #icon>
-                <i class="fas fa-sign-in-alt"></i>
-              </template>
               立即登录
             </a-button>
           </a-form-item>

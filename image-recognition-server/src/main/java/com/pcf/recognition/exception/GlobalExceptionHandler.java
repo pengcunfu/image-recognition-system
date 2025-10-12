@@ -4,6 +4,11 @@ import com.pcf.recognition.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -23,6 +28,57 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * 处理访问拒绝异常（403）
+     * 将 Spring Security 的 403 错误转换为 200 状态码 + ApiResponse 错误格式
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("访问被拒绝: {}", e.getMessage());
+        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
+        return ResponseEntity.ok(ApiResponse.error(403, "访问被拒绝，请先登录"));
+    }
+
+    /**
+     * 处理认证异常
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(AuthenticationException e) {
+        log.warn("认证失败: {}", e.getMessage());
+        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
+        return ResponseEntity.ok(ApiResponse.error(401, "认证失败，请重新登录"));
+    }
+
+    /**
+     * 处理认证凭据不足异常
+     */
+    @ExceptionHandler(InsufficientAuthenticationException.class)
+    public ResponseEntity<ApiResponse<Object>> handleInsufficientAuthenticationException(InsufficientAuthenticationException e) {
+        log.warn("认证凭据不足: {}", e.getMessage());
+        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
+        return ResponseEntity.ok(ApiResponse.error(401, "认证凭据不足，请重新登录"));
+    }
+
+    /**
+     * 处理认证凭据未找到异常
+     */
+    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthenticationCredentialsNotFoundException(AuthenticationCredentialsNotFoundException e) {
+        log.warn("认证凭据未找到: {}", e.getMessage());
+        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
+        return ResponseEntity.ok(ApiResponse.error(401, "未找到认证凭据，请先登录"));
+    }
+
+    /**
+     * 处理错误的认证凭据异常
+     */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("认证凭据错误: {}", e.getMessage());
+        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
+        return ResponseEntity.ok(ApiResponse.error(401, "认证凭据错误，请重新登录"));
+    }
 
     /**
      * 处理HTTP请求方法不支持异常

@@ -1,7 +1,6 @@
 package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
@@ -191,52 +190,6 @@ public class AuthService {
             return RegisterResponseDto.builder()
                     .success(false)
                     .message("注册失败，请稍后重试")
-                    .build();
-        }
-    }
-
-    /**
-     * 忘记密码
-     */
-    public ForgotPasswordResponseDto forgotPassword(String email) {
-        log.info("忘记密码请求: email={}", email);
-
-        try {
-            // 检查邮箱是否存在
-            User user = userRepository.selectOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getEmail, email)
-            );
-
-            if (user == null) {
-                return ForgotPasswordResponseDto.builder()
-                        .success(false)
-                        .message("邮箱不存在")
-                        .build();
-            }
-
-            // 发送邮箱验证码
-            try {
-                emailService.sendEmailCode(email, "reset_password");
-                log.info("忘记密码验证码发送成功: email={}", email);
-
-                return ForgotPasswordResponseDto.builder()
-                        .success(true)
-                        .message("重置密码验证码已发送到您的邮箱")
-                        .build();
-            } catch (Exception e) {
-                log.error("发送重置密码验证码失败: email={}", email, e);
-                return ForgotPasswordResponseDto.builder()
-                        .success(false)
-                        .message("发送验证码失败，请稍后重试")
-                        .build();
-            }
-
-        } catch (Exception e) {
-            log.error("忘记密码处理失败", e);
-            return ForgotPasswordResponseDto.builder()
-                    .success(false)
-                    .message("处理失败，请稍后重试")
                     .build();
         }
     }

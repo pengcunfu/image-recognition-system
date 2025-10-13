@@ -35,7 +35,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                   FilterChain filterChain) throws ServletException, IOException {
         
         String requestPath = request.getRequestURI();
-        log.info("JWT过滤器处理请求: {}", requestPath);
+        log.info("JWT过滤器处理请求: {} [{}]", requestPath, request.getMethod());
+        
+        // 打印所有请求头用于调试
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            String headerValue = request.getHeader(headerName);
+            if ("authorization".equalsIgnoreCase(headerName)) {
+                log.info("请求头 {}: {}", headerName, headerValue);
+            }
+        }
 
         try {
             // 从请求头中获取Token
@@ -106,15 +116,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         
+        log.info("Authorization头内容: {}", bearerToken);
+        
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // 去掉 "Bearer " 前缀
+            String token = bearerToken.substring(7); // 去掉 "Bearer " 前缀
+            log.info("提取到Bearer Token: {}...", token.substring(0, Math.min(20, token.length())));
+            return token;
         }
         
         // 也支持直接在Authorization头中传递Token（不带Bearer前缀）
         if (bearerToken != null && !bearerToken.trim().isEmpty()) {
+            log.info("提取到直接Token: {}...", bearerToken.substring(0, Math.min(20, bearerToken.length())));
             return bearerToken;
         }
         
+        log.info("未找到Authorization头或头为空");
         return null;
     }
 

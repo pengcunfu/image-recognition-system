@@ -348,22 +348,18 @@ export interface Post {
   content: string
   summary?: string
   category: string
-  tags: string[]
-  author: {
-    id: number
-    username: string
-    name?: string
-    avatar?: string
-    vipLevel?: number
-  }
-  images?: string[]
-  views: number
-  likes: number
-  comments: number
-  shares: number
+  tags?: string  // 后端返回的是JSON字符串
+  authorId: number
+  authorName?: string
+  authorAvatar?: string
+  images?: string  // 后端返回的是JSON字符串
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  shareCount: number
   isTop: boolean
-  isHot: boolean
-  status: 'published' | 'pending' | 'rejected' | 'hidden'
+  isFeatured: boolean
+  status: string  // 'PUBLISHED' | 'PENDING' | 'REJECTED' | 'HIDDEN' | 'DRAFT' | 'DELETED'
   createTime: string
   updateTime: string
 }
@@ -382,10 +378,8 @@ export interface PostListResponse {
 // 帖子详情响应
 export interface PostDetailResponse {
   post: Post
-  comments: Comment[]
-  relatedPosts: Post[]
-  isLiked: boolean
-  isCollected: boolean
+  recentComments?: Comment[]
+  relatedPosts?: Post[]
 }
 
 // 创建帖子请求

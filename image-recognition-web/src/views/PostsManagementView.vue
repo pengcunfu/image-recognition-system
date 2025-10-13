@@ -41,7 +41,7 @@
               </a>
               <div class="post-meta">
                 <a-tag v-if="record.isTop" color="red" size="small">置顶</a-tag>
-                <a-tag v-if="record.isHot" color="orange" size="small">热门</a-tag>
+                <a-tag v-if="record.isFeatured" color="orange" size="small">精选</a-tag>
                 <span class="post-category">{{ record.category }}</span>
               </div>
             </div>
@@ -50,10 +50,9 @@
           <template v-else-if="column.key === 'author'">
             <div class="author-info">
               <a-avatar :src="record.authorAvatar" size="small">
-                {{ record.author.charAt(0) }}
+                {{ record.authorName ? record.authorName.charAt(0) : 'U' }}
               </a-avatar>
-              <span class="author-name">{{ record.author }}</span>
-              <a-tag v-if="record.authorVip" color="gold" size="small">VIP</a-tag>
+              <span class="author-name">{{ record.authorName || '未知用户' }}</span>
             </div>
           </template>
           
@@ -69,9 +68,9 @@
           
           <template v-else-if="column.key === 'stats'">
             <div class="post-stats">
-              <span><i class="fas fa-eye"></i> {{ record.views }}</span>
-              <span><i class="fas fa-thumbs-up"></i> {{ record.likes }}</span>
-              <span><i class="fas fa-comment"></i> {{ record.replies }}</span>
+              <span><i class="fas fa-eye"></i> {{ record.viewCount }}</span>
+              <span><i class="fas fa-thumbs-up"></i> {{ record.likeCount }}</span>
+              <span><i class="fas fa-comment"></i> {{ record.commentCount }}</span>
             </div>
           </template>
           
@@ -128,11 +127,11 @@
         <div class="post-header">
           <h2>{{ selectedPost.title }}</h2>
           <div class="post-info">
-            <a-avatar :src="selectedPost.author.avatar">
-              {{ selectedPost.author.username.charAt(0) }}
+            <a-avatar :src="selectedPost.authorAvatar">
+              {{ selectedPost.authorName ? selectedPost.authorName.charAt(0) : 'U' }}
             </a-avatar>
             <div class="author-details">
-              <span class="author-name">{{ selectedPost.author.username }}</span>
+              <span class="author-name">{{ selectedPost.authorName || '未知用户' }}</span>
               <span class="post-time">{{ selectedPost.createTime }}</span>
             </div>
             <a-tag :color="getStatusColor(selectedPost.status)">
@@ -279,33 +278,39 @@ const filteredPosts = computed(() => {
 
 // 获取状态颜色
 function getStatusColor(status: string) {
-  switch (status) {
-    case 'published': return 'success'
-    case 'pending': return 'warning'
-    case 'rejected': return 'error'
-    case 'hidden': return 'default'
+  const upperStatus = status?.toUpperCase()
+  switch (upperStatus) {
+    case 'PUBLISHED': return 'success'
+    case 'PENDING': return 'warning'
+    case 'REJECTED': return 'error'
+    case 'HIDDEN': return 'default'
+    case 'DRAFT': return 'default'
     default: return 'default'
   }
 }
 
 // 获取状态图标
 function getStatusIcon(status: string) {
-  switch (status) {
-    case 'published': return 'fas fa-check-circle'
-    case 'pending': return 'fas fa-clock'
-    case 'rejected': return 'fas fa-times-circle'
-    case 'hidden': return 'fas fa-eye-slash'
+  const upperStatus = status?.toUpperCase()
+  switch (upperStatus) {
+    case 'PUBLISHED': return 'fas fa-check-circle'
+    case 'PENDING': return 'fas fa-clock'
+    case 'REJECTED': return 'fas fa-times-circle'
+    case 'HIDDEN': return 'fas fa-eye-slash'
+    case 'DRAFT': return 'fas fa-file'
     default: return 'fas fa-question-circle'
   }
 }
 
 // 获取状态文本
 function getStatusText(status: string) {
-  switch (status) {
-    case 'published': return '已发布'
-    case 'pending': return '待审核'
-    case 'rejected': return '已拒绝'
-    case 'hidden': return '已隐藏'
+  const upperStatus = status?.toUpperCase()
+  switch (upperStatus) {
+    case 'PUBLISHED': return '已发布'
+    case 'PENDING': return '待审核'
+    case 'REJECTED': return '已拒绝'
+    case 'HIDDEN': return '已隐藏'
+    case 'DRAFT': return '草稿'
     default: return '未知'
   }
 }

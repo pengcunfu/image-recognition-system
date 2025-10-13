@@ -302,8 +302,8 @@ import KnowledgeAPI from '@/api/knowledge'
 import FileAPI from '@/api/file'
 import type { KnowledgeItem, KnowledgeCategory } from '@/api/types'
 
-// 使用 FileAPI 中的工具函数
-const getFirstImage = FileAPI.getFirstImage
+// 使用 FileAPI 中的工具函数（保持this上下文）
+const getFirstImage = (imagesJson: string | null | undefined) => FileAPI.getFirstImage(imagesJson)
 
 // 响应式数据
 const loading = ref(false)
@@ -412,24 +412,39 @@ async function loadKnowledgeItems() {
       keyword: searchKeyword.value || undefined
     })
     
+    console.log('知识库数据响应:', response)
+    console.log('items数据:', response.data?.items)
+    
+    // 检查数据是否存在
+    if (!response.data || !response.data.items) {
+      console.warn('响应数据格式不正确:', response)
+      knowledgeItems.value = []
+      pagination.total = 0
+      return
+    }
+    
     // 转换数据格式以适配前端显示
     knowledgeItems.value = response.data.items.map(item => ({
       ...item,
       title: item.name,
       category: getCategoryNameById(item.categoryId),
       author: `用户${item.authorId}`,
-      views: item.viewCount,
-      likes: item.likeCount,
-      collections: item.favoriteCount,
-      shares: item.shareCount,
+      views: item.viewCount || 0,
+      likes: item.likeCount || 0,
+      collections: item.favoriteCount || 0,
+      shares: item.shareCount || 0,
       updateTime: formatDateTime(item.updateTime)
     })) as any[]
     
-    pagination.total = response.data.total
-    pagination.current = response.data.current
+    pagination.total = response.data.total || 0
+    pagination.current = response.data.current || 1
+    
+    console.log('转换后的知识库数据:', knowledgeItems.value)
   } catch (error) {
     console.error('加载知识库数据失败:', error)
     message.error('加载数据失败')
+    knowledgeItems.value = []
+    pagination.total = 0
   } finally {
     loading.value = false
   }

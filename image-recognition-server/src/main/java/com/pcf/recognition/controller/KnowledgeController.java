@@ -190,6 +190,76 @@ public class KnowledgeController {
         }
     }
 
+    // ==================== 知识条目管理接口 ====================
+
+    @PostMapping("/items")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<KnowledgeCreateResponseDto> createKnowledgeItem(@RequestBody KnowledgeItemCreateRequest request) {
+        try {
+            log.info("创建知识条目: name={}, categoryId={}", request.getName(), request.getCategoryId());
+
+            boolean success = knowledgeService.createKnowledgeItem(request);
+
+            if (success) {
+                KnowledgeCreateResponseDto result = KnowledgeCreateResponseDto.builder()
+                        .success(true)
+                        .message("知识条目创建成功")
+                        .build();
+                return ApiResponse.success(result, "知识条目创建成功");
+            } else {
+                return ApiResponse.error("知识条目创建失败");
+            }
+        } catch (Exception e) {
+            log.error("创建知识条目失败", e);
+            return ApiResponse.error("创建知识条目失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/items/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<KnowledgeCreateResponseDto> updateKnowledgeItem(
+            @PathVariable Long id,
+            @RequestBody KnowledgeItemUpdateRequest request) {
+        try {
+            log.info("更新知识条目: id={}, name={}", id, request.getName());
+
+            boolean success = knowledgeService.updateKnowledgeItem(id, request);
+
+            if (success) {
+                KnowledgeCreateResponseDto result = KnowledgeCreateResponseDto.builder()
+                        .success(true)
+                        .message("知识条目更新成功")
+                        .id(id)
+                        .build();
+                return ApiResponse.success(result, "知识条目更新成功");
+            } else {
+                return ApiResponse.error("知识条目不存在或更新失败");
+            }
+        } catch (Exception e) {
+            log.error("更新知识条目失败", e);
+            return ApiResponse.error("更新知识条目失败: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/items/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deleteKnowledgeItem(@PathVariable Long id) {
+        try {
+            log.info("删除知识条目: id={}", id);
+
+            boolean success = knowledgeService.deleteKnowledgeItem(id);
+
+            if (success) {
+                return ApiResponse.success(null, "知识条目删除成功");
+            } else {
+                return ApiResponse.error("知识条目不存在");
+            }
+        } catch (Exception e) {
+            log.error("删除知识条目失败: {}", e.getMessage());
+            return ApiResponse.error(e.getMessage());
+        }
+    }
+
     // ==================== 分类管理接口 ====================
 
     @PostMapping("/categories")

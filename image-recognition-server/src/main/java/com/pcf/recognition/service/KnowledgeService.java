@@ -355,6 +355,188 @@ public class KnowledgeService {
     }
 
     /**
+     * 创建知识条目（使用请求DTO）
+     */
+    public boolean createKnowledgeItem(KnowledgeItemCreateRequest request) {
+        log.info("创建知识条目: name={}, categoryId={}", request.getName(), request.getCategoryId());
+
+        try {
+            // 检查分类是否存在
+            KnowledgeCategory category = knowledgeCategoryRepository.selectById(request.getCategoryId());
+            if (category == null) {
+                throw new RuntimeException("分类不存在");
+            }
+
+            // 生成key（如果没有提供）
+            String key = request.getKey();
+            if (key == null || key.isEmpty()) {
+                key = generateKey(request.getName());
+            }
+
+            // 检查key是否已存在
+            KnowledgeItem existing = knowledgeItemRepository.selectOne(
+                    new LambdaQueryWrapper<KnowledgeItem>()
+                            .eq(KnowledgeItem::getKey, key)
+            );
+
+            if (existing != null) {
+                throw new RuntimeException("知识条目键值已存在");
+            }
+
+            KnowledgeItem item = new KnowledgeItem();
+            item.setCategoryId(request.getCategoryId());
+            item.setName(request.getName());
+            item.setKey(key);
+            item.setScientificName(request.getScientificName());
+            item.setDescription(request.getDescription());
+            item.setContent(request.getContent());
+            item.setImages(request.getImages());
+            item.setCharacteristics(request.getCharacteristics());
+            item.setHabitat(request.getHabitat());
+            item.setLifespan(request.getLifespan());
+            item.setRelatedItems(request.getRelatedItems());
+            item.setTags(request.getTags());
+            item.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : 1);
+            item.setSortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0);
+            
+            // 设置状态
+            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+                item.setStatus(KnowledgeItem.ItemStatus.valueOf(request.getStatus().toUpperCase()));
+            } else {
+                item.setStatus(KnowledgeItem.ItemStatus.DRAFT);
+            }
+            
+            // 设置作者ID为当前登录用户（暂时设为1）
+            item.setAuthorId(1L);
+
+            knowledgeItemRepository.insert(item);
+
+            // 更新分类的条目数量
+            knowledgeCategoryRepository.update(null,
+                    new LambdaUpdateWrapper<KnowledgeCategory>()
+                            .eq(KnowledgeCategory::getId, request.getCategoryId())
+                            .setSql("item_count = item_count + 1")
+            );
+
+            return true;
+
+        } catch (Exception e) {
+            log.error("创建知识条目失败", e);
+            throw new RuntimeException("创建知识条目失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 更新知识条目
+     */
+    public boolean updateKnowledgeItem(Long id, KnowledgeItemUpdateRequest request) {
+        log.info("更新知识条目: id={}", id);
+
+        try {
+            KnowledgeItem item = knowledgeItemRepository.selectById(id);
+            if (item == null) {
+                return false;
+            }
+
+            // 更新字段
+            if (request.getName() != null) {
+                item.setName(request.getName());
+            }
+            if (request.getCategoryId() != null) {
+                item.setCategoryId(request.getCategoryId());
+            }
+            if (request.getScientificName() != null) {
+                item.setScientificName(request.getScientificName());
+            }
+            if (request.getDescription() != null) {
+                item.setDescription(request.getDescription());
+            }
+            if (request.getContent() != null) {
+                item.setContent(request.getContent());
+            }
+            if (request.getImages() != null) {
+                item.setImages(request.getImages());
+            }
+            if (request.getCharacteristics() != null) {
+                item.setCharacteristics(request.getCharacteristics());
+            }
+            if (request.getHabitat() != null) {
+                item.setHabitat(request.getHabitat());
+            }
+            if (request.getLifespan() != null) {
+                item.setLifespan(request.getLifespan());
+            }
+            if (request.getRelatedItems() != null) {
+                item.setRelatedItems(request.getRelatedItems());
+            }
+            if (request.getTags() != null) {
+                item.setTags(request.getTags());
+            }
+            if (request.getDifficulty() != null) {
+                item.setDifficulty(request.getDifficulty());
+            }
+            if (request.getSortOrder() != null) {
+                item.setSortOrder(request.getSortOrder());
+            }
+            if (request.getStatus() != null) {
+                item.setStatus(KnowledgeItem.ItemStatus.valueOf(request.getStatus().toUpperCase()));
+            }
+
+            item.setUpdateTime(LocalDateTime.now());
+
+            int result = knowledgeItemRepository.updateById(item);
+            return result > 0;
+
+        } catch (Exception e) {
+            log.error("更新知识条目失败", e);
+            throw new RuntimeException("更新知识条目失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除知识条目
+     */
+    public boolean deleteKnowledgeItem(Long id) {
+        log.info("删除知识条目: id={}", id);
+
+        try {
+            KnowledgeItem item = knowledgeItemRepository.selectById(id);
+            if (item == null) {
+                return false;
+            }
+
+            Long categoryId = item.getCategoryId();
+
+            // 删除知识条目
+            int result = knowledgeItemRepository.deleteById(id);
+
+            if (result > 0) {
+                // 更新分类的条目数量
+                knowledgeCategoryRepository.update(null,
+                        new LambdaUpdateWrapper<KnowledgeCategory>()
+                                .eq(KnowledgeCategory::getId, categoryId)
+                                .setSql("item_count = item_count - 1")
+                );
+            }
+
+            return result > 0;
+
+        } catch (Exception e) {
+            log.error("删除知识条目失败", e);
+            throw new RuntimeException("删除知识条目失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 生成知识条目的key
+     */
+    private String generateKey(String name) {
+        // 简单实现：使用名称的拼音或转换为小写英文
+        // 这里暂时使用简化的实现
+        return name.toLowerCase().replace(" ", "_") + "_" + System.currentTimeMillis();
+    }
+
+    /**
      * 搜索知识库
      */
     public KnowledgeSearchResultDto searchKnowledge(String keyword, Integer page, Integer size, String category) {

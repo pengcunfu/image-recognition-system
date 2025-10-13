@@ -404,9 +404,8 @@ public class KnowledgeDto {
         @Size(max = 200, message = "条目名称长度不能超过200个字符")
         private String name;
 
-        @NotBlank(message = "条目键值不能为空")
         @Size(max = 100, message = "条目键值长度不能超过100个字符")
-        @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "条目键值只能包含字母、数字、下划线和横线")
+        @Pattern(regexp = "^[a-zA-Z0-9_-]*$", message = "条目键值只能包含字母、数字、下划线和横线")
         private String key;
 
         @Size(max = 200, message = "学名长度不能超过200个字符")
@@ -431,6 +430,9 @@ public class KnowledgeDto {
 
         @Min(value = 0, message = "排序顺序不能小于0")
         private Integer sortOrder = 0;
+
+        @Pattern(regexp = "^(draft|published|archived|DRAFT|PUBLISHED|ARCHIVED)?$", message = "状态值不正确")
+        private String status;
     }
 
     /**
@@ -461,6 +463,8 @@ public class KnowledgeDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class KnowledgeItemUpdateRequest {
+        private Long categoryId;
+
         @Size(max = 200, message = "条目名称长度不能超过200个字符")
         private String name;
 
@@ -485,7 +489,7 @@ public class KnowledgeDto {
         @Min(value = 0, message = "排序顺序不能小于0")
         private Integer sortOrder;
 
-        @Pattern(regexp = "^(draft|published|archived)$", message = "状态值不正确")
+        @Pattern(regexp = "^(draft|published|archived|DRAFT|PUBLISHED|ARCHIVED)?$", message = "状态值不正确")
         private String status;
     }
 

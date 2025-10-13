@@ -370,13 +370,13 @@ export interface Post {
 
 // 帖子列表响应
 export interface PostListResponse {
-  posts: Post[]
+  data: Post[]  // 后端返回的字段名是 data
   total: number
-  page: number
+  current: number  // 后端使用 current 而不是 page
   size: number
-  totalPages: number
-  categories: string[]
-  hotTags: string[]
+  pages: number  // 后端使用 pages 而不是 totalPages
+  category?: string
+  sort?: string
 }
 
 // 帖子详情响应

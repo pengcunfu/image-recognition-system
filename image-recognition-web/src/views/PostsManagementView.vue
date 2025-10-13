@@ -261,8 +261,9 @@ async function loadPosts() {
       category: filterStatus.value || undefined
     })
     
-    posts.value = response.data.posts
-    pagination.total = response.data.total
+    // 后端返回的是 data 字段，不是 posts
+    posts.value = response.data.data || []
+    pagination.total = response.data.total || 0
   } catch (error) {
     console.error('加载帖子失败:', error)
     message.error('加载帖子失败')

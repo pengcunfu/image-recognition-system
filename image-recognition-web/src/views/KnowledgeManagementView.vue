@@ -43,20 +43,20 @@
             <div class="knowledge-title">
               <div class="title-with-image">
                 <img 
-                  v-if="getFirstImage(record.images)" 
-                  :src="getFirstImage(record.images)" 
-                  :alt="record.name"
+                  v-if="getFirstImage(record?.images)" 
+                  :src="getFirstImage(record?.images)" 
+                  :alt="record?.name || ''"
                   class="knowledge-thumbnail"
                 />
                 <div class="title-content">
                   <a @click="viewKnowledge(record)" class="title-link">
-                    {{ record.name }}
+                    {{ record?.name || '' }}
                   </a>
                   <div class="knowledge-meta">
-                    <a-tag :color="getCategoryColor(record.category)" size="small">
-                      {{ record.category }}
+                    <a-tag :color="getCategoryColor(record?.category || '')" size="small">
+                      {{ record?.category || '未知分类' }}
                     </a-tag>
-                    <span class="difficulty">难度: {{ record.difficulty }}</span>
+                    <span class="difficulty">难度: {{ record?.difficulty || 1 }}</span>
                   </div>
                 </div>
               </div>
@@ -65,19 +65,19 @@
           
           <template v-else-if="column.key === 'stats'">
             <div class="knowledge-stats">
-              <span><i class="fas fa-eye"></i> {{ record.views }}</span>
-              <span><i class="fas fa-thumbs-up"></i> {{ record.likes }}</span>
-              <span><i class="fas fa-bookmark"></i> {{ record.collections }}</span>
+              <span><i class="fas fa-eye"></i> {{ record?.views || 0 }}</span>
+              <span><i class="fas fa-thumbs-up"></i> {{ record?.likes || 0 }}</span>
+              <span><i class="fas fa-bookmark"></i> {{ record?.collections || 0 }}</span>
             </div>
           </template>
           
           <template v-else-if="column.key === 'status'">
             <a-tag 
-              :color="record.status === 'published' ? 'success' : 'warning'"
+              :color="record?.status === 'published' ? 'success' : 'warning'"
               class="status-tag"
             >
-              <i :class="record.status === 'published' ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
-              {{ record.status === 'published' ? '已发布' : '草稿' }}
+              <i :class="record?.status === 'published' ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
+              {{ record?.status === 'published' ? '已发布' : '草稿' }}
             </a-tag>
           </template>
           
@@ -95,10 +95,10 @@
                     <a-menu-item key="view">
                       <i class="fas fa-eye"></i> 查看详情
                     </a-menu-item>
-                    <a-menu-item key="publish" v-if="record.status === 'draft'">
+                    <a-menu-item key="publish" v-if="record?.status === 'draft'">
                       <i class="fas fa-upload"></i> 发布
                     </a-menu-item>
-                    <a-menu-item key="unpublish" v-if="record.status === 'published'">
+                    <a-menu-item key="unpublish" v-if="record?.status === 'published'">
                       <i class="fas fa-download"></i> 撤回
                     </a-menu-item>
                     <a-menu-item key="duplicate">
@@ -472,7 +472,9 @@ const filteredKnowledge = computed(() => {
 })
 
 // 获取分类颜色
-function getCategoryColor(category: string) {
+function getCategoryColor(category: string | undefined | null) {
+  if (!category) return 'default'
+  
   switch (category) {
     case '动物': return 'orange'
     case '植物': return 'green'
@@ -805,8 +807,13 @@ function handleShare(knowledge: any) {
 
 // 组件挂载
 onMounted(async () => {
-  await loadCategories()
-  await loadKnowledgeItems()
+  try {
+    // 先加载分类，再加载知识条目，确保分类数据可用
+    await loadCategories()
+    await loadKnowledgeItems()
+  } catch (error) {
+    console.error('初始化失败:', error)
+  }
 })
 </script>
 

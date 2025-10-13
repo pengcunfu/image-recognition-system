@@ -117,6 +117,26 @@ export class FileAPI {
   }
 
   /**
+   * 从JSON数组中获取第一张图片URL
+   * 用于处理数据库中存储为JSON数组格式的图片字段
+   */
+  static getFirstImage(imagesJson: string | null | undefined): string {
+    if (!imagesJson) return ''
+    
+    try {
+      const images = JSON.parse(imagesJson)
+      if (Array.isArray(images) && images.length > 0) {
+        // 返回第一张图片的完整URL
+        return this.getImageUrl(images[0])
+      }
+      return ''
+    } catch {
+      // 如果不是JSON格式，直接当作单个URL处理（兼容旧数据）
+      return this.getImageUrl(imagesJson)
+    }
+  }
+
+  /**
    * 获取文件（预览）
    */
   static getFileUrl(fileId: string): string {

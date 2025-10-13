@@ -302,6 +302,9 @@ import KnowledgeAPI from '@/api/knowledge'
 import FileAPI from '@/api/file'
 import type { KnowledgeItem, KnowledgeCategory } from '@/api/types'
 
+// 使用 FileAPI 中的工具函数
+const getFirstImage = FileAPI.getFirstImage
+
 // 响应式数据
 const loading = ref(false)
 const modalVisible = ref(false)
@@ -446,18 +449,6 @@ async function loadCategories() {
 function getCategoryNameById(categoryId: number): string {
   const category = categories.value.find(cat => cat.id === categoryId)
   return category ? category.name : '未知分类'
-}
-
-// 从JSON数组中获取第一张图片URL
-function getFirstImage(imagesJson: string | null | undefined): string {
-  if (!imagesJson) return ''
-  try {
-    const images = JSON.parse(imagesJson)
-    return Array.isArray(images) && images.length > 0 ? images[0] : ''
-  } catch {
-    // 如果不是JSON格式，直接返回原值（兼容旧数据）
-    return imagesJson
-  }
 }
 
 function getDifficultyText(difficulty: number): string {

@@ -41,20 +41,35 @@ public class KnowledgeCategory {
     @TableLogic
     private Integer deleted;
 
-    // 分类状态枚举
+    // 分类状态枚举（与MySQL ENUM对应：1-ACTIVE, 2-INACTIVE, 3-HIDDEN）
     public enum CategoryStatus {
-        ACTIVE("活跃"),
-        INACTIVE("不活跃"),
-        HIDDEN("隐藏");
+        ACTIVE(1, "活跃"),
+        INACTIVE(2, "不活跃"),
+        HIDDEN(3, "隐藏");
 
+        private final int value;
         private final String description;
 
-        CategoryStatus(String description) {
+        CategoryStatus(int value, String description) {
+            this.value = value;
             this.description = description;
+        }
+
+        public int getValue() {
+            return value;
         }
 
         public String getDescription() {
             return description;
+        }
+
+        public static CategoryStatus fromValue(int value) {
+            for (CategoryStatus status : values()) {
+                if (status.value == value) {
+                    return status;
+                }
+            }
+            return ACTIVE; // 默认返回活跃
         }
     }
 }

@@ -61,7 +61,7 @@
               <template #icon>
                 <i class="fas fa-tags"></i>
               </template>
-              分类管理
+              知识库分类
             </a-menu-item>
           </a-menu-item-group>
           

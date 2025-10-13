@@ -239,6 +239,13 @@ export interface SmsCodeVerifyRequest {
 
 // ==================== 知识库相关类型 ====================
 
+// 分类状态枚举
+export enum CategoryStatus {
+  ACTIVE = 1,      // 活跃
+  INACTIVE = 2,    // 不活跃
+  HIDDEN = 3       // 隐藏
+}
+
 // 知识分类
 export interface KnowledgeCategory {
   id: number

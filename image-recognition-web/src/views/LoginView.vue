@@ -89,7 +89,7 @@
                 v-model:value="formData.captcha"
                 size="large"
                 placeholder="请输入验证码"
-                maxlength="4"
+                :maxlength="4"
                 class="captcha-input"
               >
                 <template #prefix>
@@ -241,9 +241,10 @@ async function handleLogin() {
       message.error('登录响应数据不完整')
       refreshCaptcha() // 刷新验证码
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('登录请求失败:', error)
-    message.error(error.message || '网络错误，请重试')
+    const errorMessage = error instanceof Error ? error.message : '网络错误，请重试'
+    message.error(errorMessage)
     refreshCaptcha() // 刷新验证码
   } finally {
     loading.value = false

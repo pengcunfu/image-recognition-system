@@ -168,6 +168,29 @@ public class CommunityController {
     // ==================== 管理员接口 ====================
 
     /**
+     * 管理员获取所有帖子（包括所有状态）
+     */
+    @GetMapping("/admin/posts")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PostListResponseDto> getAdminPosts(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "latest") String sort) {
+
+        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, sort={}", page, size, category, status, sort);
+
+        try {
+            PostListResponseDto result = communityService.getAdminPosts(page, size, category, status, sort);
+            return ApiResponse.success(result, "获取帖子列表成功");
+        } catch (Exception e) {
+            log.error("获取帖子列表失败", e);
+            return ApiResponse.error("获取帖子列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 审核通过帖子
      */
     @PostMapping("/admin/posts/{id}/approve")

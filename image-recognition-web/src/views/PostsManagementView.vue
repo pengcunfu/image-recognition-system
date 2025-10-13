@@ -254,10 +254,12 @@ const postColumns = [
 async function loadPosts() {
   try {
     loading.value = true
-    const response = await CommunityAPI.getPosts({
+    // 使用管理员专用接口，可以看到所有状态的帖子
+    const response = await CommunityAPI.getAdminPosts({
       page: pagination.current,
       size: pagination.pageSize,
-      category: filterStatus.value || undefined
+      status: filterStatus.value || undefined,
+      sort: 'latest'
     })
     
     // 后端返回的是 data 字段，不是 posts

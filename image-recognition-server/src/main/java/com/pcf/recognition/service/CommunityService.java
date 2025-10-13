@@ -184,6 +184,55 @@ public class CommunityService {
     // ==================== 管理员方法 ====================
 
     /**
+     * 管理员获取所有帖子（包括所有状态）
+     */
+    public PostListResponseDto getAdminPosts(int page, int size, String category, String status, String sort) {
+        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, sort={}", page, size, category, status, sort);
+
+        Page<CommunityPost> pageRequest = new Page<>(page, size);
+
+        LambdaQueryWrapper<CommunityPost> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 管理员可以看到所有状态的帖子，但可以按状态筛选
+        if (status != null && !status.isEmpty()) {
+            try {
+                CommunityPost.PostStatus postStatus = CommunityPost.PostStatus.valueOf(status.toUpperCase());
+                queryWrapper.eq(CommunityPost::getStatus, postStatus);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的状态值: {}", status);
+            }
+        }
+
+        if (category != null && !category.isEmpty()) {
+            queryWrapper.eq(CommunityPost::getCategory, category);
+        }
+
+        // 排序
+        if ("hot".equals(sort)) {
+            queryWrapper.orderByDesc(CommunityPost::getLikeCount);
+        } else if ("latest".equals(sort)) {
+            queryWrapper.orderByDesc(CommunityPost::getCreateTime);
+        } else {
+            // 默认：置顶优先，然后按创建时间倒序
+            queryWrapper.orderByDesc(CommunityPost::getIsTop)
+                       .orderByDesc(CommunityPost::getCreateTime);
+        }
+
+        Page<CommunityPost> result = communityPostRepository.selectPage(pageRequest, queryWrapper);
+
+        PostListResponseDto response = new PostListResponseDto();
+        response.setData(result.getRecords().stream()
+                .map(this::convertToPostDto)
+                .collect(Collectors.toList()));
+        response.setTotal(result.getTotal());
+        response.setPages(result.getPages());
+        response.setCurrent(result.getCurrent());
+        response.setSize(result.getSize());
+
+        return response;
+    }
+
+    /**
      * 审核通过帖子
      */
     public void approvePost(Long postId) {

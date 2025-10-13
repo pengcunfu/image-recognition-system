@@ -366,6 +366,19 @@ export class CommunityAPI {
   // ==================== 管理员接口 ====================
 
   /**
+   * 管理员获取所有帖子（包括所有状态）
+   */
+  static getAdminPosts(params: {
+    page?: number
+    size?: number
+    category?: string
+    status?: string
+    sort?: string
+  }) {
+    return request.get<PostListResponse>('/api/v1/community/admin/posts', { params })
+  }
+
+  /**
    * 审核通过帖子
    */
   static approvePost(postId: number) {

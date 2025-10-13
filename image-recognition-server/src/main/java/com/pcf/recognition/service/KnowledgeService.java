@@ -594,6 +594,21 @@ public class KnowledgeService {
         }
     }
 
+    /**
+     * 获取知识分类详情
+     */
+    public KnowledgeCategoryDto getCategoryDetail(Long id) {
+        log.info("获取知识分类详情: id={}", id);
+        
+        KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
+        if (category == null) {
+            log.warn("分类不存在: id={}", id);
+            return null;
+        }
+        
+        return convertToCategoryDto(category);
+    }
+
 
     /**
      * 转换KnowledgeCategory为DTO

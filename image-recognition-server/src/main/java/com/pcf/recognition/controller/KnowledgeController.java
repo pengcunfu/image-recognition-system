@@ -274,11 +274,16 @@ public class KnowledgeController {
         try {
             log.info("获取知识分类详情: id={}", id);
 
-            // 这里应该调用service的获取详情方法，暂时返回空
-            return ApiResponse.error("获取分类详情功能开发中");
+            KnowledgeCategoryDto result = knowledgeService.getCategoryDetail(id);
+            
+            if (result != null) {
+                return ApiResponse.success(result, "获取分类详情成功");
+            } else {
+                return ApiResponse.error("分类不存在");
+            }
         } catch (Exception e) {
             log.error("获取知识分类详情失败", e);
-            return ApiResponse.error("获取分类详情失败");
+            return ApiResponse.error("获取分类详情失败: " + e.getMessage());
         }
     }
 }

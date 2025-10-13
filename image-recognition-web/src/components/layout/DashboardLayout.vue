@@ -8,7 +8,7 @@
       </div>
       <div class="user-info">
         <span>欢迎，管理员</span>
-        <a-avatar class="user-avatar">A</a-avatar>
+        <a-avatar class="user-avatar" @click="goToProfile">A</a-avatar>
         <a-button type="primary" @click="handleLogout">
           <template #icon>
             <i class="fas fa-sign-out-alt"></i>
@@ -149,6 +149,11 @@ function toggleSidebar() {
   collapsed.value = !collapsed.value
 }
 
+// 跳转到个人信息页面
+function goToProfile() {
+  router.push('/admin-profile')
+}
+
 // 退出登录
 function handleLogout() {
   // 清除登录状态
@@ -213,6 +218,13 @@ function handleLogout() {
   background: #1890ff;
   color: white;
   font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  background: #40a9ff;
+  transform: scale(1.05);
 }
 
 /* Sidebar */

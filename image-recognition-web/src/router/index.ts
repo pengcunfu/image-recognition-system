@@ -20,6 +20,7 @@ import PostsManagementView from '@/views/PostsManagementView.vue'
 import KnowledgeManagementView from '@/views/KnowledgeManagementView.vue'
 import VipManagementView from '@/views/VipManagementView.vue'
 import RecognitionManagementView from '@/views/RecognitionManagementView.vue'
+import AdminProfileView from '@/views/AdminProfileView.vue'
 
 // 用户组件
 import UserLayout from '@/components/layout/UserLayout.vue'
@@ -232,6 +233,24 @@ const routes: Array<RouteRecordRaw> = [
         component: RecognitionManagementView,
         meta: {
           title: '识别记录管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/admin-profile',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'AdminProfile',
+        component: AdminProfileView,
+        meta: {
+          title: '管理员信息 - 智能图像识别系统'
         }
       }
     ]

@@ -8,9 +8,9 @@ import com.pcf.recognition.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
+import java.nio.file.Paths;
 
 /**
  * 文件管理控制器
@@ -32,6 +34,12 @@ import java.util.List;
 public class FileStorageController {
 
     private final FileStorageService fileStorageService;
+
+    // 使用 @RequiredArgsConstructor 注解生成的构造函数
+    // 移除手动添加的构造函数
+    // public FileStorageController(FileStorageService fileStorageService) {
+    //     this.fileStorageService = fileStorageService;
+    // }
 
 
     @PostMapping("/upload")
@@ -85,35 +93,83 @@ public class FileStorageController {
 
             @RequestParam(defaultValue = "false") boolean download) {
         try {
-            Path filePath = fileStorageService.getFilePath(fileId);
-            Resource resource = new UrlResource(filePath.toUri());
+            log.info("获取文件: fileId={}, download={}", fileId, download);
 
-            if (!resource.exists() || !resource.isReadable()) {
+            Path filePath = fileStorageService.getFilePath(fileId);
+            if (!Files.exists(filePath)) {
+                log.warn("文件不存在: {}", filePath);
                 return ResponseEntity.notFound().build();
             }
 
+            Resource resource = new FileSystemResource(filePath);
             String contentType = Files.probeContentType(filePath);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
 
-            ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType));
-
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, contentType);
             if (download) {
-                builder.header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + filePath.getFileName().toString() + "\"");
+                String filename = filePath.getFileName().toString();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
             } else {
-                // 对于图片等文件，设置为内联显示
-                if (contentType.startsWith("image/")) {
-                    builder.header(HttpHeaders.CONTENT_DISPOSITION, "inline");
-                }
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
             }
 
-            return builder.body(resource);
+            log.info("文件获取成功: {}", filePath);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
         } catch (Exception e) {
-            log.error("获取文件失败: {}", fileId, e);
-            return ResponseEntity.internalServerError().build();
+            log.error("获取文件失败: fileId={}", fileId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    // 支持多层路径参数
+    @GetMapping("/**")
+    // 公开接口，无需权限验证
+    public ResponseEntity<Resource> getFileByPath(HttpServletRequest request,
+                                              @RequestParam(defaultValue = "false") boolean download) {
+        try {
+            String uri = request.getRequestURI();
+            log.info("获取文件: uri={}", uri);
+
+            // 提取 /api/v1/files/ 后的路径作为 filePath
+            String filePathStr = uri.substring(uri.indexOf("/api/v1/files/") + 14);
+            log.info("提取的文件路径: {}", filePathStr);
+
+            Path filePath = Paths.get(fileStorageService.getUploadDir(), filePathStr);
+            log.info("完整文件路径: {}", filePath);
+
+            if (!Files.exists(filePath)) {
+                log.warn("文件不存在: {}", filePath);
+                return ResponseEntity.notFound().build();
+            }
+
+            Resource resource = new FileSystemResource(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+            if (download) {
+                String filename = filePath.getFileName().toString();
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+            } else {
+                headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline");
+            }
+
+            log.info("文件获取成功: {}", filePath);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(resource);
+        } catch (Exception e) {
+            log.error("获取文件失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 

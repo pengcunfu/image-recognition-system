@@ -11,8 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -22,11 +24,24 @@ import java.util.UUID;
 @Slf4j
 public class FileStorageService {
 
-    @Value("${app.file.upload-dir:uploads}")
-    private String uploadDir;
+    private final String uploadDir;
 
     @Value("${app.file.max-size:10485760}") // 10MB
     private long maxFileSize;
+
+    public FileStorageService(@Value("${file.upload-dir:./uploads}") String uploadDir) {
+        this.uploadDir = uploadDir;
+        try {
+            Files.createDirectories(Paths.get(uploadDir));
+            log.info("文件上传目录: {}", uploadDir);
+        } catch (IOException e) {
+            log.error("创建上传目录失败: {}", uploadDir, e);
+        }
+    }
+
+    public String getUploadDir() {
+        return uploadDir;
+    }
 
     /**
      * 存储文件 - 为了兼容性保留的方法名
@@ -40,11 +55,15 @@ public class FileStorageService {
      * 上传文件
      */
     public FileUploadResult uploadFile(MultipartFile file) throws IOException {
-        // 验证文件
-        validateFile(file);
+        log.info("上传文件: originalName={}, size={}", file.getOriginalFilename(), file.getSize());
 
-        // 创建上传目录
-        Path uploadPath = createUploadDirectory();
+        // 创建日期子目录
+        String datePath = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
+        Path uploadPath = Paths.get(uploadDir, datePath);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+            log.info("创建目录: {}", uploadPath);
+        }
 
         // 生成文件名
         String filename = generateFileName(file.getOriginalFilename());
@@ -52,6 +71,9 @@ public class FileStorageService {
         // 保存文件
         Path filePath = uploadPath.resolve(filename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        // 构建访问url（带日期子目录）
+        String relativePath = Paths.get(datePath, filename).toString().replace("\\", "/");
 
         // 构建返回结果
         FileUploadResult result = FileUploadResult.builder()
@@ -62,10 +84,10 @@ public class FileStorageService {
                 .contentType(file.getContentType())
                 .uploadTime(System.currentTimeMillis())
                 .path(filePath.toString())
-                .url("/api/v1/files/" + UUID.randomUUID().toString())
+                .url("/api/v1/files/" + relativePath)
                 .build();
 
-        log.info("文件上传成功: {}", result);
+        log.info("文件上传成功: path={}, url={}", result.getPath(), result.getUrl());
         return result;
     }
 

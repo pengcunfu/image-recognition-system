@@ -1683,6 +1683,14 @@ onMounted(() => {
 
 .upload-section {
   margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-uploader {
+  display: flex;
+  justify-content: center;
 }
 
 .avatar-uploader .ant-upload {

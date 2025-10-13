@@ -4,7 +4,7 @@ import com.pcf.recognition.dto.*;
 import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.service.UserService;
-import com.pcf.recognition.util.TokenUtil;
+import com.pcf.recognition.util.SecurityUtil;
 
 
 import lombok.RequiredArgsConstructor;
@@ -28,20 +28,18 @@ import java.util.*;
 public class UserController {
 
     private final UserService userService;
-    private final TokenUtil tokenUtil;
 
 
     @GetMapping("/profile")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserInfoDto> getUserProfile(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<UserInfoDto> getUserProfile() {
 
         log.info("获取用户信息请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         UserInfoDto userInfo = userService.getUserInfo(userId);
@@ -56,16 +54,14 @@ public class UserController {
 
     @PutMapping("/profile")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> updateUserProfile(
-            @Valid @RequestBody UserUpdateRequest request,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<String> updateUserProfile(@Valid @RequestBody UserUpdateRequest request) {
 
         log.info("更新用户信息请求: name={}", request.getName());
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         boolean success = userService.updateUserInfo(userId, request);
@@ -80,15 +76,14 @@ public class UserController {
 
     @GetMapping("/stats")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserStatsDto> getUserStats(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<UserStatsDto> getUserStats() {
 
         log.info("获取用户统计数据请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         UserStatsDto stats = userService.getUserStats(userId);
@@ -99,16 +94,14 @@ public class UserController {
 
     @PutMapping("/password")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> changePassword(
-            @Valid @RequestBody UserDto.ChangePasswordRequest request,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<String> changePassword(@Valid @RequestBody UserDto.ChangePasswordRequest request) {
 
         log.info("用户修改密码请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         try {
@@ -127,15 +120,14 @@ public class UserController {
 
     @GetMapping("/settings")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserSettingsDto> getUserSettings(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<UserSettingsDto> getUserSettings() {
 
         log.info("获取用户设置请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         UserSettingsDto settings = userService.getUserSettings(userId);
@@ -146,16 +138,14 @@ public class UserController {
 
     @PutMapping("/settings")
     @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> updateUserSettings(
-            @Valid @RequestBody UserSettingsDto settings,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<String> updateUserSettings(@Valid @RequestBody UserSettingsDto settings) {
 
         log.info("更新用户设置请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         boolean success = userService.updateUserSettings(userId, settings);
@@ -170,14 +160,13 @@ public class UserController {
 
     @GetMapping("/statistics")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserStatsDto> getUserStatistics(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<UserStatsDto> getUserStatistics() {
         log.info("获取用户统计数据请求");
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         UserStatsDto stats = userService.getUserStats(userId); // 使用统一的方法
@@ -192,15 +181,13 @@ public class UserController {
 
     @GetMapping("/activities")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<UserActivityDto>> getUserActivities(
-            @RequestParam(defaultValue = "10") Integer limit,
-            @RequestHeader(value = "Authorization", required = false) String token) {
+    public ApiResponse<List<UserActivityDto>> getUserActivities(@RequestParam(defaultValue = "10") Integer limit) {
         log.info("获取用户活动记录请求: limit={}", limit);
 
-        // 从token中解析用户ID
-        Long userId = tokenUtil.getUserIdFromHeader(token);
+        // 从Spring Security上下文中获取当前用户ID
+        Long userId = SecurityUtil.getCurrentUserId();
         if (userId == null) {
-            return ApiResponse.error("无效的Token");
+            return ApiResponse.error("用户未登录");
         }
 
         List<UserActivityDto> activities = userService.getUserActivities(userId, limit);

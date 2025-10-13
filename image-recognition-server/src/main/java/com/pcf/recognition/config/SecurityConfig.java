@@ -2,6 +2,8 @@ package com.pcf.recognition.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pcf.recognition.dto.ApiResponse;
+import com.pcf.recognition.filter.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security 配置
@@ -22,7 +25,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -115,7 +121,8 @@ public class SecurityConfig {
                         // 管理员专用接口
                         .requestMatchers(
                                 "/api/v1/admin/**",
-                                "/api/v1/management/**"
+                                "/api/v1/management/**",
+                                "/api/v1/user/admin/**"
                         ).hasRole("ADMIN")
 
                         // 其他所有请求都需要认证
@@ -151,7 +158,9 @@ public class SecurityConfig {
                             String jsonResponse = objectMapper.writeValueAsString(apiResponse);
                             response.getWriter().write(jsonResponse);
                         })
-                );
+                )
+                // 添加JWT认证过滤器
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

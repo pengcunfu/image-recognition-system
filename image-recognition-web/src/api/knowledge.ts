@@ -18,8 +18,11 @@ export class KnowledgeAPI {
   /**
    * 获取知识分类列表
    */
-  static getCategories() {
-    return request.get<KnowledgeCategory[]>('/api/v1/knowledge/categories')
+  static getCategories(status?: number, keyword?: string) {
+    return request.get<KnowledgeCategory[]>('/api/v1/knowledge/categories', {
+      status,
+      keyword
+    })
   }
 
   /**

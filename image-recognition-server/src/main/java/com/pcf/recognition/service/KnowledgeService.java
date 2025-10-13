@@ -31,14 +31,35 @@ public class KnowledgeService {
     /**
      * 获取知识分类
      */
-    public List<KnowledgeCategoryDto> getKnowledgeCategories() {
-        log.info("获取知识分类");
+    public List<KnowledgeCategoryDto> getKnowledgeCategories(Integer status, String keyword) {
+        log.info("获取知识分类: status={}, keyword={}", status, keyword);
 
-        List<KnowledgeCategory> categories = knowledgeCategoryRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeCategory>()
-                        .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
-                        .orderByAsc(KnowledgeCategory::getSortOrder, KnowledgeCategory::getId)
-        );
+        LambdaQueryWrapper<KnowledgeCategory> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 状态筛选
+        if (status != null) {
+            try {
+                KnowledgeCategory.CategoryStatus categoryStatus = KnowledgeCategory.CategoryStatus.fromValue(status);
+                queryWrapper.eq(KnowledgeCategory::getStatus, categoryStatus);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的状态值: {}", status);
+            }
+        }
+        
+        // 关键词搜索（搜索名称、键值和描述）
+        if (keyword != null && !keyword.isEmpty()) {
+            queryWrapper.and(wrapper -> 
+                wrapper.like(KnowledgeCategory::getName, keyword)
+                       .or()
+                       .like(KnowledgeCategory::getKey, keyword)
+                       .or()
+                       .like(KnowledgeCategory::getDescription, keyword)
+            );
+        }
+        
+        queryWrapper.orderByAsc(KnowledgeCategory::getSortOrder, KnowledgeCategory::getId);
+
+        List<KnowledgeCategory> categories = knowledgeCategoryRepository.selectList(queryWrapper);
 
         return categories.stream()
                 .map(this::convertToCategoryDto)

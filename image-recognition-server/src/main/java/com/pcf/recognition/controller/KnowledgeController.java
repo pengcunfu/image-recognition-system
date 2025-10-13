@@ -29,11 +29,13 @@ public class KnowledgeController {
 
     @GetMapping("/categories")
     // 公开接口，无需权限验证
-    public ApiResponse<List<KnowledgeCategoryDto>> getKnowledgeCategories() {
+    public ApiResponse<List<KnowledgeCategoryDto>> getKnowledgeCategories(
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) String keyword) {
 
-        log.info("获取知识分类请求");
+        log.info("获取知识分类请求: status={}, keyword={}", status, keyword);
 
-        List<KnowledgeCategoryDto> result = knowledgeService.getKnowledgeCategories();
+        List<KnowledgeCategoryDto> result = knowledgeService.getKnowledgeCategories(status, keyword);
 
         return ApiResponse.success(result, "获取分类成功");
     }

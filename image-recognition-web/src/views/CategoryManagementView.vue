@@ -3,6 +3,16 @@
     <div class="page-header">
       <h1 class="page-title">分类管理</h1>
       <a-space>
+        <a-select
+          v-model:value="filterStatus"
+          placeholder="筛选状态"
+          style="width: 120px"
+          @change="handleFilterChange"
+        >
+          <a-select-option :value="undefined">全部</a-select-option>
+          <a-select-option :value="CategoryStatus.ACTIVE">启用</a-select-option>
+          <a-select-option :value="CategoryStatus.INACTIVE">禁用</a-select-option>
+        </a-select>
         <a-input-search
           v-model:value="searchKeyword"
           placeholder="搜索分类"
@@ -170,8 +180,8 @@
           <a-col :span="12">
             <a-form-item label="状态" name="status">
               <a-select v-model:value="formData.status" placeholder="选择状态">
-                <a-select-option value="ACTIVE">启用</a-select-option>
-                <a-select-option value="INACTIVE">禁用</a-select-option>
+                <a-select-option :value="CategoryStatus.ACTIVE">启用</a-select-option>
+                <a-select-option :value="CategoryStatus.INACTIVE">禁用</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -240,6 +250,7 @@ const drawerVisible = ref(false)
 const isEditing = ref(false)
 const selectedCategory = ref<KnowledgeCategory | null>(null)
 const searchKeyword = ref('')
+const filterStatus = ref<number | undefined>(undefined)
 const formRef = ref()
 const fileList = ref([])
 
@@ -332,7 +343,10 @@ const categoryColumns = [
 async function loadCategories() {
   try {
     loading.value = true
-    const response = await KnowledgeAPI.getCategories()
+    const response = await KnowledgeAPI.getCategories(
+      filterStatus.value,
+      searchKeyword.value || undefined
+    )
     categories.value = response.data
     pagination.total = response.data.length
   } catch (error) {
@@ -348,26 +362,19 @@ function formatDateTime(dateTime: string): string {
   return new Date(dateTime).toLocaleString('zh-CN')
 }
 
-// 过滤后的分类列表
-const filteredCategories = computed(() => {
-  let result = categories.value
+// 使用categories作为表格数据源（筛选在后端完成）
+const filteredCategories = computed(() => categories.value)
 
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(item => 
-      item.name.toLowerCase().includes(keyword) ||
-      item.key.toLowerCase().includes(keyword) ||
-      (item.description && item.description.toLowerCase().includes(keyword))
-    )
-  }
-
-  return result
-})
+// 处理筛选变化
+function handleFilterChange() {
+  pagination.current = 1
+  loadCategories()
+}
 
 // 处理搜索
 function handleSearch() {
   pagination.current = 1
+  loadCategories()
 }
 
 // 处理表格变化

@@ -397,4 +397,159 @@ public class UserController {
         }
     }
 
+    // ==================== VIP管理接口 ====================
+
+    @GetMapping("/vip/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserListResponse> getVipUsers(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status) {
+        
+        log.info("管理员获取VIP用户列表: page={}, size={}, keyword={}, level={}, status={}", 
+                page, size, keyword, level, status);
+
+        try {
+            UserListResponse result = userService.getVipUserList(page, size, keyword, level, status);
+            return ApiResponse.success(result, "获取VIP用户列表成功");
+        } catch (Exception e) {
+            log.error("获取VIP用户列表失败", e);
+            return ApiResponse.error("获取VIP用户列表失败");
+        }
+    }
+
+    @GetMapping("/vip/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<VipStatsDto> getVipStats() {
+        log.info("管理员获取VIP统计数据");
+
+        try {
+            VipStatsDto stats = userService.getVipStats();
+            return ApiResponse.success(stats, "获取VIP统计数据成功");
+        } catch (Exception e) {
+            log.error("获取VIP统计数据失败", e);
+            return ApiResponse.error("获取VIP统计数据失败");
+        }
+    }
+
+    @PutMapping("/vip/{id}/extend")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> extendVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Integer days = (Integer) request.get("days");
+        String reason = (String) request.get("reason");
+        log.info("管理员延期VIP: id={}, days={}", id, days);
+
+        try {
+            boolean success = userService.extendVip(id, days, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP延期成功");
+            } else {
+                return ApiResponse.error("VIP延期失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP延期失败", e);
+            return ApiResponse.error("VIP延期失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/vip/{id}/upgrade")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> upgradeVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Integer level = (Integer) request.get("level");
+        String reason = (String) request.get("reason");
+        log.info("管理员升级VIP: id={}, level={}", id, level);
+
+        try {
+            boolean success = userService.upgradeVip(id, level, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP升级成功");
+            } else {
+                return ApiResponse.error("VIP升级失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP升级失败", e);
+            return ApiResponse.error("VIP升级失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/vip/{id}/downgrade")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> downgradeVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        Integer level = (Integer) request.get("level");
+        String reason = (String) request.get("reason");
+        log.info("管理员降级VIP: id={}, level={}", id, level);
+
+        try {
+            boolean success = userService.downgradeVip(id, level, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP降级成功");
+            } else {
+                return ApiResponse.error("VIP降级失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP降级失败", e);
+            return ApiResponse.error("VIP降级失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/vip/{id}/toggle")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> toggleVipStatus(@PathVariable Long id, @RequestBody Map<String, Object> request) {
+        String action = (String) request.get("action");
+        String reason = (String) request.get("reason");
+        log.info("管理员切换VIP状态: id={}, action={}", id, action);
+
+        try {
+            boolean success = userService.toggleVipStatus(id, action, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP状态切换成功");
+            } else {
+                return ApiResponse.error("VIP状态切换失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP状态切换失败", e);
+            return ApiResponse.error("VIP状态切换失败: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/vip/{id}/revoke")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> revokeVip(@PathVariable Long id, @RequestBody(required = false) Map<String, String> request) {
+        String reason = request != null ? request.get("reason") : null;
+        log.info("管理员撤销VIP: id={}", id);
+
+        try {
+            boolean success = userService.revokeVip(id, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP撤销成功");
+            } else {
+                return ApiResponse.error("VIP撤销失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP撤销失败", e);
+            return ApiResponse.error("VIP撤销失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/vip/{id}/reset-usage")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> resetVipUsage(@PathVariable Long id, @RequestBody(required = false) Map<String, String> request) {
+        String reason = request != null ? request.get("reason") : null;
+        log.info("管理员重置VIP用量: id={}", id);
+
+        try {
+            boolean success = userService.resetVipUsage(id, reason);
+            if (success) {
+                return ApiResponse.success(null, "VIP用量重置成功");
+            } else {
+                return ApiResponse.error("VIP用量重置失败");
+            }
+        } catch (Exception e) {
+            log.error("VIP用量重置失败", e);
+            return ApiResponse.error("VIP用量重置失败: " + e.getMessage());
+        }
+    }
+
 }

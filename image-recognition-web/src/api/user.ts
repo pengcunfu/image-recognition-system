@@ -179,6 +179,75 @@ export class UserAPI {
       size: number
     }>(`/api/v1/user/${id}/login-history`, params)
   }
+
+  // ==================== VIP管理接口 ====================
+
+  /**
+   * 获取VIP用户列表
+   */
+  static getVipUsers(params: {
+    page?: number
+    size?: number
+    keyword?: string
+    level?: string
+    status?: string
+  } = {}) {
+    return request.get<UserListResponse>('/api/v1/user/vip/list', params)
+  }
+
+  /**
+   * 获取VIP统计数据
+   */
+  static getVipStats() {
+    return request.get<{
+      total: number
+      active: number
+      expiring: number
+      monthlyRevenue: number
+    }>('/api/v1/user/vip/stats')
+  }
+
+  /**
+   * 延期VIP
+   */
+  static extendVip(id: number, data: { days: number; reason?: string }) {
+    return request.put<void>(`/api/v1/user/vip/${id}/extend`, data)
+  }
+
+  /**
+   * 升级VIP等级
+   */
+  static upgradeVip(id: number, data: { level: number; reason?: string }) {
+    return request.put<void>(`/api/v1/user/vip/${id}/upgrade`, data)
+  }
+
+  /**
+   * 降级VIP等级
+   */
+  static downgradeVip(id: number, data: { level: number; reason?: string }) {
+    return request.put<void>(`/api/v1/user/vip/${id}/downgrade`, data)
+  }
+
+  /**
+   * 暂停/恢复VIP
+   */
+  static toggleVipStatus(id: number, data: { action: 'suspend' | 'resume'; reason?: string }) {
+    return request.put<void>(`/api/v1/user/vip/${id}/toggle`, data)
+  }
+
+  /**
+   * 撤销VIP
+   */
+  static revokeVip(id: number, data: { reason?: string }) {
+    return request.delete<void>(`/api/v1/user/vip/${id}/revoke`, { data })
+  }
+
+  /**
+   * 重置VIP用量
+   */
+  static resetVipUsage(id: number, data: { reason?: string }) {
+    return request.put<void>(`/api/v1/user/vip/${id}/reset-usage`, data)
+  }
 }
 
 // 导出默认实例

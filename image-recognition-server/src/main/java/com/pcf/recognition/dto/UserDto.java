@@ -498,4 +498,18 @@ public class UserDto {
 
         private String reason; // 操作原因
     }
+
+    /**
+     * VIP统计数据DTO
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class VipStatsDto {
+        private Long total; // VIP总数
+        private Long active; // 生效中
+        private Long expiring; // 即将过期（7天内）
+        private Long monthlyRevenue; // 本月收入
+    }
 }

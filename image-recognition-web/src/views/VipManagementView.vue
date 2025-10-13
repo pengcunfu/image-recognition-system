@@ -35,61 +35,45 @@
     </div>
     
     <!-- VIP统计卡片 -->
-    <a-row :gutter="[24, 24]" class="stats-row">
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="stat-card vip-total">
+    <a-row :gutter="[16, 16]" class="stats-row">
+      <a-col :xs="12" :sm="6" :lg="6">
+        <a-card class="stat-card compact-card vip-total">
           <a-statistic
             title="VIP总数"
             :value="vipStats.total"
             suffix="人"
-            :value-style="{ color: '#faad14' }"
+            :value-style="{ color: '#faad14', fontSize: '20px' }"
           />
-          <div class="stat-trend trend-up">
-            <i class="fas fa-arrow-up"></i>
-            <span>+12.5%</span>
-          </div>
         </a-card>
       </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="stat-card vip-active">
+      <a-col :xs="12" :sm="6" :lg="6">
+        <a-card class="stat-card compact-card vip-active">
           <a-statistic
             title="生效中"
             :value="vipStats.active"
             suffix="人"
-            :value-style="{ color: '#52c41a' }"
+            :value-style="{ color: '#52c41a', fontSize: '20px' }"
           />
-          <div class="stat-trend trend-up">
-            <i class="fas fa-arrow-up"></i>
-            <span>+8.3%</span>
-          </div>
         </a-card>
       </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="stat-card vip-expired">
+      <a-col :xs="12" :sm="6" :lg="6">
+        <a-card class="stat-card compact-card vip-expired">
           <a-statistic
             title="即将过期"
             :value="vipStats.expiring"
             suffix="人"
-            :value-style="{ color: '#fa541c' }"
+            :value-style="{ color: '#fa541c', fontSize: '20px' }"
           />
-          <div class="stat-trend trend-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>需关注</span>
-          </div>
         </a-card>
       </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="stat-card vip-revenue">
+      <a-col :xs="12" :sm="6" :lg="6">
+        <a-card class="stat-card compact-card vip-revenue">
           <a-statistic
             title="本月收入"
             :value="vipStats.monthlyRevenue"
             prefix="¥"
-            :value-style="{ color: '#1890ff' }"
+            :value-style="{ color: '#1890ff', fontSize: '20px' }"
           />
-          <div class="stat-trend trend-up">
-            <i class="fas fa-arrow-up"></i>
-            <span>+25.8%</span>
-          </div>
         </a-card>
       </a-col>
     </a-row>
@@ -172,7 +156,7 @@
                   操作 <i class="fas fa-chevron-down"></i>
                 </a-button>
                 <template #overlay>
-                  <a-menu @click="(e) => handleAction(e.key, record)">
+                  <a-menu @click="(e: any) => handleAction(e.key, record)">
                     <a-menu-item key="extend">
                       <i class="fas fa-calendar-plus"></i> 延期
                     </a-menu-item>
@@ -378,6 +362,8 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
+import { UserAPI } from '@/api/user'
+import type { User } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
@@ -452,115 +438,106 @@ const purchaseColumns = [
   { title: '金额', dataIndex: 'amount', key: 'amount' }
 ]
 
-// 模拟VIP用户数据
-const vipUsers = ref([
-  {
-    id: 1,
-    username: '张三',
-    email: 'zhangsan@example.com',
-    avatar: '',
-    vipLevel: 3,
-    status: 'active',
-    startTime: '2024-12-01 10:30',
-    expireTime: '2025-06-01 10:30',
-    daysLeft: 120,
-    purchaseAmount: 999,
-    renewalCount: 2,
-    usage: {
-      recognitions: 8500,
-      batchTasks: 45,
-      apiCalls: 2300
-    },
-    limits: {
-      recognitions: 10000,
-      batchTasks: 50,
-      apiCalls: 5000
-    },
-    purchaseHistory: [
-      { time: '2024-12-01', type: '新购', level: 'VIP 3', duration: '6个月', amount: 999 },
-      { time: '2024-08-15', type: '续费', level: 'VIP 2', duration: '3个月', amount: 599 }
-    ]
-  },
-  {
-    id: 2,
-    username: '李四',
-    email: 'lisi@example.com',
-    avatar: '',
-    vipLevel: 2,
-    status: 'active',
-    startTime: '2025-01-01 14:20',
-    expireTime: '2025-03-01 14:20',
-    daysLeft: 15,
-    purchaseAmount: 599,
-    renewalCount: 0,
-    usage: {
-      recognitions: 4200,
-      batchTasks: 18,
-      apiCalls: 890
-    },
-    limits: {
-      recognitions: 5000,
-      batchTasks: 20,
-      apiCalls: 2000
-    },
-    purchaseHistory: [
-      { time: '2025-01-01', type: '新购', level: 'VIP 2', duration: '2个月', amount: 599 }
-    ]
-  },
-  {
-    id: 3,
-    username: '王五',
-    email: 'wangwu@example.com',
-    avatar: '',
-    vipLevel: 1,
-    status: 'expired',
-    startTime: '2024-11-01 09:15',
-    expireTime: '2025-01-01 09:15',
-    daysLeft: -14,
-    purchaseAmount: 299,
-    renewalCount: 1,
-    usage: {
-      recognitions: 2000,
-      batchTasks: 10,
-      apiCalls: 500
-    },
-    limits: {
-      recognitions: 2000,
-      batchTasks: 10,
-      apiCalls: 1000
-    },
-    purchaseHistory: [
-      { time: '2024-11-01', type: '新购', level: 'VIP 1', duration: '2个月', amount: 299 },
-      { time: '2024-09-01', type: '续费', level: 'VIP 1', duration: '1个月', amount: 199 }
-    ]
-  },
-  {
-    id: 4,
-    username: '赵六',
-    email: 'zhaoliu@example.com',
-    avatar: '',
-    vipLevel: 2,
-    status: 'suspended',
-    startTime: '2024-12-15 16:45',
-    expireTime: '2025-04-15 16:45',
-    daysLeft: 90,
-    purchaseAmount: 599,
-    renewalCount: 0,
-    usage: {
-      recognitions: 1200,
-      batchTasks: 5,
-      apiCalls: 200
-    },
-    limits: {
-      recognitions: 5000,
-      batchTasks: 20,
-      apiCalls: 2000
-    },
-    purchaseHistory: [
-      { time: '2024-12-15', type: '新购', level: 'VIP 2', duration: '4个月', amount: 599 }
-    ]
+// VIP用户数据
+const vipUsers = ref<any[]>([])
+
+// 加载VIP用户数据
+async function loadVipUsers() {
+  try {
+    loading.value = true
+    const response = await UserAPI.getVipUsers({
+      page: pagination.current,
+      size: pagination.pageSize,
+      keyword: searchKeyword.value || undefined,
+      level: filterLevel.value || undefined,
+      status: filterStatus.value || undefined
+    })
+    
+    vipUsers.value = response.data.users.map(user => ({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatar: user.avatar,
+      vipLevel: user.vipLevel,
+      status: getVipStatus(user),
+      startTime: formatDateTime(user.createTime),
+      expireTime: user.vipExpireTime ? formatDateTime(user.vipExpireTime) : '永久',
+      daysLeft: calculateDaysLeft(user.vipExpireTime),
+      purchaseAmount: 0, // 需要从订单系统获取
+      renewalCount: 0, // 需要从订单系统获取
+      usage: {
+        recognitions: 0, // 需要从使用统计获取
+        batchTasks: 0,
+        apiCalls: 0
+      },
+      limits: getVipLimits(user.vipLevel || 0),
+      purchaseHistory: [] // 需要从订单系统获取
+    }))
+    
+    pagination.total = response.data.total
+    pagination.current = response.data.page
+  } catch (error) {
+    console.error('加载VIP用户失败:', error)
+    message.error('加载VIP用户失败')
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// 加载VIP统计数据
+async function loadVipStats() {
+  try {
+    const response = await UserAPI.getVipStats()
+    Object.assign(vipStats, response.data)
+  } catch (error) {
+    console.error('加载VIP统计失败:', error)
+  }
+}
+
+// 获取VIP状态
+function getVipStatus(user: User) {
+  if (user.status === 'BANNED') return 'suspended'
+  if (user.status === 'INACTIVE') return 'suspended'
+  if (!user.vipExpireTime) return 'active'
+  
+  const expireDate = new Date(user.vipExpireTime)
+  const now = new Date()
+  
+  if (expireDate < now) return 'expired'
+  return 'active'
+}
+
+// 计算剩余天数
+function calculateDaysLeft(expireTime?: string) {
+  if (!expireTime) return 999999 // 永久VIP
+  
+  const expireDate = new Date(expireTime)
+  const now = new Date()
+  const diffTime = expireDate.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  return diffDays
+}
+
+// 获取VIP等级限制
+function getVipLimits(level: number) {
+  switch (level) {
+    case 1:
+      return { recognitions: 2000, batchTasks: 10, apiCalls: 1000 }
+    case 2:
+      return { recognitions: 5000, batchTasks: 20, apiCalls: 2000 }
+    case 3:
+      return { recognitions: 10000, batchTasks: 50, apiCalls: 5000 }
+    default:
+      return { recognitions: 1000, batchTasks: 5, apiCalls: 500 }
+  }
+}
+
+// 格式化日期时间
+function formatDateTime(dateTime?: string) {
+  if (!dateTime) return ''
+  return new Date(dateTime).toLocaleString('zh-CN')
+}
 
 // 过滤后的VIP用户列表
 const filteredVips = computed(() => {
@@ -643,21 +620,6 @@ function getProgressColor(percent: number) {
   return '#52c41a'
 }
 
-// 处理筛选变化
-function handleFilterChange() {
-  pagination.current = 1
-}
-
-// 处理搜索
-function handleSearch() {
-  pagination.current = 1
-}
-
-// 处理表格变化
-function handleTableChange(pag: any) {
-  pagination.current = pag.current
-  pagination.pageSize = pag.pageSize
-}
 
 // 查看VIP详情
 function viewVipDetail(vip: any) {
@@ -699,21 +661,30 @@ function extendVip(vip: any) {
 }
 
 // 处理延期
-function handleExtend() {
+async function handleExtend() {
   if (!extendDays.value || extendDays.value <= 0) {
     message.error('请输入有效的延期天数')
     return
   }
   
-  // 这里应该调用API
-  message.success(`已为用户 ${selectedVip.value.username} 延期 ${extendDays.value} 天`)
-  extendModalVisible.value = false
-  extendDays.value = 30
-  extendReason.value = ''
+  try {
+    await UserAPI.extendVip(selectedVip.value.id, {
+      days: extendDays.value,
+      reason: extendReason.value
+    })
+    message.success(`已为用户 ${selectedVip.value.username} 延期 ${extendDays.value} 天`)
+    extendModalVisible.value = false
+    extendDays.value = 30
+    extendReason.value = ''
+    loadVipUsers() // 重新加载数据
+  } catch (error) {
+    console.error('延期VIP失败:', error)
+    message.error('延期VIP失败')
+  }
 }
 
 // 升级VIP
-function upgradeVip(vip: any) {
+async function upgradeVip(vip: any) {
   if (vip.vipLevel >= 3) {
     message.warning('已是最高等级VIP')
     return
@@ -722,15 +693,24 @@ function upgradeVip(vip: any) {
   Modal.confirm({
     title: '确认升级',
     content: `确定要将用户 ${vip.username} 的VIP等级从 VIP ${vip.vipLevel} 升级到 VIP ${vip.vipLevel + 1} 吗？`,
-    onOk() {
-      vip.vipLevel += 1
-      message.success('VIP等级升级成功')
+    async onOk() {
+      try {
+        await UserAPI.upgradeVip(vip.id, {
+          level: vip.vipLevel + 1,
+          reason: '管理员手动升级'
+        })
+        message.success('VIP等级升级成功')
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('升级VIP失败:', error)
+        message.error('升级VIP失败')
+      }
     }
   })
 }
 
 // 降级VIP
-function downgradeVip(vip: any) {
+async function downgradeVip(vip: any) {
   if (vip.vipLevel <= 1) {
     message.warning('已是最低等级VIP')
     return
@@ -739,73 +719,129 @@ function downgradeVip(vip: any) {
   Modal.confirm({
     title: '确认降级',
     content: `确定要将用户 ${vip.username} 的VIP等级从 VIP ${vip.vipLevel} 降级到 VIP ${vip.vipLevel - 1} 吗？`,
-    onOk() {
-      vip.vipLevel -= 1
-      message.success('VIP等级降级成功')
+    async onOk() {
+      try {
+        await UserAPI.downgradeVip(vip.id, {
+          level: vip.vipLevel - 1,
+          reason: '管理员手动降级'
+        })
+        message.success('VIP等级降级成功')
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('降级VIP失败:', error)
+        message.error('降级VIP失败')
+      }
     }
   })
 }
 
 // 暂停VIP
-function suspendVip(vip: any) {
+async function suspendVip(vip: any) {
   Modal.confirm({
     title: '确认暂停',
     content: `确定要暂停用户 ${vip.username} 的VIP服务吗？`,
-    onOk() {
-      vip.status = 'suspended'
-      message.success('VIP服务已暂停')
+    async onOk() {
+      try {
+        await UserAPI.toggleVipStatus(vip.id, {
+          action: 'suspend',
+          reason: '管理员手动暂停'
+        })
+        message.success('VIP服务已暂停')
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('暂停VIP失败:', error)
+        message.error('暂停VIP失败')
+      }
     }
   })
 }
 
 // 恢复VIP
-function resumeVip(vip: any) {
+async function resumeVip(vip: any) {
   Modal.confirm({
     title: '确认恢复',
     content: `确定要恢复用户 ${vip.username} 的VIP服务吗？`,
-    onOk() {
-      vip.status = 'active'
-      message.success('VIP服务已恢复')
+    async onOk() {
+      try {
+        await UserAPI.toggleVipStatus(vip.id, {
+          action: 'resume',
+          reason: '管理员手动恢复'
+        })
+        message.success('VIP服务已恢复')
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('恢复VIP失败:', error)
+        message.error('恢复VIP失败')
+      }
     }
   })
 }
 
 // 重置用量
-function resetUsage(vip: any) {
+async function resetUsage(vip: any) {
   Modal.confirm({
     title: '确认重置',
     content: `确定要重置用户 ${vip.username} 的使用量吗？`,
-    onOk() {
-      vip.usage = {
-        recognitions: 0,
-        batchTasks: 0,
-        apiCalls: 0
+    async onOk() {
+      try {
+        await UserAPI.resetVipUsage(vip.id, {
+          reason: '管理员手动重置'
+        })
+        message.success('使用量已重置')
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('重置用量失败:', error)
+        message.error('重置用量失败')
       }
-      message.success('使用量已重置')
     }
   })
 }
 
 // 撤销VIP
-function revokeVip(vip: any) {
+async function revokeVip(vip: any) {
   Modal.confirm({
     title: '确认撤销',
     content: `确定要撤销用户 ${vip.username} 的VIP资格吗？此操作不可恢复！`,
     okType: 'danger',
-    onOk() {
-      const index = vipUsers.value.findIndex(v => v.id === vip.id)
-      if (index > -1) {
-        vipUsers.value.splice(index, 1)
+    async onOk() {
+      try {
+        await UserAPI.revokeVip(vip.id, {
+          reason: '管理员手动撤销'
+        })
         message.success('VIP资格已撤销')
         drawerVisible.value = false
+        loadVipUsers() // 重新加载数据
+      } catch (error) {
+        console.error('撤销VIP失败:', error)
+        message.error('撤销VIP失败')
       }
     }
   })
 }
 
+// 处理筛选变化
+function handleFilterChange() {
+  pagination.current = 1
+  loadVipUsers()
+}
+
+// 处理搜索
+function handleSearch() {
+  pagination.current = 1
+  loadVipUsers()
+}
+
+// 处理表格变化
+function handleTableChange(pag: any) {
+  pagination.current = pag.current
+  pagination.pageSize = pag.pageSize
+  loadVipUsers()
+}
+
 // 组件挂载
 onMounted(() => {
-  pagination.total = vipUsers.value.length
+  loadVipUsers()
+  loadVipStats()
 })
 </script>
 
@@ -834,29 +870,30 @@ onMounted(() => {
 }
 
 .stat-card {
-  border-left: 4px solid;
   transition: all 0.3s ease;
+  border-radius: 8px;
 }
 
 .stat-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
-.vip-total {
-  border-left-color: #faad14;
+.compact-card {
+  padding: 8px;
 }
 
-.vip-active {
-  border-left-color: #52c41a;
+.compact-card :deep(.ant-card-body) {
+  padding: 16px;
 }
 
-.vip-expired {
-  border-left-color: #fa541c;
+.compact-card :deep(.ant-statistic-title) {
+  font-size: 12px;
+  margin-bottom: 4px;
 }
 
-.vip-revenue {
-  border-left-color: #1890ff;
+.compact-card :deep(.ant-statistic-content) {
+  font-size: 18px;
 }
 
 .stat-trend {

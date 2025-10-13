@@ -186,8 +186,9 @@ public class CommunityService {
     /**
      * 管理员获取所有帖子（包括所有状态）
      */
-    public PostListResponseDto getAdminPosts(int page, int size, String category, String status, String sort) {
-        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, sort={}", page, size, category, status, sort);
+    public PostListResponseDto getAdminPosts(int page, int size, String category, String status, String keyword, String sort) {
+        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, keyword={}, sort={}", 
+                 page, size, category, status, keyword, sort);
 
         Page<CommunityPost> pageRequest = new Page<>(page, size);
 
@@ -205,6 +206,15 @@ public class CommunityService {
 
         if (category != null && !category.isEmpty()) {
             queryWrapper.eq(CommunityPost::getCategory, category);
+        }
+
+        // 关键词搜索（搜索标题和内容）
+        if (keyword != null && !keyword.isEmpty()) {
+            queryWrapper.and(wrapper -> wrapper
+                .like(CommunityPost::getTitle, keyword)
+                .or()
+                .like(CommunityPost::getContent, keyword)
+            );
         }
 
         // 排序

@@ -177,12 +177,14 @@ public class CommunityController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "latest") String sort) {
 
-        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, sort={}", page, size, category, status, sort);
+        log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, keyword={}, sort={}", 
+                 page, size, category, status, keyword, sort);
 
         try {
-            PostListResponseDto result = communityService.getAdminPosts(page, size, category, status, sort);
+            PostListResponseDto result = communityService.getAdminPosts(page, size, category, status, keyword, sort);
             return ApiResponse.success(result, "获取帖子列表成功");
         } catch (Exception e) {
             log.error("获取帖子列表失败", e);

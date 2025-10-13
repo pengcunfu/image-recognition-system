@@ -373,6 +373,7 @@ export class CommunityAPI {
     size?: number
     category?: string
     status?: string
+    keyword?: string
     sort?: string
   }) {
     return request.get<PostListResponse>('/api/v1/community/admin/posts', { params })

@@ -10,10 +10,11 @@
           @change="handleFilterChange"
         >
           <a-select-option value="">全部</a-select-option>
-          <a-select-option value="published">已发布</a-select-option>
-          <a-select-option value="pending">待审核</a-select-option>
-          <a-select-option value="rejected">已拒绝</a-select-option>
-          <a-select-option value="hidden">已隐藏</a-select-option>
+          <a-select-option value="PUBLISHED">已发布</a-select-option>
+          <a-select-option value="PENDING">待审核</a-select-option>
+          <a-select-option value="REJECTED">已拒绝</a-select-option>
+          <a-select-option value="HIDDEN">已隐藏</a-select-option>
+          <a-select-option value="DRAFT">草稿</a-select-option>
         </a-select>
         <a-input-search
           v-model:value="searchKeyword"
@@ -259,6 +260,7 @@ async function loadPosts() {
       page: pagination.current,
       size: pagination.pageSize,
       status: filterStatus.value || undefined,
+      keyword: searchKeyword.value || undefined,
       sort: 'latest'
     })
     

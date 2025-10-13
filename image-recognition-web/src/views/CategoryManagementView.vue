@@ -243,7 +243,9 @@ import KnowledgeAPI from '@/api/knowledge'
 import FileAPI from '@/api/file'
 import type { KnowledgeCategory } from '@/api/types'
 import { CategoryStatus } from '@/api/types'
-import { getImageUrl } from '@/utils/image'
+
+// 使用 FileAPI.getImageUrl 替代 utils/image 中的 getImageUrl
+const getImageUrl = FileAPI.getImageUrl
 
 // 响应式数据
 const loading = ref(false)

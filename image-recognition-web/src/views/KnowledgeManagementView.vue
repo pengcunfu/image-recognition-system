@@ -622,7 +622,7 @@ async function duplicateKnowledge(knowledge: KnowledgeItem) {
     const duplicateData = {
       name: `${knowledge.name}（副本）`,
       categoryId: knowledge.categoryId,
-      description: knowledge.description || '',
+        description: knowledge.description || '',
       content: knowledge.content || '',
       images: knowledge.images,
       tags: knowledge.tags,
@@ -641,9 +641,9 @@ async function duplicateKnowledge(knowledge: KnowledgeItem) {
 
 // 删除知识
 function deleteKnowledge(knowledge: KnowledgeItem) {
-  Modal.confirm({
+  Modal.confirm({ 
     title: '确认删除',
-    content: `确定要删除知识"${knowledge.name}"吗？此操作不可恢复！`,
+    content: `确定要删除知识"${knowledge.name}"吗？此操作不可恢复！`,   
     okType: 'danger',
     async onOk() {
       try {
@@ -654,11 +654,11 @@ function deleteKnowledge(knowledge: KnowledgeItem) {
         console.error('删除知识失败:', error)
         message.error(error.message || '删除失败')
       }
-    }
+    } 
   })
 }
 
-// 重置表单
+// 重置表单     
 function resetForm() {
   Object.assign(formData, {
     id: null,

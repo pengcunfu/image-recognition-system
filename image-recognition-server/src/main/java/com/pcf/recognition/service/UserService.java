@@ -5,6 +5,8 @@ import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Map;
 
 /**
@@ -230,31 +233,78 @@ public class UserService {
     public UserListResponse getUserList(Integer page, Integer size, String keyword, String role, String status, String sortBy, String sortOrder) {
         log.info("管理员获取用户列表: page={}, size={}, keyword={}, role={}, status={}", page, size, keyword, role, status);
         
-        // 模拟用户列表数据，实际项目中应该从数据库查询
-        List<UserListItem> users = new ArrayList<>();
+        // 构建查询条件
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         
-        // 模拟数据
-        for (int i = 1; i <= size; i++) {
-            users.add(UserListItem.builder()
-                    .id((long) i)
-                    .username("user" + i)
-                    .name("用户" + i)
-                    .email("user" + i + "@example.com")
-                    .avatar("/api/v1/images/avatar" + i + ".jpg")
-                    .role(i % 3 == 0 ? "ADMIN" : (i % 2 == 0 ? "VIP" : "USER"))
-                    .status(i % 10 == 0 ? "BANNED" : "ACTIVE")
-                    .vipLevel(i % 2 == 0 ? (i % 5 + 1) : null)
-                    .createTime(LocalDateTime.now().minusDays(i))
-                    .lastLoginTime(LocalDateTime.now().minusHours(i))
-                    .build());
+        // 关键词搜索（用户名、邮箱、姓名）
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            queryWrapper.and(wrapper -> wrapper
+                    .like(User::getUsername, keyword)
+                    .or().like(User::getEmail, keyword)
+                    .or().like(User::getName, keyword)
+            );
         }
+        
+        // 角色筛选
+        if (role != null && !role.trim().isEmpty()) {
+            queryWrapper.eq(User::getRole, role);
+        }
+        
+        // 状态筛选
+        if (status != null && !status.trim().isEmpty()) {
+            queryWrapper.eq(User::getStatus, status);
+        }
+        
+        // 排序
+        if ("createTime".equals(sortBy)) {
+            if ("desc".equals(sortOrder)) {
+                queryWrapper.orderByDesc(User::getCreateTime);
+            } else {
+                queryWrapper.orderByAsc(User::getCreateTime);
+            }
+        } else if ("updateTime".equals(sortBy)) {
+            if ("desc".equals(sortOrder)) {
+                queryWrapper.orderByDesc(User::getUpdateTime);
+            } else {
+                queryWrapper.orderByAsc(User::getUpdateTime);
+            }
+        } else if ("lastLoginTime".equals(sortBy)) {
+            if ("desc".equals(sortOrder)) {
+                queryWrapper.orderByDesc(User::getLastLoginTime);
+            } else {
+                queryWrapper.orderByAsc(User::getLastLoginTime);
+            }
+        } else {
+            // 默认按创建时间倒序
+            queryWrapper.orderByDesc(User::getCreateTime);
+        }
+        
+        // 分页查询
+        Page<User> pageRequest = new Page<>(page, size);
+        Page<User> userPage = userRepository.selectPage(pageRequest, queryWrapper);
+        
+        // 转换为DTO
+        List<UserListItem> users = userPage.getRecords().stream()
+                .<UserListItem>map(user -> UserListItem.builder()
+                        .id(user.getId())
+                        .username(user.getUsername())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .avatar(user.getAvatar())
+                        .role(user.getRole().toString())
+                        .status(user.getStatus().toString())
+                        .vipLevel(user.getVipLevel())
+                        .createTime(user.getCreateTime())
+                        .lastLoginTime(user.getLastLoginTime())
+                        .build())
+                .collect(Collectors.toList());
         
         return UserListResponse.builder()
                 .users(users)
-                .total(100L) // 模拟总数
-                .page(page)
-                .size(size)
-                .totalPages((int) Math.ceil(100.0 / size))
+                .total(userPage.getTotal())
+                .page((int) userPage.getCurrent())
+                .size((int) userPage.getSize())
+                .totalPages((int) userPage.getPages())
                 .build();
     }
 

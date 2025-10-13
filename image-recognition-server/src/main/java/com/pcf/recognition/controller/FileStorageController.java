@@ -157,7 +157,7 @@ public class FileStorageController {
 
 
     @GetMapping("/{fileId}/info")
-    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
+    // 公开接口，无需权限验证
     public ApiResponse<FileInfo> getFileInfo(
 
             @PathVariable String fileId) {

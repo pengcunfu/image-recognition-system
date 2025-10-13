@@ -65,10 +65,9 @@ public class SecurityConfig {
                                 "/api/v1/recognition/health",
                                 "/api/v1/recognition/modes",
 
-                                // 知识库公开内容
-                                "/api/v1/knowledge/categories",
+                                // 知识库公开内容（只允许列表和搜索，详情需要权限）
+                                "/api/v1/knowledge/categories",  // 只允许获取分类列表
                                 "/api/v1/knowledge/items",
-                                "/api/v1/knowledge/items/*",
                                 "/api/v1/knowledge/search",
                                 "/api/v1/knowledge/popular",
                                 "/api/v1/knowledge/latest",

@@ -35,21 +35,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                   FilterChain filterChain) throws ServletException, IOException {
         
         String requestPath = request.getRequestURI();
-        log.debug("JWT过滤器处理请求: {}", requestPath);
+        log.info("JWT过滤器处理请求: {}", requestPath);
 
         try {
             // 从请求头中获取Token
             String token = extractTokenFromRequest(request);
             
             if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                log.info("发现Token，开始验证: {}", token.substring(0, Math.min(20, token.length())) + "...");
+                
                 // 验证Token格式
                 if (jwtUtil.validateToken(token)) {
+                    log.info("Token格式验证通过");
+                    
                     // 验证Token是否在Redis中存在（检查是否已被注销）
                     if (authService.isTokenValidInRedis(token)) {
+                        log.info("Token在Redis中有效");
+                        
                         // 从Redis中获取用户信息
                         UserInfoDto userInfo = authService.getUserInfoFromRedis(token);
                         
                         if (userInfo != null) {
+                            log.info("从Redis获取用户信息成功: userId={}, username={}, role={}", 
+                                    userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
+                            
                             // 创建自定义用户主体
                             CustomUserPrincipal userPrincipal = new CustomUserPrincipal(userInfo);
                             
@@ -67,17 +76,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             // 设置到Spring Security上下文
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                             
-                            log.debug("JWT认证成功: userId={}, username={}, role={}", 
-                                    userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
+                            log.info("JWT认证成功，权限: {}", userPrincipal.getAuthorities());
                         } else {
-                            log.warn("从Redis获取用户信息失败: token={}", token);
+                            log.warn("从Redis获取用户信息失败: token={}", token.substring(0, Math.min(10, token.length())) + "...");
                         }
                     } else {
-                        log.warn("Token在Redis中不存在或已失效: token={}", token);
+                        log.warn("Token在Redis中不存在或已失效");
                     }
                 } else {
-                    log.warn("Token格式无效: token={}", token);
+                    log.warn("Token格式无效");
                 }
+            } else if (token == null) {
+                log.info("请求中没有找到Token");
+            } else {
+                log.info("SecurityContext中已存在认证信息");
             }
         } catch (Exception e) {
             log.error("JWT认证过程中发生异常: path={}", requestPath, e);
@@ -109,28 +121,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * 判断是否跳过JWT认证
-     * 对于公开接口，可以跳过JWT认证
+     * 只跳过真正不需要任何认证的公开接口
+     * 权限控制应该由SecurityConfig和@PreAuthorize注解处理
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         
-        // 对于公开接口，跳过JWT认证
-        return path.startsWith("/api/v1/auth/login") ||
-               path.startsWith("/api/v1/auth/register") ||
-               path.startsWith("/api/v1/auth/captcha") ||
-               path.startsWith("/api/v1/auth/email-code") ||
-               path.startsWith("/api/v1/auth/forgot-password") ||
-               path.startsWith("/api/v1/knowledge/categories") ||
-               path.startsWith("/api/v1/knowledge/items") ||
-               path.startsWith("/api/v1/knowledge/search") ||
-               path.startsWith("/api/v1/knowledge/popular") ||
-               path.startsWith("/api/v1/knowledge/latest") ||
-               path.startsWith("/api/v1/knowledge/stats") ||
-               path.startsWith("/api/v1/community/posts") ||
-               path.startsWith("/api/v1/files/download") ||
-               path.startsWith("/api/v1/files/image") ||
-               path.startsWith("/static/") ||
+        // 只跳过完全公开的接口，让SecurityConfig处理权限控制
+        return path.startsWith("/static/") ||
                path.startsWith("/public/") ||
                path.startsWith("/swagger-ui/") ||
                path.startsWith("/v3/api-docs/") ||

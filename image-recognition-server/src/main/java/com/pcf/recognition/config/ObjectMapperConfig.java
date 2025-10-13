@@ -36,8 +36,8 @@ public class ObjectMapperConfig {
         // 禁用将日期写为时间戳数组的特性
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        // 配置属性命名策略
-        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        // 配置属性命名策略 - 使用驼峰命名，与前端保持一致
+        mapper.setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
 
         return mapper;
     }

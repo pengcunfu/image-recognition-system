@@ -1,7 +1,11 @@
 package com.pcf.recognition.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pcf.recognition.dto.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * Spring Security 配置
  * 配置系统的安全策略和权限控制
  */
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
@@ -115,6 +120,37 @@ public class SecurityConfig {
 
                         // 其他所有请求都需要认证
                         .anyRequest().authenticated()
+                )
+                // 配置异常处理
+                .exceptionHandling(exceptions -> exceptions
+                        // 处理认证失败（401）
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            log.warn("认证失败: {} - {}", request.getRequestURI(), authException.getMessage());
+                            
+                            response.setStatus(200); // 返回200状态码
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+                            
+                            ApiResponse<Object> apiResponse = ApiResponse.error(401, "认证失败，请先登录");
+                            
+                            ObjectMapper objectMapper = new ObjectMapper();
+                            String jsonResponse = objectMapper.writeValueAsString(apiResponse);
+                            response.getWriter().write(jsonResponse);
+                        })
+                        // 处理权限不足（403）
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            log.warn("访问被拒绝: {} - {}", request.getRequestURI(), accessDeniedException.getMessage());
+                            
+                            response.setStatus(200); // 返回200状态码
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+                            
+                            ApiResponse<Object> apiResponse = ApiResponse.error(403, "访问被拒绝，权限不足");
+                            
+                            ObjectMapper objectMapper = new ObjectMapper();
+                            String jsonResponse = objectMapper.writeValueAsString(apiResponse);
+                            response.getWriter().write(jsonResponse);
+                        })
                 );
 
         return http.build();

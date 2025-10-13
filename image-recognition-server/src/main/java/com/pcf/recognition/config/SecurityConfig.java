@@ -79,10 +79,7 @@ public class SecurityConfig {
                                 "/api/v1/community/posts/*/comments",
 
                                 // 文件访问（预览、下载、获取文件信息）
-                                "/api/v1/files/*/preview",
-                                "/api/v1/files/*/download",
-                                "/api/v1/files/*/info",
-                                "/api/v1/files/*",
+                                "/api/v1/files/**",
 
                                 // Swagger文档
                                 "/swagger-ui/**",

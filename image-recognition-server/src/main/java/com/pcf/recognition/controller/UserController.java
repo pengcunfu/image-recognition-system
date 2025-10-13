@@ -208,4 +208,206 @@ public class UserController {
         return ApiResponse.success(activities, "获取活动记录成功");
     }
 
+    // ==================== 管理员用户管理接口 ====================
+
+    @GetMapping("/admin/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserListResponseDto> getUsers(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "createTime") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortOrder) {
+        
+        log.info("管理员获取用户列表: page={}, size={}, keyword={}, role={}, status={}", 
+                page, size, keyword, role, status);
+
+        try {
+            UserListResponseDto result = userService.getUserList(page, size, keyword, role, status, sortBy, sortOrder);
+            return ApiResponse.success(result, "获取用户列表成功");
+        } catch (Exception e) {
+            log.error("获取用户列表失败", e);
+            return ApiResponse.error("获取用户列表失败");
+        }
+    }
+
+    @GetMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserInfoDto> getUserDetail(@PathVariable Long id) {
+        log.info("管理员获取用户详情: id={}", id);
+
+        try {
+            UserInfoDto userInfo = userService.getUserInfo(id);
+            if (userInfo != null) {
+                return ApiResponse.success(userInfo, "获取用户详情成功");
+            } else {
+                return ApiResponse.error("用户不存在");
+            }
+        } catch (Exception e) {
+            log.error("获取用户详情失败", e);
+            return ApiResponse.error("获取用户详情失败");
+        }
+    }
+
+    @PostMapping("/admin/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CreateUserResponseDto> createUser(@Valid @RequestBody AdminUserCreateRequest request) {
+        log.info("管理员创建用户: username={}, email={}, role={}", 
+                request.getUsername(), request.getEmail(), request.getRole());
+
+        try {
+            CreateUserResponseDto result = userService.createUser(request);
+            if (result.getSuccess()) {
+                return ApiResponse.success(result, "用户创建成功");
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("创建用户失败", e);
+            return ApiResponse.error("创建用户失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUserUpdateRequest request) {
+        log.info("管理员更新用户: id={}", id);
+
+        try {
+            boolean success = userService.updateUser(id, request);
+            if (success) {
+                return ApiResponse.success(null, "用户更新成功");
+            } else {
+                return ApiResponse.error("用户不存在或更新失败");
+            }
+        } catch (Exception e) {
+            log.error("更新用户失败", e);
+            return ApiResponse.error("更新用户失败: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
+        log.info("管理员删除用户: id={}", id);
+
+        try {
+            boolean success = userService.deleteUser(id);
+            if (success) {
+                return ApiResponse.success(null, "用户删除成功");
+            } else {
+                return ApiResponse.error("用户不存在或删除失败");
+            }
+        } catch (Exception e) {
+            log.error("删除用户失败", e);
+            return ApiResponse.error("删除用户失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/admin/users/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> toggleUserStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String status = request.get("status");
+        log.info("管理员切换用户状态: id={}, status={}", id, status);
+
+        try {
+            boolean success = userService.updateUserStatus(id, status);
+            if (success) {
+                return ApiResponse.success(null, "用户状态更新成功");
+            } else {
+                return ApiResponse.error("用户不存在或状态更新失败");
+            }
+        } catch (Exception e) {
+            log.error("更新用户状态失败", e);
+            return ApiResponse.error("更新用户状态失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/admin/users/{id}/password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String newPassword = request.get("newPassword");
+        log.info("管理员重置用户密码: id={}", id);
+
+        try {
+            boolean success = userService.resetUserPassword(id, newPassword);
+            if (success) {
+                return ApiResponse.success(null, "密码重置成功");
+            } else {
+                return ApiResponse.error("用户不存在或密码重置失败");
+            }
+        } catch (Exception e) {
+            log.error("重置用户密码失败", e);
+            return ApiResponse.error("重置密码失败: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/admin/users/batch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<BatchOperationResultDto> batchUpdateUsers(@RequestBody BatchUserOperationRequest request) {
+        log.info("管理员批量操作用户: action={}, userIds={}", request.getAction(), request.getUserIds());
+
+        try {
+            BatchOperationResultDto result = userService.batchUpdateUsers(request.getUserIds(), request.getAction());
+            return ApiResponse.success(result, "批量操作完成");
+        } catch (Exception e) {
+            log.error("批量操作用户失败", e);
+            return ApiResponse.error("批量操作失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/admin/users/overview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserOverviewDto> getUsersOverview() {
+        log.info("管理员获取用户概览");
+
+        try {
+            UserOverviewDto overview = userService.getUsersOverview();
+            return ApiResponse.success(overview, "获取用户概览成功");
+        } catch (Exception e) {
+            log.error("获取用户概览失败", e);
+            return ApiResponse.error("获取用户概览失败");
+        }
+    }
+
+    @GetMapping("/admin/users/search")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserListResponseDto> searchUsers(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status) {
+        
+        log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
+
+        try {
+            UserListResponseDto result = userService.searchUsers(keyword, page, size, role, status);
+            return ApiResponse.success(result, "搜索用户成功");
+        } catch (Exception e) {
+            log.error("搜索用户失败", e);
+            return ApiResponse.error("搜索用户失败");
+        }
+    }
+
+    @GetMapping("/admin/users/{id}/login-history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<UserLoginHistoryDto> getUserLoginHistory(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        
+        log.info("管理员获取用户登录历史: id={}, page={}, size={}", id, page, size);
+
+        try {
+            UserLoginHistoryDto history = userService.getUserLoginHistory(id, page, size);
+            return ApiResponse.success(history, "获取登录历史成功");
+        } catch (Exception e) {
+            log.error("获取用户登录历史失败", e);
+            return ApiResponse.error("获取登录历史失败");
+        }
+    }
+
 }

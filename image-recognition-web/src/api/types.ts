@@ -33,6 +33,134 @@ export interface UserInfo {
   vipExpireTime?: string
 }
 
+// ==================== 用户管理相关类型 ====================
+
+// 用户基本信息
+export interface User {
+  id: number
+  username: string
+  email: string
+  phone?: string
+  name?: string
+  avatar?: string
+  role: 'USER' | 'VIP' | 'ADMIN'
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  vipLevel?: number
+  vipExpireTime?: string
+  createTime: string
+  updateTime: string
+  lastLoginTime?: string
+  lastLoginIp?: string
+}
+
+// 用户列表响应
+export interface UserListResponse {
+  users: User[]
+  total: number
+  page: number
+  size: number
+  totalPages: number
+}
+
+// 用户统计信息
+export interface UserStats {
+  totalRecognitions: number
+  totalUploads: number
+  totalFavorites: number
+  totalShares: number
+  joinDays: number
+  lastActiveTime: string
+  monthlyUsage: {
+    recognitions: number
+    uploads: number
+  }
+  weeklyActivity: Array<{
+    date: string
+    count: number
+  }>
+}
+
+// 用户设置
+export interface UserSettings {
+  emailNotifications: boolean
+  smsNotifications: boolean
+  theme: 'light' | 'dark' | 'auto'
+  language: 'zh-CN' | 'en-US'
+  timezone: string
+  privacy: {
+    showEmail: boolean
+    showPhone: boolean
+    allowSearch: boolean
+  }
+}
+
+// 用户活动记录
+export interface UserActivity {
+  id: number
+  type: 'LOGIN' | 'RECOGNITION' | 'UPLOAD' | 'FAVORITE' | 'SHARE' | 'COMMENT'
+  description: string
+  metadata?: Record<string, any>
+  createTime: string
+  ip?: string
+  userAgent?: string
+}
+
+// 用户更新请求
+export interface UserUpdateRequest {
+  name?: string
+  email?: string
+  phone?: string
+  avatar?: string
+}
+
+// 修改密码请求
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+  confirmPassword?: string
+}
+
+// 管理员用户创建请求
+export interface AdminUserCreateRequest {
+  username: string
+  email: string
+  password: string
+  name?: string
+  phone?: string
+  role: 'USER' | 'VIP' | 'ADMIN'
+  status?: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  vipLevel?: number
+}
+
+// 管理员用户更新请求
+export interface AdminUserUpdateRequest {
+  username?: string
+  email?: string
+  name?: string
+  phone?: string
+  role?: 'USER' | 'VIP' | 'ADMIN'
+  status?: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  vipLevel?: number
+  vipExpireTime?: string
+}
+
+// 用户查询参数
+export interface UserQueryParams {
+  page?: number
+  size?: number
+  keyword?: string
+  role?: 'USER' | 'VIP' | 'ADMIN'
+  status?: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  sortBy?: 'createTime' | 'lastLoginTime' | 'username'
+  sortOrder?: 'asc' | 'desc'
+}
+
+// 批量用户操作请求
+export interface BatchUserOperationRequest {
+  userIds: number[]
+  action: 'delete' | 'activate' | 'deactivate' | 'ban'
+}
+
 // ==================== 认证相关类型 ====================
 
 // 登录请求

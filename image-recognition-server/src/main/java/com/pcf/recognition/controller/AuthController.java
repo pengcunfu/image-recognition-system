@@ -65,8 +65,8 @@ public class AuthController {
             // 3. 生成JWT Token（Controller层负责Token管理）
             String token = jwtUtil.generateToken(userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
 
-            // 4. 将Token存储到Redis（Controller层负责Token存储）
-            authService.storeTokenToRedis(token, userInfo.getId(), userInfo.getUsername(), userInfo.getRole());
+            // 4. 将Token和用户信息存储到Redis（Controller层负责Token存储）
+            authService.storeTokenToRedis(token, userInfo);
 
             // 5. 构建登录响应
             LoginResponseDto result = LoginResponseDto.builder()
@@ -243,13 +243,18 @@ public class AuthController {
             // 刷新Token过期时间（活跃用户延长会话）
             authService.refreshTokenExpiry(token);
 
-            // 构建用户信息（实际项目中应该从数据库获取最新信息）
-            UserInfoDto userInfo = UserInfoDto.builder()
-                    .id(userId)
-                    .username(username)
-                    .name(username) // 简化处理，实际应从数据库获取
-                    .role(role)
-                    .build();
+            // 从Redis中获取用户信息（包含完整的用户数据）
+            UserInfoDto userInfo = authService.getUserInfoFromRedis(token);
+            
+            if (userInfo == null) {
+                // 如果Redis中没有用户信息，从Token中构建基本信息
+                userInfo = UserInfoDto.builder()
+                        .id(userId)
+                        .username(username)
+                        .name(username) // 简化处理，实际应从数据库获取
+                        .role(role)
+                        .build();
+            }
 
             return ApiResponse.success(userInfo, "Token验证成功");
         } catch (Exception e) {

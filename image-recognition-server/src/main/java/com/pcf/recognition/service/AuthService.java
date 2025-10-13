@@ -1,6 +1,7 @@
 package com.pcf.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
@@ -25,6 +26,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RedisClient redisClient;
+    private final ObjectMapper objectMapper;
 
     // Redis key前缀
     private static final String CAPTCHA_KEY_PREFIX = "captcha:";
@@ -304,6 +306,22 @@ public class AuthService {
     /**
      * 将Token存储到Redis
      */
+    public void storeTokenToRedis(String token, UserInfoDto userInfo) {
+        try {
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            // 将用户信息转换为JSON格式存储
+            String userInfoJson = objectMapper.writeValueAsString(userInfo);
+            redisClient.setWithExpire(redisKey, userInfoJson, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
+            log.info("Token已存储到Redis: token={}, userId={}", token, userInfo.getId());
+        } catch (Exception e) {
+            log.error("存储Token到Redis失败: token={}", token, e);
+        }
+    }
+
+    /**
+     * 将Token存储到Redis（兼容旧版本）
+     */
+    @Deprecated
     public void storeTokenToRedis(String token, Long userId, String username, String role) {
         try {
             String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
@@ -368,6 +386,40 @@ public class AuthService {
             log.debug("Token过期时间已刷新: token={}", token);
         } catch (Exception e) {
             log.error("刷新Token过期时间失败: token={}", token, e);
+        }
+    }
+
+    /**
+     * 从Redis中获取用户信息
+     */
+    public UserInfoDto getUserInfoFromRedis(String token) {
+        try {
+            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
+            String userInfoJson = redisClient.get(redisKey);
+            
+            if (userInfoJson != null && !userInfoJson.isEmpty()) {
+                // 尝试解析JSON格式的用户信息
+                try {
+                    return objectMapper.readValue(userInfoJson, UserInfoDto.class);
+                } catch (Exception jsonException) {
+                    // 如果JSON解析失败，可能是旧格式的数据，尝试解析旧格式
+                    log.warn("JSON解析失败，尝试解析旧格式数据: token={}", token);
+                    String[] parts = userInfoJson.split(":");
+                    if (parts.length >= 3) {
+                        return UserInfoDto.builder()
+                                .id(Long.parseLong(parts[0]))
+                                .username(parts[1])
+                                .role(parts[2])
+                                .name(parts[1]) // 使用用户名作为显示名称
+                                .build();
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception e) {
+            log.error("从Redis获取用户信息失败: token={}", token, e);
+            return null;
         }
     }
 }

@@ -143,6 +143,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
+        String method = request.getMethod();
+        
+        // CORS预检请求不需要JWT认证
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            log.info("跳过CORS预检请求: {} [{}]", path, method);
+            return true;
+        }
         
         // 只跳过完全公开的接口，让SecurityConfig处理权限控制
         return path.startsWith("/static/") ||

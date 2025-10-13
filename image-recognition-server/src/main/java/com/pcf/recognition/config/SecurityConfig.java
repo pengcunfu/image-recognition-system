@@ -94,36 +94,8 @@ public class SecurityConfig {
                                 "/favicon.ico"
                         ).permitAll()
 
-                        // 需要认证但不限制角色的接口
-                        .requestMatchers(
-                                "/api/v1/auth/logout",
-                                "/api/v1/auth/validate",
-                                "/api/v1/user/profile",
-                                "/api/v1/user/settings",
-                                "/api/v1/user/statistics",
-                                "/api/v1/user/activities"
-                        ).authenticated()
-
-                        // 普通用户及以上可访问的接口
-                        .requestMatchers(
-                                "/api/v1/recognition/image",
-                                "/api/v1/user/**",
-                                "/api/v1/community/posts/*/like",
-                                "/api/v1/knowledge/*/like"
-                        ).hasAnyRole("USER", "VIP", "ADMIN")
-
-                        // VIP用户及以上可访问的接口
-                        .requestMatchers(
-                                "/api/v1/recognition/batch/**",
-                                "/api/v1/batch/**",
-                                "/api/v1/doubao/**"
-                        ).hasAnyRole("VIP", "ADMIN")
-
-                        // 管理员专用接口
-                        .requestMatchers(
-                                "/api/v1/admin/**",
-                                "/api/v1/management/**"
-                        ).hasRole("ADMIN")
+                        // 所有API接口都需要认证，具体权限通过@PreAuthorize注解控制
+                        .requestMatchers("/api/**").authenticated()
 
                         // 其他所有请求都需要认证
                         .anyRequest().authenticated()

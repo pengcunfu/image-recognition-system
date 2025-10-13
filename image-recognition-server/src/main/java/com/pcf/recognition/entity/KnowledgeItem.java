@@ -21,6 +21,7 @@ public class KnowledgeItem {
 
     private String name; // 名称，如"狗"
 
+    @TableField("`key`") // key是MySQL保留关键字，需要用反引号
     private String key; // 键值，如"dog"
 
     private String scientificName; // 学名

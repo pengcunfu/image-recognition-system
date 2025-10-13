@@ -20,8 +20,10 @@ public class CustomUserPrincipal implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 确保角色名称是大写的，Spring Security的@PreAuthorize需要大写角色名
+        String role = userInfo.getRole().toUpperCase();
         return Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + userInfo.getRole())
+                new SimpleGrantedAuthority("ROLE_" + role)
         );
     }
 

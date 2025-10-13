@@ -58,7 +58,7 @@ public class SecurityUtil {
      */
     public static String getCurrentUserRole() {
         CustomUserPrincipal userPrincipal = getCurrentUserPrincipal();
-        return userPrincipal != null ? userPrincipal.getRole() : null;
+        return userPrincipal != null ? userPrincipal.getUserInfo().getRole() : null;
     }
 
     /**
@@ -75,7 +75,7 @@ public class SecurityUtil {
      */
     public static boolean isAdmin() {
         String role = getCurrentUserRole();
-        return "ADMIN".equals(role);
+        return role != null && "ADMIN".equalsIgnoreCase(role);
     }
 
     /**
@@ -83,7 +83,7 @@ public class SecurityUtil {
      */
     public static boolean isVipOrAdmin() {
         String role = getCurrentUserRole();
-        return "VIP".equals(role) || "ADMIN".equals(role);
+        return role != null && ("VIP".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role));
     }
 
     /**
@@ -91,7 +91,7 @@ public class SecurityUtil {
      */
     public static boolean hasRole(String role) {
         String currentRole = getCurrentUserRole();
-        return role.equals(currentRole);
+        return role != null && currentRole != null && role.equalsIgnoreCase(currentRole);
     }
 
     /**
@@ -104,7 +104,7 @@ public class SecurityUtil {
         }
         
         for (String role : roles) {
-            if (role.equals(currentRole)) {
+            if (role != null && role.equalsIgnoreCase(currentRole)) {
                 return true;
             }
         }

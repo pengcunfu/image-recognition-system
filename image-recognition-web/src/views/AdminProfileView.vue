@@ -998,12 +998,13 @@ onMounted(() => {
 
 /* 头部区域 */
 .profile-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: white;
   border-radius: 12px;
   padding: 40px;
   margin-bottom: 24px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  color: #262626;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
 }
 
 .header-content {
@@ -1026,11 +1027,11 @@ onMounted(() => {
 }
 
 .admin-avatar {
-  background: rgba(255, 255, 255, 0.2);
+  background: #1890ff;
   color: white;
   font-size: 32px;
   font-weight: bold;
-  border: 3px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid #e6f7ff;
   transition: all 0.3s ease;
 }
 
@@ -1073,7 +1074,7 @@ onMounted(() => {
   font-size: 32px;
   font-weight: bold;
   margin-bottom: 12px;
-  color: white;
+  color: #262626;
 }
 
 .admin-role {
@@ -1092,7 +1093,7 @@ onMounted(() => {
 
 .admin-info p {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #666;
   margin-bottom: 16px;
   line-height: 1.6;
 }
@@ -1102,7 +1103,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 8px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #999;
 }
 
 .admin-meta span {
@@ -1119,23 +1120,22 @@ onMounted(() => {
 .stat-item {
   text-align: center;
   padding: 20px 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #fafafa;
   border-radius: 12px;
   min-width: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  border: 1px solid #f0f0f0;
 }
 
 .stat-number {
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 4px;
-  color: white;
+  color: #262626;
 }
 
 .stat-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #999;
 }
 
 /* 内容区域 */
@@ -1157,7 +1157,7 @@ onMounted(() => {
   padding: 16px;
   background: #fafafa;
   border-radius: 8px;
-  border-left: 4px solid #1890ff;
+  border: 1px solid #f0f0f0;
 }
 
 .activity-icon {
@@ -1308,18 +1308,6 @@ onMounted(() => {
   padding: 16px;
   border: 1px solid #f0f0f0;
   border-radius: 8px;
-  
-  &.log-warning {
-    border-left: 4px solid #faad14;
-  }
-  
-  &.log-error {
-    border-left: 4px solid #ff4d4f;
-  }
-  
-  &.log-info {
-    border-left: 4px solid #1890ff;
-  }
 }
 
 .log-icon {
@@ -1557,21 +1545,8 @@ onMounted(() => {
   gap: 12px;
   padding: 12px;
   border-radius: 6px;
-  
-  &.alert-info {
-    background: #e6f7ff;
-    border-left: 3px solid #1890ff;
-  }
-  
-  &.alert-warning {
-    background: #fff7e6;
-    border-left: 3px solid #faad14;
-  }
-  
-  &.alert-error {
-    background: #fff2f0;
-    border-left: 3px solid #ff4d4f;
-  }
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
 }
 
 .alert-icon {
@@ -1580,18 +1555,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  .alert-info & {
-    color: #1890ff;
-  }
-  
-  .alert-warning & {
-    color: #faad14;
-  }
-  
-  .alert-error & {
-    color: #ff4d4f;
-  }
+  color: #666;
 }
 
 .alert-content {

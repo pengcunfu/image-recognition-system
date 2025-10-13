@@ -43,7 +43,7 @@ export class KnowledgeAPI {
     description?: string
     image?: string
     sortOrder?: number
-    status?: string
+    status?: number
   }) {
     return request.put<KnowledgeCreateResponse>(`/api/v1/knowledge/categories/${id}`, data)
   }

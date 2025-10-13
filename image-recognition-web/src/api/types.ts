@@ -255,7 +255,7 @@ export interface KnowledgeCategory {
   image?: string
   itemCount: number
   sortOrder: number
-  status: string
+  status: number  // 使用CategoryStatus枚举值
   createTime: string
   updateTime: string
 }

@@ -52,11 +52,11 @@
           
           <template v-else-if="column.key === 'status'">
             <a-tag 
-              :color="record.status === 'ACTIVE' ? 'success' : 'default'"
+              :color="record.status === CategoryStatus.ACTIVE ? 'success' : 'default'"
               class="status-tag"
             >
-              <i :class="record.status === 'ACTIVE' ? 'fas fa-check-circle' : 'fas fa-pause-circle'"></i>
-              {{ record.status === 'ACTIVE' ? '启用' : '禁用' }}
+              <i :class="record.status === CategoryStatus.ACTIVE ? 'fas fa-check-circle' : 'fas fa-pause-circle'"></i>
+              {{ record.status === CategoryStatus.ACTIVE ? '启用' : '禁用' }}
             </a-tag>
           </template>
           
@@ -74,10 +74,10 @@
                     <a-menu-item key="view">
                       <i class="fas fa-eye"></i> 查看详情
                     </a-menu-item>
-                    <a-menu-item key="toggle" v-if="record.status === 'ACTIVE'">
+                    <a-menu-item key="toggle" v-if="record.status === CategoryStatus.ACTIVE">
                       <i class="fas fa-pause"></i> 禁用
                     </a-menu-item>
-                    <a-menu-item key="toggle" v-if="record.status !== 'ACTIVE'">
+                    <a-menu-item key="toggle" v-if="record.status !== CategoryStatus.ACTIVE">
                       <i class="fas fa-play"></i> 启用
                     </a-menu-item>
                     <a-menu-item key="duplicate">
@@ -197,8 +197,8 @@
           <div class="category-info-detail">
             <h2>{{ selectedCategory.name }}</h2>
             <div class="category-meta">
-              <a-tag :color="selectedCategory.status === 'ACTIVE' ? 'success' : 'default'">
-                {{ selectedCategory.status === 'ACTIVE' ? '启用' : '禁用' }}
+              <a-tag :color="selectedCategory.status === CategoryStatus.ACTIVE ? 'success' : 'default'">
+                {{ selectedCategory.status === CategoryStatus.ACTIVE ? '启用' : '禁用' }}
               </a-tag>
               <span class="category-key">键值: {{ selectedCategory.key }}</span>
               <span class="update-time">更新时间: {{ formatDateTime(selectedCategory.updateTime) }}</span>
@@ -231,6 +231,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import KnowledgeAPI from '@/api/knowledge'
 import type { KnowledgeCategory } from '@/api/types'
+import { CategoryStatus } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
@@ -263,7 +264,7 @@ const formData = reactive({
   description: '',
   image: '',
   sortOrder: 0,
-  status: 'ACTIVE'
+  status: CategoryStatus.ACTIVE
 })
 
 // 表单验证规则
@@ -423,8 +424,8 @@ function handleAction(action: string, category: KnowledgeCategory) {
 
 // 切换分类状态
 async function toggleCategoryStatus(category: KnowledgeCategory) {
-  const newStatus = category.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
-  const actionText = newStatus === 'ACTIVE' ? '启用' : '禁用'
+  const newStatus = category.status === CategoryStatus.ACTIVE ? CategoryStatus.INACTIVE : CategoryStatus.ACTIVE
+  const actionText = newStatus === CategoryStatus.ACTIVE ? '启用' : '禁用'
   
   Modal.confirm({
     title: `确认${actionText}`,
@@ -490,7 +491,7 @@ function resetForm() {
     description: '',
     image: '',
     sortOrder: 0,
-    status: 'ACTIVE'
+    status: CategoryStatus.ACTIVE
   })
   fileList.value = []
 }

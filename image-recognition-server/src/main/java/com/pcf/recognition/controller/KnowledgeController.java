@@ -255,11 +255,16 @@ public class KnowledgeController {
         try {
             log.info("删除知识分类: id={}", id);
 
-            // 这里应该调用service的删除方法，暂时返回成功
-            return ApiResponse.success(null, "分类删除成功");
+            boolean success = knowledgeService.deleteCategory(id);
+            
+            if (success) {
+                return ApiResponse.success(null, "分类删除成功");
+            } else {
+                return ApiResponse.error("分类不存在");
+            }
         } catch (Exception e) {
-            log.error("删除知识分类失败", e);
-            return ApiResponse.error("删除分类失败");
+            log.error("删除知识分类失败: {}", e.getMessage());
+            return ApiResponse.error(e.getMessage());
         }
     }
 

@@ -560,6 +560,40 @@ public class KnowledgeService {
         }
     }
 
+    /**
+     * 删除知识分类
+     */
+    public boolean deleteCategory(Long id) {
+        log.info("删除知识分类: id={}", id);
+        
+        try {
+            KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
+            if (category == null) {
+                log.warn("分类不存在: id={}", id);
+                return false;
+            }
+            
+            // 检查该分类下是否有知识条目
+            long itemCount = knowledgeItemRepository.selectCount(
+                new LambdaQueryWrapper<KnowledgeItem>()
+                    .eq(KnowledgeItem::getCategoryId, id)
+            );
+            
+            if (itemCount > 0) {
+                log.warn("分类下还有 {} 个知识条目，不能删除", itemCount);
+                throw new RuntimeException("该分类下还有 " + itemCount + " 个知识条目，请先删除或转移这些条目");
+            }
+            
+            int result = knowledgeCategoryRepository.deleteById(id);
+            log.info("删除分类结果: {}", result);
+            
+            return result > 0;
+        } catch (Exception e) {
+            log.error("删除分类失败", e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
 
     /**
      * 转换KnowledgeCategory为DTO

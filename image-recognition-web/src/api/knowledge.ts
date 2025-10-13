@@ -5,6 +5,8 @@ import type {
   KnowledgePage,
   KnowledgeSearchResult,
   KnowledgeStats,
+  KnowledgeCreateResponse,
+  KnowledgeOperationResult,
   PaginationParams,
   OperationResult
 } from './types'
@@ -87,32 +89,32 @@ export class KnowledgeAPI {
    * 点赞知识条目
    */
   static likeItem(itemId: number) {
-    return request.post<OperationResult>(`/api/v1/knowledge/${itemId}/like`)
+    return request.post<void>(`/api/v1/knowledge/${itemId}/like`)
   }
 
   /**
    * 取消点赞知识条目
    */
   static unlikeItem(itemId: number) {
-    return request.delete<OperationResult>(`/api/v1/knowledge/${itemId}/like`)
+    return request.delete<void>(`/api/v1/knowledge/${itemId}/like`)
   }
 
   /**
-   * 收藏知识条目
+   * 收藏知识条目 (暂未实现)
    */
   static collectItem(itemId: number) {
     return request.post<OperationResult>(`/api/v1/knowledge/${itemId}/collect`)
   }
 
   /**
-   * 取消收藏知识条目
+   * 取消收藏知识条目 (暂未实现)
    */
   static uncollectItem(itemId: number) {
     return request.delete<OperationResult>(`/api/v1/knowledge/${itemId}/collect`)
   }
 
   /**
-   * 分享知识条目
+   * 分享知识条目 (暂未实现)
    */
   static shareItem(itemId: number, platform?: string) {
     return request.post<OperationResult>(`/api/v1/knowledge/${itemId}/share`, { platform })

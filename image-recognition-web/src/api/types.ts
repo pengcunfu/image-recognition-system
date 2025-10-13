@@ -113,43 +113,65 @@ export interface SmsCodeVerifyRequest {
 
 // 知识分类
 export interface KnowledgeCategory {
-  id: string
+  id: number
   name: string
+  key: string
   description?: string
-  icon?: string
-  count: number
+  image?: string
+  itemCount: number
+  sortOrder: number
+  status: string
+  createTime: string
+  updateTime: string
 }
 
 // 知识条目
 export interface KnowledgeItem {
-  id: string
-  title: string
+  id: number
+  categoryId: number
+  name: string
+  key: string
+  scientificName?: string
   description: string
   content?: string
-  category: string
-  tags: string[]
-  difficulty: 'beginner' | 'intermediate' | 'advanced'
-  author: string
-  authorAvatar?: string
-  coverImage?: string
-  images?: string[]
-  views: number
-  likes: number
-  collections: number
-  shares: number
+  images?: string
+  characteristics?: string
+  habitat?: string
+  lifespan?: string
+  relatedItems?: string
+  tags?: string
+  viewCount: number
+  likeCount: number
+  favoriteCount: number
+  shareCount: number
+  difficulty: number
+  sortOrder: number
+  status: string
+  authorId: number
+  reviewerId?: number
+  reviewTime?: string
   createTime: string
   updateTime: string
-  status: 'published' | 'draft'
+  
+  // 前端显示用的计算属性
+  title?: string
+  category?: string
+  author?: string
+  views?: number
+  likes?: number
+  collections?: number
+  shares?: number
 }
 
 // 知识库分页响应
 export interface KnowledgePage {
   items: KnowledgeItem[]
   total: number
-  page: number
+  pages: number
+  current: number
   size: number
-  totalPages: number
-  categories: KnowledgeCategory[]
+  keyword?: string
+  category?: string
 }
 
 // 知识库搜索结果
@@ -158,24 +180,35 @@ export interface KnowledgeSearchResult {
   total: number
   page: number
   size: number
-  totalPages: number
-  searchTime: number
-  suggestions?: string[]
+  pages: number
+  keyword: string
+  category?: string
 }
 
 // 知识库统计
 export interface KnowledgeStats {
-  totalItems: number
   totalCategories: number
+  totalItems: number
   totalViews: number
   totalLikes: number
-  recentItems: KnowledgeItem[]
-  popularItems: KnowledgeItem[]
-  categoryStats: Array<{
-    category: string
-    count: number
-    percentage: number
-  }>
+  totalFavorites: number
+  monthlyGrowth: number
+  averageDifficulty: number
+}
+
+// 知识创建响应
+export interface KnowledgeCreateResponse {
+  success: boolean
+  message: string
+  id?: number
+}
+
+// 知识操作结果
+export interface KnowledgeOperationResult {
+  itemId?: number
+  success: boolean
+  message: string
+  operation?: string
 }
 
 // ==================== 社区相关类型 ====================

@@ -39,18 +39,18 @@
         @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'title'">
+          <template v-if="column.key === 'name'">
             <div class="knowledge-title">
               <div class="title-with-image">
                 <img 
-                  v-if="record.image" 
-                  :src="record.image" 
-                  :alt="record.title"
+                  v-if="record.images" 
+                  :src="record.images" 
+                  :alt="record.name"
                   class="knowledge-thumbnail"
                 />
                 <div class="title-content">
                   <a @click="viewKnowledge(record)" class="title-link">
-                    {{ record.title }}
+                    {{ record.name }}
                   </a>
                   <div class="knowledge-meta">
                     <a-tag :color="getCategoryColor(record.category)" size="small">
@@ -91,7 +91,7 @@
                   更多 <i class="fas fa-chevron-down"></i>
                 </a-button>
                 <template #overlay>
-                  <a-menu @click="(e) => handleAction(e.key, record)">
+                    <a-menu @click="(e: any) => handleAction(e.key, record)">
                     <a-menu-item key="view">
                       <i class="fas fa-eye"></i> 查看详情
                     </a-menu-item>
@@ -134,27 +134,31 @@
       >
         <a-row :gutter="24">
           <a-col :span="12">
-            <a-form-item label="标题" name="title">
-              <a-input v-model:value="formData.title" placeholder="请输入知识标题" />
+            <a-form-item label="名称" name="name">
+              <a-input v-model:value="formData.name" placeholder="请输入知识名称" />
             </a-form-item>
           </a-col>
           <a-col :span="6">
-            <a-form-item label="分类" name="category">
-              <a-select v-model:value="formData.category" placeholder="选择分类">
-                <a-select-option value="动物">动物</a-select-option>
-                <a-select-option value="植物">植物</a-select-option>
-                <a-select-option value="食物">食物</a-select-option>
-                <a-select-option value="物品">物品</a-select-option>
-                <a-select-option value="场景">场景</a-select-option>
+            <a-form-item label="分类" name="categoryId">
+              <a-select v-model:value="formData.categoryId" placeholder="选择分类">
+                <a-select-option 
+                  v-for="category in categories" 
+                  :key="category.id" 
+                  :value="category.id"
+                >
+                  {{ category.name }}
+                </a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
           <a-col :span="6">
             <a-form-item label="难度" name="difficulty">
               <a-select v-model:value="formData.difficulty" placeholder="选择难度">
-                <a-select-option value="初级">初级</a-select-option>
-                <a-select-option value="中级">中级</a-select-option>
-                <a-select-option value="高级">高级</a-select-option>
+                <a-select-option :value="1">初级</a-select-option>
+                <a-select-option :value="2">初级+</a-select-option>
+                <a-select-option :value="3">中级</a-select-option>
+                <a-select-option :value="4">高级</a-select-option>
+                <a-select-option :value="5">专家</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -168,18 +172,18 @@
           />
         </a-form-item>
         
-        <a-form-item label="封面图片" name="image">
+        <a-form-item label="封面图片" name="images">
           <a-upload
             v-model:file-list="fileList"
-            name="image"
+            name="images"
             list-type="picture-card"
             class="image-uploader"
             :show-upload-list="false"
             :before-upload="beforeUpload"
             @change="handleImageChange"
           >
-            <div v-if="formData.image" class="image-preview">
-              <img :src="formData.image" alt="封面" />
+            <div v-if="formData.images" class="image-preview">
+              <img :src="formData.images" alt="封面" />
             </div>
             <div v-else class="upload-placeholder">
               <i class="fas fa-plus"></i>
@@ -197,10 +201,9 @@
         </a-form-item>
         
         <a-form-item label="标签">
-          <a-select
+          <a-input
             v-model:value="formData.tags"
-            mode="tags"
-            placeholder="输入标签，按回车添加"
+            placeholder="输入标签，用逗号分隔"
             style="width: 100%"
           />
         </a-form-item>
@@ -224,15 +227,15 @@
       <div v-if="selectedKnowledge" class="knowledge-detail">
         <div class="knowledge-header">
           <img 
-            v-if="selectedKnowledge.image" 
-            :src="selectedKnowledge.image" 
+            v-if="selectedKnowledge.images" 
+            :src="selectedKnowledge.images" 
             :alt="selectedKnowledge.title"
             class="knowledge-cover"
           />
           <div class="knowledge-info">
             <h2>{{ selectedKnowledge.title }}</h2>
             <div class="knowledge-meta">
-              <a-tag :color="getCategoryColor(selectedKnowledge.category)">
+              <a-tag :color="getCategoryColor(selectedKnowledge.category || '')">
                 {{ selectedKnowledge.category }}
               </a-tag>
               <span class="difficulty">难度: {{ selectedKnowledge.difficulty }}</span>
@@ -247,11 +250,11 @@
           <div class="content-text" v-html="selectedKnowledge.content"></div>
         </div>
         
-        <div class="knowledge-tags" v-if="selectedKnowledge.tags && selectedKnowledge.tags.length > 0">
+        <div class="knowledge-tags" v-if="selectedKnowledge.tags">
           <h4>相关标签</h4>
           <a-space wrap>
-            <a-tag v-for="tag in selectedKnowledge.tags" :key="tag" color="blue">
-              {{ tag }}
+            <a-tag v-for="tag in selectedKnowledge.tags.split(',')" :key="tag" color="blue">
+              {{ tag.trim() }}
             </a-tag>
           </a-space>
         </div>
@@ -272,6 +275,20 @@
               <a-statistic title="分享数" :value="selectedKnowledge.shares || 0" />
             </a-col>
           </a-row>
+          
+          <div class="knowledge-actions" style="margin-top: 20px;">
+            <a-space>
+              <a-button @click="handleLike(selectedKnowledge)" type="primary">
+                <i class="fas fa-thumbs-up"></i> 点赞
+              </a-button>
+              <a-button @click="handleCollect(selectedKnowledge)">
+                <i class="fas fa-bookmark"></i> 收藏
+              </a-button>
+              <a-button @click="handleShare(selectedKnowledge)">
+                <i class="fas fa-share"></i> 分享
+              </a-button>
+            </a-space>
+          </div>
         </div>
       </div>
     </a-drawer>
@@ -281,17 +298,23 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
+import KnowledgeAPI from '@/api/knowledge'
+import type { KnowledgeItem, KnowledgeCategory } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
 const modalVisible = ref(false)
 const drawerVisible = ref(false)
 const isEditing = ref(false)
-const selectedKnowledge = ref<any>(null)
+const selectedKnowledge = ref<KnowledgeItem | null>(null)
 const filterCategory = ref('')
 const searchKeyword = ref('')
 const formRef = ref()
 const fileList = ref([])
+
+// 知识库数据
+const knowledgeItems = ref<KnowledgeItem[]>([])
+const categories = ref<KnowledgeCategory[]>([])
 
 // 分页配置
 const pagination = reactive({
@@ -305,23 +328,23 @@ const pagination = reactive({
 
 // 表单数据
 const formData = reactive({
-  id: null,
-  title: '',
-  category: '',
-  difficulty: '',
+  id: null as number | null,
+  name: '',
+  categoryId: null as number | null,
+  difficulty: 1,
   description: '',
   content: '',
-  image: '',
-  tags: [],
+  images: '',
+  tags: '',
   status: 'draft'
 })
 
 // 表单验证规则
 const formRules = {
-  title: [
-    { required: true, message: '请输入知识标题', trigger: 'blur' }
+  name: [
+    { required: true, message: '请输入知识名称', trigger: 'blur' }
   ],
-  category: [
+  categoryId: [
     { required: true, message: '请选择分类', trigger: 'change' }
   ],
   difficulty: [
@@ -339,14 +362,14 @@ const formRules = {
 const knowledgeColumns = [
   { 
     title: '知识内容', 
-    dataIndex: 'title', 
-    key: 'title',
+    dataIndex: 'name', 
+    key: 'name',
     width: 400
   },
   { 
     title: '作者', 
-    dataIndex: 'author', 
-    key: 'author',
+    dataIndex: 'authorId', 
+    key: 'authorId',
     width: 120
   },
   { 
@@ -374,102 +397,74 @@ const knowledgeColumns = [
   }
 ]
 
-// 模拟知识库数据
-const knowledgeItems = ref([
-  {
-    id: 1,
-    title: '猫科动物识别指南',
-    category: '动物',
-    difficulty: '中级',
-    description: '详细介绍各种猫科动物的特征和识别方法',
-    content: '猫科动物是一个大家族，包括狮子、老虎、豹子、猎豹等...',
-    image: '/images/cat-family.jpg',
-    author: '动物专家',
-    tags: ['猫科', '动物识别', '特征'],
-    status: 'published',
-    views: 2340,
-    likes: 156,
-    collections: 89,
-    shares: 23,
-    createTime: '2025-01-10 14:30',
-    updateTime: '2025-01-15 10:20'
-  },
-  {
-    id: 2,
-    title: '常见花卉识别手册',
-    category: '植物',
-    difficulty: '初级',
-    description: '帮助初学者识别常见的花卉植物',
-    content: '本手册收录了50种常见花卉的识别要点...',
-    image: '/images/flowers.jpg',
-    author: '植物学家',
-    tags: ['花卉', '植物', '识别'],
-    status: 'published',
-    views: 1890,
-    likes: 234,
-    collections: 167,
-    shares: 45,
-    createTime: '2025-01-08 09:15',
-    updateTime: '2025-01-14 16:45'
-  },
-  {
-    id: 3,
-    title: '中式菜品识别大全',
-    category: '食物',
-    difficulty: '高级',
-    description: '全面介绍中式菜品的特点和识别方法',
-    content: '中式菜品种类繁多，本文将从色香味形等方面...',
-    image: '/images/chinese-food.jpg',
-    author: '美食专家',
-    tags: ['中式菜品', '美食', '文化'],
-    status: 'draft',
-    views: 0,
-    likes: 0,
-    collections: 0,
-    shares: 0,
-    createTime: '2025-01-12 11:30',
-    updateTime: '2025-01-15 14:20'
-  },
-  {
-    id: 4,
-    title: '建筑风格识别指南',
-    category: '场景',
-    difficulty: '高级',
-    description: '介绍各种建筑风格的特点和历史背景',
-    content: '建筑风格反映了不同时代的文化特征...',
-    image: '/images/architecture.jpg',
-    author: '建筑师',
-    tags: ['建筑', '风格', '历史'],
-    status: 'published',
-    views: 1456,
-    likes: 98,
-    collections: 76,
-    shares: 12,
-    createTime: '2025-01-05 16:20',
-    updateTime: '2025-01-13 09:30'
+// API调用函数
+async function loadKnowledgeItems() {
+  try {
+    loading.value = true
+    const response = await KnowledgeAPI.getItems({
+      category: filterCategory.value || undefined,
+      page: pagination.current,
+      size: pagination.pageSize,
+      keyword: searchKeyword.value || undefined
+    })
+    
+    // 转换数据格式以适配前端显示
+    knowledgeItems.value = response.data.items.map(item => ({
+      ...item,
+      title: item.name,
+      category: getCategoryNameById(item.categoryId),
+      author: `用户${item.authorId}`,
+      views: item.viewCount,
+      likes: item.likeCount,
+      collections: item.favoriteCount,
+      shares: item.shareCount,
+      updateTime: formatDateTime(item.updateTime)
+    })) as any[]
+    
+    pagination.total = response.data.total
+    pagination.current = response.data.current
+  } catch (error) {
+    console.error('加载知识库数据失败:', error)
+    message.error('加载数据失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
-// 过滤后的知识库列表
+async function loadCategories() {
+  try {
+    const response = await KnowledgeAPI.getCategories()
+    categories.value = response.data
+  } catch (error) {
+    console.error('加载分类数据失败:', error)
+    message.error('加载分类失败')
+  }
+}
+
+// 辅助函数
+function getCategoryNameById(categoryId: number): string {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  return category ? category.name : '未知分类'
+}
+
+function getDifficultyText(difficulty: number): string {
+  const difficultyMap: Record<number, string> = {
+    1: '初级',
+    2: '初级',
+    3: '中级',
+    4: '高级',
+    5: '高级'
+  }
+  return difficultyMap[difficulty] || '未知'
+}
+
+function formatDateTime(dateTime: string): string {
+  return new Date(dateTime).toLocaleString('zh-CN')
+}
+
+// 过滤后的知识库列表 - 现在直接使用API返回的数据
 const filteredKnowledge = computed(() => {
-  let result = knowledgeItems.value
-
-  // 分类筛选
-  if (filterCategory.value) {
-    result = result.filter(item => item.category === filterCategory.value)
-  }
-
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(item => 
-      item.title.toLowerCase().includes(keyword) ||
-      item.description.toLowerCase().includes(keyword) ||
-      item.author.toLowerCase().includes(keyword)
-    )
-  }
-
-  return result
+  return knowledgeItems.value
 })
 
 // 获取分类颜色
@@ -487,17 +482,20 @@ function getCategoryColor(category: string) {
 // 处理筛选变化
 function handleFilterChange() {
   pagination.current = 1
+  loadKnowledgeItems()
 }
 
 // 处理搜索
 function handleSearch() {
   pagination.current = 1
+  loadKnowledgeItems()
 }
 
 // 处理表格变化
 function handleTableChange(pag: any) {
   pagination.current = pag.current
   pagination.pageSize = pag.pageSize
+  loadKnowledgeItems()
 }
 
 // 显示添加模态框
@@ -508,20 +506,47 @@ function showAddModal() {
 }
 
 // 编辑知识
-function editKnowledge(knowledge: any) {
+function editKnowledge(knowledge: KnowledgeItem) {
   isEditing.value = true
-  Object.assign(formData, knowledge)
+  Object.assign(formData, {
+    id: knowledge.id,
+    name: knowledge.name,
+    categoryId: knowledge.categoryId,
+    difficulty: knowledge.difficulty,
+    description: knowledge.description,
+    content: knowledge.content,
+    images: knowledge.images,
+    tags: knowledge.tags,
+    status: knowledge.status
+  })
   modalVisible.value = true
 }
 
 // 查看知识详情
-function viewKnowledge(knowledge: any) {
-  selectedKnowledge.value = knowledge
-  drawerVisible.value = true
+async function viewKnowledge(knowledge: KnowledgeItem) {
+  try {
+    const response = await KnowledgeAPI.getItemDetail(knowledge.id.toString())
+    selectedKnowledge.value = {
+      ...response.data,
+      title: response.data.name,
+      category: getCategoryNameById(response.data.categoryId),
+      author: `用户${response.data.authorId}`,
+      views: response.data.viewCount,
+      likes: response.data.likeCount,
+      collections: response.data.favoriteCount,
+      shares: response.data.shareCount,
+      difficulty: getDifficultyText(response.data.difficulty),
+      updateTime: formatDateTime(response.data.updateTime)
+    } as any
+    drawerVisible.value = true
+  } catch (error) {
+    console.error('获取知识详情失败:', error)
+    message.error('获取详情失败')
+  }
 }
 
 // 处理操作
-function handleAction(action: string, knowledge: any) {
+function handleAction(action: string, knowledge: KnowledgeItem) {
   switch (action) {
     case 'view':
       viewKnowledge(knowledge)
@@ -542,59 +567,49 @@ function handleAction(action: string, knowledge: any) {
 }
 
 // 发布知识
-function publishKnowledge(knowledge: any) {
+function publishKnowledge(knowledge: KnowledgeItem) {
   Modal.confirm({
     title: '确认发布',
-    content: `确定要发布知识"${knowledge.title}"吗？`,
+    content: `确定要发布知识"${knowledge.name}"吗？`,
     onOk() {
-      knowledge.status = 'published'
+      // 这里应该调用API更新状态，暂时模拟
+      knowledge.status = 'PUBLISHED'
       message.success('知识已发布')
+      loadKnowledgeItems() // 重新加载数据
     }
   })
 }
 
 // 撤回知识
-function unpublishKnowledge(knowledge: any) {
+function unpublishKnowledge(knowledge: KnowledgeItem) {
   Modal.confirm({
     title: '确认撤回',
-    content: `确定要撤回知识"${knowledge.title}"吗？`,
+    content: `确定要撤回知识"${knowledge.name}"吗？`,
     onOk() {
-      knowledge.status = 'draft'
+      // 这里应该调用API更新状态，暂时模拟
+      knowledge.status = 'DRAFT'
       message.success('知识已撤回')
+      loadKnowledgeItems() // 重新加载数据
     }
   })
 }
 
 // 复制知识
-function duplicateKnowledge(knowledge: any) {
-  const newKnowledge = {
-    ...knowledge,
-    id: Date.now(),
-    title: knowledge.title + ' (副本)',
-    status: 'draft',
-    views: 0,
-    likes: 0,
-    collections: 0,
-    shares: 0,
-    createTime: new Date().toLocaleString(),
-    updateTime: new Date().toLocaleString()
-  }
-  knowledgeItems.value.unshift(newKnowledge)
-  message.success('知识已复制')
+function duplicateKnowledge(knowledge: KnowledgeItem) {
+  // 这里应该调用API创建副本，暂时模拟
+  message.success('知识复制功能开发中')
 }
 
 // 删除知识
-function deleteKnowledge(knowledge: any) {
+function deleteKnowledge(knowledge: KnowledgeItem) {
   Modal.confirm({
     title: '确认删除',
-    content: `确定要删除知识"${knowledge.title}"吗？此操作不可恢复！`,
+    content: `确定要删除知识"${knowledge.name}"吗？此操作不可恢复！`,
     okType: 'danger',
     onOk() {
-      const index = knowledgeItems.value.findIndex(item => item.id === knowledge.id)
-      if (index > -1) {
-        knowledgeItems.value.splice(index, 1)
-        message.success('知识已删除')
-      }
+      // 这里应该调用API删除，暂时模拟
+      message.success('知识删除功能开发中')
+      loadKnowledgeItems() // 重新加载数据
     }
   })
 }
@@ -603,53 +618,37 @@ function deleteKnowledge(knowledge: any) {
 function resetForm() {
   Object.assign(formData, {
     id: null,
-    title: '',
-    category: '',
-    difficulty: '',
+    name: '',
+    categoryId: null,
+    difficulty: 1,
     description: '',
     content: '',
-    image: '',
-    tags: [],
+    images: '',
+    tags: '',
     status: 'draft'
   })
   fileList.value = []
 }
 
 // 处理提交
-function handleSubmit() {
-  formRef.value.validate().then(() => {
+async function handleSubmit() {
+  try {
+    await formRef.value.validate()
+    
     if (isEditing.value) {
-      // 更新现有知识
-      const index = knowledgeItems.value.findIndex(item => item.id === formData.id)
-      if (index > -1) {
-        Object.assign(knowledgeItems.value[index], {
-          ...formData,
-          updateTime: new Date().toLocaleString()
-        })
-        message.success('知识更新成功')
-      }
+      // 更新现有知识 - 这里应该调用API，暂时模拟
+      message.success('知识更新功能开发中')
     } else {
-      // 添加新知识
-      const newKnowledge = {
-        ...formData,
-        id: Date.now(),
-        author: '管理员',
-        views: 0,
-        likes: 0,
-        collections: 0,
-        shares: 0,
-        createTime: new Date().toLocaleString(),
-        updateTime: new Date().toLocaleString()
-      }
-      knowledgeItems.value.unshift(newKnowledge)
-      message.success('知识添加成功')
+      // 添加新知识 - 这里应该调用API，暂时模拟
+      message.success('知识添加功能开发中')
     }
     
     modalVisible.value = false
     resetForm()
-  }).catch(() => {
+    loadKnowledgeItems() // 重新加载数据
+  } catch (error) {
     message.error('请完善表单信息')
-  })
+  }
 }
 
 // 处理取消
@@ -679,15 +678,67 @@ function handleImageChange(info: any) {
     // 这里应该上传到服务器，现在只是模拟
     const reader = new FileReader()
     reader.onload = (e) => {
-      formData.image = e.target?.result as string
+      formData.images = e.target?.result as string
     }
     reader.readAsDataURL(info.file)
   }
 }
 
+// 处理点赞
+async function handleLike(knowledge: any) {
+  try {
+    await KnowledgeAPI.likeItem(knowledge.id)
+    message.success('点赞成功')
+    // 更新本地数据
+    if (selectedKnowledge.value) {
+      selectedKnowledge.value.likes = (selectedKnowledge.value.likes || 0) + 1
+    }
+  } catch (error) {
+    console.error('点赞失败:', error)
+    message.error('点赞失败')
+  }
+}
+
+// 处理收藏
+async function handleCollect(knowledge: any) {
+  try {
+    await KnowledgeAPI.collectItem(knowledge.id)
+    message.success('收藏成功')
+    // 更新本地数据
+    if (selectedKnowledge.value) {
+      selectedKnowledge.value.collections = (selectedKnowledge.value.collections || 0) + 1
+    }
+  } catch (error) {
+    console.error('收藏失败:', error)
+    message.error('收藏功能暂未开放')
+  }
+}
+
+// 处理分享
+function handleShare(knowledge: any) {
+  // 简单的分享功能
+  if (navigator.share) {
+    navigator.share({
+      title: knowledge.title,
+      text: knowledge.description,
+      url: window.location.href
+    }).catch(() => {
+      message.error('分享失败')
+    })
+  } else {
+    // 复制链接到剪贴板
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      message.success('链接已复制到剪贴板')
+    }).catch(() => {
+      message.error('分享失败')
+    })
+  }
+}
+
 // 组件挂载
-onMounted(() => {
-  pagination.total = knowledgeItems.value.length
+onMounted(async () => {
+  await loadCategories()
+  await loadKnowledgeItems()
 })
 </script>
 

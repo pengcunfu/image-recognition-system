@@ -529,7 +529,7 @@ public class KnowledgeService {
                 .image(category.getImage())
                 .itemCount(category.getItemCount())
                 .sortOrder(category.getSortOrder())
-                .status(category.getStatus() != null ? category.getStatus().name() : null)
+                .status(category.getStatus() != null ? category.getStatus().getValue() : null)
                 .createTime(category.getCreateTime())
                 .updateTime(category.getUpdateTime())
                 .build();

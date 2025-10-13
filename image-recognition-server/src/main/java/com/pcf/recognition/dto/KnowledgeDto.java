@@ -59,9 +59,9 @@ public class KnowledgeDto {
         private Integer sortOrder;
 
         /**
-         * 分类状态
+         * 分类状态（1-ACTIVE, 2-INACTIVE, 3-HIDDEN）
          */
-        private String status;
+        private Integer status;
 
         /**
          * 创建时间

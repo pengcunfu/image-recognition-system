@@ -107,7 +107,7 @@
                 v-model:value="formData.emailCode"
                 size="large"
                 placeholder="请输入邮箱验证码"
-                maxlength="6"
+                :maxlength="6"
                 class="email-input"
               >
                 <template #prefix>
@@ -273,17 +273,17 @@ const rules: Record<string, Rule[]> = {
 }
 
 // 密码确认验证器
-function validateConfirmPassword(_rule: Rule, value: string) {
+function validateConfirmPassword(_rule: Rule, value: string): Promise<void> {
   if (value && value !== formData.password) {
-    return Promise.reject('两次输入的密码不一致')
+    return Promise.reject(new Error('两次输入的密码不一致'))
   }
   return Promise.resolve()
 }
 
 // 协议验证器
-function validateAgreement(_rule: Rule, _value: boolean) {
+function validateAgreement(_rule: Rule, _value: boolean): Promise<void> {
   if (!formData.agreement) {
-    return Promise.reject('请阅读并同意用户协议')
+    return Promise.reject(new Error('请阅读并同意用户协议'))
   }
   return Promise.resolve()
 }
@@ -330,8 +330,9 @@ async function sendEmailCode() {
     }, 1000)
     
     message.success('验证码已发送到您的邮箱，请注意查收')
-  } catch (error: any) {
-    message.error(error.message || '发送验证码失败，请重试')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '发送验证码失败，请重试'
+    message.error(errorMessage)
   }
 }
 
@@ -357,8 +358,9 @@ async function handleRegister() {
     } else {
       message.error(result.message || '注册失败，请重试')
     }
-  } catch (error: any) {
-    message.error(error.message || '注册失败，请重试')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '注册失败，请重试'
+    message.error(errorMessage)
   } finally {
     loading.value = false
   }

@@ -125,7 +125,7 @@
 }
 
 .stat-card {
-  border-left: 4px solid #1890ff;
+  /* 移除左边框 */
 }
 
 .stat-trend {

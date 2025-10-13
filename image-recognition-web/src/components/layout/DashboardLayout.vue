@@ -57,6 +57,12 @@
               </template>
               知识库管理
             </a-menu-item>
+            <a-menu-item key="/category-management">
+              <template #icon>
+                <i class="fas fa-tags"></i>
+              </template>
+              分类管理
+            </a-menu-item>
           </a-menu-item-group>
           
           <!-- 用户管理分组 -->

@@ -18,6 +18,7 @@ import SettingsView from '@/views/SettingsView.vue'
 // 新增管理页面组件
 import PostsManagementView from '@/views/PostsManagementView.vue'
 import KnowledgeManagementView from '@/views/KnowledgeManagementView.vue'
+import CategoryManagementView from '@/views/CategoryManagementView.vue'
 import VipManagementView from '@/views/VipManagementView.vue'
 import RecognitionManagementView from '@/views/RecognitionManagementView.vue'
 import AdminProfileView from '@/views/AdminProfileView.vue'
@@ -197,6 +198,24 @@ const routes: Array<RouteRecordRaw> = [
         component: KnowledgeManagementView,
         meta: {
           title: '知识库管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/category-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'CategoryManagement',
+        component: CategoryManagementView,
+        meta: {
+          title: '分类管理 - 智能图像识别系统'
         }
       }
     ]

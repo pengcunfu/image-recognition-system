@@ -23,6 +23,46 @@ export class KnowledgeAPI {
   }
 
   /**
+   * 创建知识分类
+   */
+  static createCategory(data: {
+    name: string
+    key: string
+    description?: string
+    image?: string
+    sortOrder?: number
+  }) {
+    return request.post<KnowledgeCreateResponse>('/api/v1/knowledge/categories', data)
+  }
+
+  /**
+   * 更新知识分类
+   */
+  static updateCategory(id: number, data: {
+    name?: string
+    description?: string
+    image?: string
+    sortOrder?: number
+    status?: string
+  }) {
+    return request.put<KnowledgeCreateResponse>(`/api/v1/knowledge/categories/${id}`, data)
+  }
+
+  /**
+   * 删除知识分类
+   */
+  static deleteCategory(id: number) {
+    return request.delete<void>(`/api/v1/knowledge/categories/${id}`)
+  }
+
+  /**
+   * 获取分类详情
+   */
+  static getCategoryDetail(id: number) {
+    return request.get<KnowledgeCategory>(`/api/v1/knowledge/categories/${id}`)
+  }
+
+  /**
    * 获取知识条目列表
    */
   static getItems(params: {

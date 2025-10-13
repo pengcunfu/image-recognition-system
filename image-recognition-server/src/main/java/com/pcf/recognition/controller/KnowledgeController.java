@@ -220,21 +220,32 @@ public class KnowledgeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<KnowledgeCreateResponseDto> updateCategory(
             @PathVariable Long id, 
-            @RequestBody KnowledgeItemUpdateRequest request) {
+            @RequestBody CategoryUpdateRequest request) {
         try {
-            log.info("更新知识分类: id={}", id);
+            log.info("更新知识分类: id={}, name={}, status={}", id, request.getName(), request.getStatus());
 
-            // 这里应该调用service的更新方法，暂时返回成功
-            KnowledgeCreateResponseDto result = KnowledgeCreateResponseDto.builder()
-                    .success(true)
-                    .message("分类更新成功")
-                    .id(id)
-                    .build();
+            boolean success = knowledgeService.updateCategory(
+                id, 
+                request.getName(), 
+                request.getDescription(), 
+                request.getImage(), 
+                request.getSortOrder(), 
+                request.getStatus()
+            );
 
-            return ApiResponse.success(result, "分类更新成功");
+            if (success) {
+                KnowledgeCreateResponseDto result = KnowledgeCreateResponseDto.builder()
+                        .success(true)
+                        .message("分类更新成功")
+                        .id(id)
+                        .build();
+                return ApiResponse.success(result, "分类更新成功");
+            } else {
+                return ApiResponse.error("分类不存在或更新失败");
+            }
         } catch (Exception e) {
             log.error("更新知识分类失败", e);
-            return ApiResponse.error("更新分类失败");
+            return ApiResponse.error("更新分类失败: " + e.getMessage());
         }
     }
 

@@ -434,6 +434,27 @@ public class KnowledgeDto {
     }
 
     /**
+     * 知识分类更新请求DTO
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CategoryUpdateRequest {
+        @Size(max = 100, message = "分类名称长度不能超过100个字符")
+        private String name;
+
+        @Size(max = 500, message = "描述长度不能超过500个字符")
+        private String description;
+
+        private String image;
+
+        @Min(value = 0, message = "排序顺序不能小于0")
+        private Integer sortOrder;
+
+        private Integer status; // 1-ACTIVE, 2-INACTIVE, 3-HIDDEN
+    }
+
+    /**
      * 知识条目更新请求DTO
      */
     @Data

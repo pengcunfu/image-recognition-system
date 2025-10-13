@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -513,6 +514,49 @@ public class KnowledgeService {
                     .success(false)
                     .message("取消点赞失败")
                     .build();
+        }
+    }
+
+    /**
+     * 更新知识分类
+     */
+    public boolean updateCategory(Long id, String name, String description, String image, Integer sortOrder, Integer status) {
+        log.info("更新知识分类: id={}, name={}, status={}", id, name, status);
+        
+        try {
+            KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
+            if (category == null) {
+                log.warn("分类不存在: id={}", id);
+                return false;
+            }
+            
+            // 更新字段
+            if (name != null) {
+                category.setName(name);
+            }
+            if (description != null) {
+                category.setDescription(description);
+            }
+            if (image != null) {
+                category.setImage(image);
+            }
+            if (sortOrder != null) {
+                category.setSortOrder(sortOrder);
+            }
+            if (status != null) {
+                KnowledgeCategory.CategoryStatus categoryStatus = KnowledgeCategory.CategoryStatus.fromValue(status);
+                category.setStatus(categoryStatus);
+            }
+            
+            category.setUpdateTime(LocalDateTime.now());
+            
+            int result = knowledgeCategoryRepository.updateById(category);
+            log.info("更新分类结果: {}", result);
+            
+            return result > 0;
+        } catch (Exception e) {
+            log.error("更新分类失败", e);
+            return false;
         }
     }
 

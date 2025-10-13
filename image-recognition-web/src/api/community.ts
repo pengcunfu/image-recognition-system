@@ -362,6 +362,43 @@ export class CommunityAPI {
     })
     return request.upload<{ urls: string[] }>('/api/v1/community/upload/images', formData)
   }
+
+  // ==================== 管理员接口 ====================
+
+  /**
+   * 审核通过帖子
+   */
+  static approvePost(postId: number) {
+    return request.post<OperationResult>(`/api/v1/community/admin/posts/${postId}/approve`)
+  }
+
+  /**
+   * 拒绝帖子发布
+   */
+  static rejectPost(postId: number, reason?: string) {
+    return request.post<OperationResult>(`/api/v1/community/admin/posts/${postId}/reject`, { reason })
+  }
+
+  /**
+   * 置顶/取消置顶帖子
+   */
+  static toggleTopPost(postId: number, isTop: boolean) {
+    return request.put<OperationResult>(`/api/v1/community/admin/posts/${postId}/top`, { isTop })
+  }
+
+  /**
+   * 隐藏/显示帖子
+   */
+  static togglePostVisibility(postId: number, isHidden: boolean) {
+    return request.put<OperationResult>(`/api/v1/community/admin/posts/${postId}/visibility`, { isHidden })
+  }
+
+  /**
+   * 删除帖子（管理员）
+   */
+  static deletePostByAdmin(postId: number) {
+    return request.delete<OperationResult>(`/api/v1/community/admin/posts/${postId}`)
+  }
 }
 
 // 导出默认实例

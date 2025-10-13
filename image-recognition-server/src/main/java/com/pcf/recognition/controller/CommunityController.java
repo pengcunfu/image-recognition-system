@@ -164,4 +164,104 @@ public class CommunityController {
         }
     }
 
+
+    // ==================== 管理员接口 ====================
+
+    /**
+     * 审核通过帖子
+     */
+    @PostMapping("/admin/posts/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> approvePost(@PathVariable Long id) {
+        log.info("审核通过帖子请求: postId={}", id);
+
+        try {
+            communityService.approvePost(id);
+            return ApiResponse.success(null, "帖子审核通过");
+        } catch (Exception e) {
+            log.error("审核帖子失败", e);
+            return ApiResponse.error("审核失败");
+        }
+    }
+
+    /**
+     * 拒绝帖子发布
+     */
+    @PostMapping("/admin/posts/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> rejectPost(
+            @PathVariable Long id,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
+        
+        String reason = body != null ? body.get("reason") : null;
+        log.info("拒绝帖子发布请求: postId={}, reason={}", id, reason);
+
+        try {
+            communityService.rejectPost(id, reason);
+            return ApiResponse.success(null, "已拒绝发布该帖子");
+        } catch (Exception e) {
+            log.error("拒绝帖子失败", e);
+            return ApiResponse.error("操作失败");
+        }
+    }
+
+    /**
+     * 置顶/取消置顶帖子
+     */
+    @PutMapping("/admin/posts/{id}/top")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> toggleTopPost(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Boolean> body) {
+        
+        Boolean isTop = body.get("isTop");
+        log.info("置顶帖子请求: postId={}, isTop={}", id, isTop);
+
+        try {
+            communityService.toggleTopPost(id, isTop);
+            return ApiResponse.success(null, isTop ? "帖子已置顶" : "已取消置顶");
+        } catch (Exception e) {
+            log.error("置顶帖子失败", e);
+            return ApiResponse.error("操作失败");
+        }
+    }
+
+    /**
+     * 隐藏/显示帖子
+     */
+    @PutMapping("/admin/posts/{id}/visibility")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> togglePostVisibility(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Boolean> body) {
+        
+        Boolean isHidden = body.get("isHidden");
+        log.info("切换帖子可见性请求: postId={}, isHidden={}", id, isHidden);
+
+        try {
+            communityService.togglePostVisibility(id, isHidden);
+            return ApiResponse.success(null, isHidden ? "帖子已隐藏" : "帖子已显示");
+        } catch (Exception e) {
+            log.error("切换帖子可见性失败", e);
+            return ApiResponse.error("操作失败");
+        }
+    }
+
+    /**
+     * 删除帖子（管理员）
+     */
+    @DeleteMapping("/admin/posts/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deletePostByAdmin(@PathVariable Long id) {
+        log.info("管理员删除帖子请求: postId={}", id);
+
+        try {
+            communityService.deletePost(id);
+            return ApiResponse.success(null, "帖子已删除");
+        } catch (Exception e) {
+            log.error("删除帖子失败", e);
+            return ApiResponse.error("删除失败");
+        }
+    }
+
 }

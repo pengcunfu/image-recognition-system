@@ -85,7 +85,7 @@
                   操作 <i class="fas fa-chevron-down"></i>
                 </a-button>
                 <template #overlay>
-                  <a-menu @click="(e) => handleAction(e.key, record)">
+                  <a-menu @click="(e: any) => handleAction(e.key, record)">
                     <a-menu-item v-if="record.status === 'pending'" key="approve">
                       <i class="fas fa-check"></i> 审核通过
                     </a-menu-item>
@@ -128,11 +128,11 @@
         <div class="post-header">
           <h2>{{ selectedPost.title }}</h2>
           <div class="post-info">
-            <a-avatar :src="selectedPost.authorAvatar">
-              {{ selectedPost.author.charAt(0) }}
+            <a-avatar :src="selectedPost.author.avatar">
+              {{ selectedPost.author.username.charAt(0) }}
             </a-avatar>
             <div class="author-details">
-              <span class="author-name">{{ selectedPost.author }}</span>
+              <span class="author-name">{{ selectedPost.author.username }}</span>
               <span class="post-time">{{ selectedPost.createTime }}</span>
             </div>
             <a-tag :color="getStatusColor(selectedPost.status)">
@@ -188,11 +188,13 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
+import CommunityAPI from '@/api/community'
+import type { Post } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
 const drawerVisible = ref(false)
-const selectedPost = ref<any>(null)
+const selectedPost = ref<Post | null>(null)
 const filterStatus = ref('')
 const searchKeyword = ref('')
 
@@ -205,6 +207,9 @@ const pagination = reactive({
   showQuickJumper: true,
   showTotal: (total: number) => `共 ${total} 条记录`
 })
+
+// 帖子数据
+const posts = ref<Post[]>([])
 
 // 表格列定义
 const postColumns = [
@@ -246,114 +251,29 @@ const postColumns = [
   }
 ]
 
-// 模拟帖子数据
-const posts = ref([
-  {
-    id: 1,
-    title: '如何提高图像识别的准确率？深度学习技术分享',
-    author: '张三',
-    authorAvatar: '',
-    authorVip: true,
-    content: '这是一篇关于如何提高图像识别准确率的详细教程...',
-    category: '技术分享',
-    status: 'published',
-    isTop: true,
-    isHot: true,
-    views: 1250,
-    likes: 89,
-    replies: 23,
-    createTime: '2025-01-15 10:30',
-    images: []
-  },
-  {
-    id: 2,
-    title: 'AI图像识别在医疗领域的应用前景',
-    author: '李医生',
-    authorAvatar: '',
-    authorVip: false,
-    content: '探讨AI图像识别技术在医疗诊断中的应用...',
-    category: '行业应用',
-    status: 'pending',
-    isTop: false,
-    isHot: false,
-    views: 0,
-    likes: 0,
-    replies: 0,
-    createTime: '2025-01-15 09:15',
-    images: []
-  },
-  {
-    id: 3,
-    title: '新手入门：图像识别基础概念解析',
-    author: '王五',
-    authorAvatar: '',
-    authorVip: false,
-    content: '为初学者介绍图像识别的基本概念和原理...',
-    category: '新手教程',
-    status: 'published',
-    isTop: false,
-    isHot: true,
-    views: 890,
-    likes: 45,
-    replies: 12,
-    createTime: '2025-01-14 16:20',
-    images: []
-  },
-  {
-    id: 4,
-    title: '违规内容测试帖子',
-    author: '违规用户',
-    authorAvatar: '',
-    authorVip: false,
-    content: '这是一个包含违规内容的测试帖子...',
-    category: '其他',
-    status: 'rejected',
-    isTop: false,
-    isHot: false,
-    views: 0,
-    likes: 0,
-    replies: 0,
-    createTime: '2025-01-14 14:45',
-    images: []
-  },
-  {
-    id: 5,
-    title: '被隐藏的帖子示例',
-    author: '普通用户',
-    authorAvatar: '',
-    authorVip: false,
-    content: '这是一个被管理员隐藏的帖子...',
-    category: '讨论',
-    status: 'hidden',
-    isTop: false,
-    isHot: false,
-    views: 156,
-    likes: 3,
-    replies: 1,
-    createTime: '2025-01-13 11:30',
-    images: []
+// API调用函数
+async function loadPosts() {
+  try {
+    loading.value = true
+    const response = await CommunityAPI.getPosts({
+      page: pagination.current,
+      size: pagination.pageSize,
+      category: filterStatus.value || undefined
+    })
+    
+    posts.value = response.data.posts
+    pagination.total = response.data.total
+  } catch (error) {
+    console.error('加载帖子失败:', error)
+    message.error('加载帖子失败')
+  } finally {
+    loading.value = false
   }
-])
+}
 
-// 过滤后的帖子列表
+// 过滤后的帖子列表（现在主要在后端处理）
 const filteredPosts = computed(() => {
-  let result = posts.value
-
-  // 状态筛选
-  if (filterStatus.value) {
-    result = result.filter(post => post.status === filterStatus.value)
-  }
-
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(post => 
-      post.title.toLowerCase().includes(keyword) ||
-      post.author.toLowerCase().includes(keyword)
-    )
-  }
-
-  return result
+  return posts.value
 })
 
 // 获取状态颜色
@@ -392,23 +312,32 @@ function getStatusText(status: string) {
 // 处理筛选变化
 function handleFilterChange() {
   pagination.current = 1
+  loadPosts()
 }
 
 // 处理搜索
 function handleSearch() {
   pagination.current = 1
+  loadPosts()
 }
 
 // 处理表格变化
 function handleTableChange(pag: any) {
   pagination.current = pag.current
   pagination.pageSize = pag.pageSize
+  loadPosts()
 }
 
 // 查看帖子详情
-function viewPost(post: any) {
-  selectedPost.value = post
-  drawerVisible.value = true
+async function viewPost(post: Post) {
+  try {
+    const response = await CommunityAPI.getPostDetail(post.id)
+    selectedPost.value = response.data.post
+    drawerVisible.value = true
+  } catch (error) {
+    console.error('获取帖子详情失败:', error)
+    message.error('获取帖子详情失败')
+  }
 }
 
 // 处理操作
@@ -439,58 +368,82 @@ function handleAction(action: string, post: any) {
 }
 
 // 审核通过
-function approvePost(post: any) {
+async function approvePost(post: Post) {
   Modal.confirm({
     title: '确认审核通过',
     content: `确定要审核通过帖子"${post.title}"吗？`,
-    onOk() {
-      post.status = 'published'
-      message.success('帖子审核通过')
+    async onOk() {
+      try {
+        await CommunityAPI.approvePost(post.id)
+        message.success('帖子审核通过')
+        loadPosts() // 重新加载列表
+      } catch (error) {
+        console.error('审核失败:', error)
+        message.error('审核失败')
+      }
     }
   })
 }
 
 // 拒绝发布
-function rejectPost(post: any) {
+async function rejectPost(post: Post) {
   Modal.confirm({
     title: '确认拒绝发布',
     content: `确定要拒绝发布帖子"${post.title}"吗？`,
-    onOk() {
-      post.status = 'rejected'
-      message.success('已拒绝发布该帖子')
+    async onOk() {
+      try {
+        await CommunityAPI.rejectPost(post.id)
+        message.success('已拒绝发布该帖子')
+        loadPosts() // 重新加载列表
+      } catch (error) {
+        console.error('拒绝失败:', error)
+        message.error('拒绝失败')
+      }
     }
   })
 }
 
 // 切换置顶状态
-function toggleTop(post: any) {
-  post.isTop = !post.isTop
-  message.success(post.isTop ? '帖子已置顶' : '已取消置顶')
+async function toggleTop(post: Post) {
+  const newTopState = !post.isTop
+  try {
+    await CommunityAPI.toggleTopPost(post.id, newTopState)
+    message.success(newTopState ? '帖子已置顶' : '已取消置顶')
+    loadPosts() // 重新加载列表
+  } catch (error) {
+    console.error('置顶操作失败:', error)
+    message.error('操作失败')
+  }
 }
 
 // 切换显示/隐藏状态
-function toggleVisibility(post: any) {
-  if (post.status === 'hidden') {
-    post.status = 'published'
-    message.success('帖子已显示')
-  } else {
-    post.status = 'hidden'
-    message.success('帖子已隐藏')
+async function toggleVisibility(post: Post) {
+  const willBeHidden = post.status !== 'hidden'
+  try {
+    await CommunityAPI.togglePostVisibility(post.id, willBeHidden)
+    message.success(willBeHidden ? '帖子已隐藏' : '帖子已显示')
+    loadPosts() // 重新加载列表
+  } catch (error) {
+    console.error('切换可见性失败:', error)
+    message.error('操作失败')
   }
 }
 
 // 删除帖子
-function deletePost(post: any) {
+async function deletePost(post: Post) {
   Modal.confirm({
     title: '确认删除',
     content: `确定要删除帖子"${post.title}"吗？此操作不可恢复！`,
     okType: 'danger',
-    onOk() {
-      const index = posts.value.findIndex(p => p.id === post.id)
-      if (index > -1) {
-        posts.value.splice(index, 1)
+    async onOk() {
+      try {
+        await CommunityAPI.deletePostByAdmin(post.id)
         message.success('帖子已删除')
         drawerVisible.value = false
+        loadPosts() // 重新加载列表
+      } catch (error) {
+        console.error('删除失败:', error)
+        message.error('删除失败')
       }
     }
   })
@@ -504,7 +457,7 @@ function previewImage(image: string) {
 
 // 组件挂载
 onMounted(() => {
-  pagination.total = posts.value.length
+  loadPosts()
 })
 </script>
 

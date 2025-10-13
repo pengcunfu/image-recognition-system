@@ -240,6 +240,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import KnowledgeAPI from '@/api/knowledge'
+import FileAPI from '@/api/file'
 import type { KnowledgeCategory } from '@/api/types'
 import { CategoryStatus } from '@/api/types'
 
@@ -561,14 +562,32 @@ function beforeUpload(file: any) {
 }
 
 // 处理图片变化
-function handleImageChange(info: any) {
-  if (info.file) {
-    // 这里应该上传到服务器，现在只是模拟
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      formData.image = e.target?.result as string
+async function handleImageChange(info: any) {
+  if (info.file && info.file.status !== 'removed') {
+    try {
+      // 显示上传中状态
+      const loadingMsg = message.loading('图片上传中...', 0)
+      
+      // 调用上传接口
+      const response = await FileAPI.uploadFile(info.file, {
+        maxSize: 2 * 1024 * 1024, // 2MB
+        allowedTypes: ['image/jpeg', 'image/png', '.jpg', '.jpeg', '.png']
+      })
+      
+      // 关闭loading提示
+      loadingMsg()
+      
+      // 上传成功，保存文件URL
+      if (response.data.url) {
+        formData.image = response.data.url
+        message.success('图片上传成功')
+      } else {
+        message.error('上传失败：未返回文件URL')
+      }
+    } catch (error: any) {
+      console.error('图片上传失败:', error)
+      message.error(error.message || '图片上传失败')
     }
-    reader.readAsDataURL(info.file)
   }
 }
 

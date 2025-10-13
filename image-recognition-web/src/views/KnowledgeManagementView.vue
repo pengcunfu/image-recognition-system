@@ -43,8 +43,8 @@
             <div class="knowledge-title">
               <div class="title-with-image">
                 <img 
-                  v-if="record.images" 
-                  :src="record.images" 
+                  v-if="getFirstImage(record.images)" 
+                  :src="getFirstImage(record.images)" 
                   :alt="record.name"
                   class="knowledge-thumbnail"
                 />
@@ -182,8 +182,8 @@
             :before-upload="beforeUpload"
             @change="handleImageChange"
           >
-            <div v-if="formData.images" class="image-preview">
-              <img :src="formData.images" alt="封面" />
+            <div v-if="getFirstImage(formData.images)" class="image-preview">
+              <img :src="getFirstImage(formData.images)" alt="封面" />
             </div>
             <div v-else class="upload-placeholder">
               <i class="fas fa-plus"></i>
@@ -227,8 +227,8 @@
       <div v-if="selectedKnowledge" class="knowledge-detail">
         <div class="knowledge-header">
           <img 
-            v-if="selectedKnowledge.images" 
-            :src="selectedKnowledge.images" 
+            v-if="getFirstImage(selectedKnowledge.images)" 
+            :src="getFirstImage(selectedKnowledge.images)" 
             :alt="selectedKnowledge.title"
             class="knowledge-cover"
           />
@@ -237,7 +237,7 @@
             <div class="knowledge-meta">
               <a-tag :color="getCategoryColor(selectedKnowledge.category || '')">
                 {{ selectedKnowledge.category }}
-              </a-tag>
+              </a-tag>    
               <span class="difficulty">难度: {{ selectedKnowledge.difficulty }}</span>
               <span class="update-time">更新时间: {{ selectedKnowledge.updateTime }}</span>
             </div>
@@ -247,7 +247,7 @@
         
         <div class="knowledge-content">
           <h3>详细内容</h3>
-          <div class="content-text" v-html="selectedKnowledge.content"></div>
+          <div class="content-text" v-html="selectedKnowledge.content"></div>   
         </div>
         
         <div class="knowledge-tags" v-if="selectedKnowledge.tags">
@@ -256,8 +256,8 @@
             <a-tag v-for="tag in selectedKnowledge.tags.split(',')" :key="tag" color="blue">
               {{ tag.trim() }}
             </a-tag>
-          </a-space>
-        </div>
+            </a-space>
+          </div>
         
         <div class="knowledge-stats-detail">
           <h4>统计信息</h4>
@@ -299,6 +299,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import KnowledgeAPI from '@/api/knowledge'
+import FileAPI from '@/api/file'
 import type { KnowledgeItem, KnowledgeCategory } from '@/api/types'
 
 // 响应式数据
@@ -447,6 +448,18 @@ function getCategoryNameById(categoryId: number): string {
   return category ? category.name : '未知分类'
 }
 
+// 从JSON数组中获取第一张图片URL
+function getFirstImage(imagesJson: string | null | undefined): string {
+  if (!imagesJson) return ''
+  try {
+    const images = JSON.parse(imagesJson)
+    return Array.isArray(images) && images.length > 0 ? images[0] : ''
+  } catch {
+    // 如果不是JSON格式，直接返回原值（兼容旧数据）
+    return imagesJson
+  }
+}
+
 function getDifficultyText(difficulty: number): string {
   const difficultyMap: Record<number, string> = {
     1: '初级',
@@ -571,11 +584,15 @@ function publishKnowledge(knowledge: KnowledgeItem) {
   Modal.confirm({
     title: '确认发布',
     content: `确定要发布知识"${knowledge.name}"吗？`,
-    onOk() {
-      // 这里应该调用API更新状态，暂时模拟
-      knowledge.status = 'PUBLISHED'
-      message.success('知识已发布')
-      loadKnowledgeItems() // 重新加载数据
+    async onOk() {
+      try {
+        await KnowledgeAPI.updateItem(knowledge.id, { status: 'PUBLISHED' })
+        message.success('知识已发布')
+        loadKnowledgeItems() // 重新加载数据
+      } catch (error: any) {
+        console.error('发布知识失败:', error)
+        message.error(error.message || '发布失败')
+      }
     }
   })
 }
@@ -585,19 +602,41 @@ function unpublishKnowledge(knowledge: KnowledgeItem) {
   Modal.confirm({
     title: '确认撤回',
     content: `确定要撤回知识"${knowledge.name}"吗？`,
-    onOk() {
-      // 这里应该调用API更新状态，暂时模拟
-      knowledge.status = 'DRAFT'
-      message.success('知识已撤回')
-      loadKnowledgeItems() // 重新加载数据
+    async onOk() {
+      try {
+        await KnowledgeAPI.updateItem(knowledge.id, { status: 'DRAFT' })
+        message.success('知识已撤回')
+        loadKnowledgeItems() // 重新加载数据
+      } catch (error: any) {
+        console.error('撤回知识失败:', error)
+        message.error(error.message || '撤回失败')
+      }
     }
   })
 }
 
 // 复制知识
-function duplicateKnowledge(knowledge: KnowledgeItem) {
-  // 这里应该调用API创建副本，暂时模拟
-  message.success('知识复制功能开发中')
+async function duplicateKnowledge(knowledge: KnowledgeItem) {
+  try {
+    // 创建副本数据
+    const duplicateData = {
+      name: `${knowledge.name}（副本）`,
+      categoryId: knowledge.categoryId,
+      description: knowledge.description || '',
+      content: knowledge.content || '',
+      images: knowledge.images,
+      tags: knowledge.tags,
+      difficulty: knowledge.difficulty,
+      status: 'draft' // 副本默认为草稿状态
+    }
+    
+    await KnowledgeAPI.createItem(duplicateData)
+    message.success('知识复制成功')
+    loadKnowledgeItems() // 重新加载数据
+  } catch (error: any) {
+    console.error('复制知识失败:', error)
+    message.error(error.message || '复制失败')
+  }
 }
 
 // 删除知识
@@ -606,10 +645,15 @@ function deleteKnowledge(knowledge: KnowledgeItem) {
     title: '确认删除',
     content: `确定要删除知识"${knowledge.name}"吗？此操作不可恢复！`,
     okType: 'danger',
-    onOk() {
-      // 这里应该调用API删除，暂时模拟
-      message.success('知识删除功能开发中')
-      loadKnowledgeItems() // 重新加载数据
+    async onOk() {
+      try {
+        await KnowledgeAPI.deleteItem(knowledge.id)
+        message.success('知识删除成功')
+        loadKnowledgeItems() // 重新加载数据
+      } catch (error: any) {
+        console.error('删除知识失败:', error)
+        message.error(error.message || '删除失败')
+      }
     }
   })
 }
@@ -635,19 +679,33 @@ async function handleSubmit() {
   try {
     await formRef.value.validate()
     
-    if (isEditing.value) {
-      // 更新现有知识 - 这里应该调用API，暂时模拟
-      message.success('知识更新功能开发中')
+    const submitData = {
+      name: formData.name,
+      categoryId: formData.categoryId!,
+      description: formData.description,
+      content: formData.content,
+      images: formData.images,
+      tags: formData.tags,
+      difficulty: formData.difficulty,
+      status: formData.status
+    }
+    
+    if (isEditing.value && formData.id) {
+      // 更新现有知识
+      await KnowledgeAPI.updateItem(formData.id, submitData)
+      message.success('知识更新成功')
     } else {
-      // 添加新知识 - 这里应该调用API，暂时模拟
-      message.success('知识添加功能开发中')
+      // 添加新知识
+      await KnowledgeAPI.createItem(submitData)
+      message.success('知识添加成功')
     }
     
     modalVisible.value = false
     resetForm()
     loadKnowledgeItems() // 重新加载数据
-  } catch (error) {
-    message.error('请完善表单信息')
+  } catch (error: any) {
+    console.error('提交知识失败:', error)
+    message.error(error.message || '提交失败，请检查表单信息')
   }
 }
 
@@ -673,14 +731,33 @@ function beforeUpload(file: any) {
 }
 
 // 处理图片变化
-function handleImageChange(info: any) {
-  if (info.file) {
-    // 这里应该上传到服务器，现在只是模拟
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      formData.images = e.target?.result as string
+async function handleImageChange(info: any) {
+  if (info.file && info.file.status !== 'removed') {
+    try {
+      // 显示上传中状态
+      const loadingMsg = message.loading('图片上传中...', 0)
+      
+      // 调用上传接口
+      const response = await FileAPI.uploadFile(info.file, {
+        maxSize: 2 * 1024 * 1024, // 2MB
+        allowedTypes: ['image/jpeg', 'image/png', '.jpg', '.jpeg', '.png']
+      })
+      
+      // 关闭loading提示
+      loadingMsg()
+      
+      // 上传成功，保存文件URL（转换为JSON数组格式）
+      if (response.data.url) {
+        // 数据库中images字段是JSON类型，需要传递JSON数组
+        formData.images = JSON.stringify([response.data.url])
+        message.success('图片上传成功')
+      } else {
+        message.error('上传失败：未返回文件URL')
+      }
+    } catch (error: any) {
+      console.error('图片上传失败:', error)
+      message.error(error.message || '图片上传失败')
     }
-    reader.readAsDataURL(info.file)
   }
 }
 
@@ -742,7 +819,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .page {
   width: 100%;
 }
@@ -765,7 +842,7 @@ onMounted(async () => {
   margin-bottom: 24px;
 }
 
-/* 知识标题 */
+// 知识标题
 .knowledge-title {
   display: flex;
   flex-direction: column;
@@ -797,16 +874,22 @@ onMounted(async () => {
   text-decoration: none;
   font-weight: 500;
   font-size: 16px;
-}
 
-.title-link:hover {
-  text-decoration: underline;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .knowledge-meta {
   display: flex;
   align-items: center;
   gap: 12px;
+
+  .difficulty,
+  .update-time {
+    font-size: 14px;
+    color: #666;
+  }
 }
 
 .difficulty {
@@ -814,44 +897,46 @@ onMounted(async () => {
   color: #666;
 }
 
-/* 知识统计 */
+// 知识统计
 .knowledge-stats {
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-size: 12px;
   color: #666;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  i {
+    width: 12px;
+    font-size: 10px;
+  }
 }
 
-.knowledge-stats span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.knowledge-stats i {
-  width: 12px;
-  font-size: 10px;
-}
-
-/* 状态标签 */
+// 状态标签
 .status-tag {
   font-size: 12px;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 4px;
+
+  i {
+    font-size: 10px;
+  }
 }
 
-.status-tag i {
-  font-size: 10px;
-}
-
-/* 模态框样式 */
-.image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+// 模态框样式
+.image-preview {
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .upload-placeholder {
@@ -859,16 +944,18 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  i {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
 }
 
-.upload-placeholder i {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-
-/* 抽屉样式 */
-.knowledge-drawer :deep(.ant-drawer-body) {
-  padding: 24px;
+// 抽屉样式
+.knowledge-drawer {
+  :deep(.ant-drawer-body) {
+    padding: 24px;
+  }
 }
 
 .knowledge-detail {
@@ -894,25 +981,12 @@ onMounted(async () => {
 
 .knowledge-info {
   flex: 1;
-}
 
-.knowledge-info h2 {
-  margin: 0 0 12px 0;
-  color: #262626;
-  font-size: 24px;
-}
-
-.knowledge-meta {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.knowledge-meta .difficulty,
-.knowledge-meta .update-time {
-  font-size: 14px;
-  color: #666;
+  h2 {
+    margin: 0 0 12px 0;
+    color: #262626;
+    font-size: 24px;
+  }
 }
 
 .description {
@@ -921,11 +995,13 @@ onMounted(async () => {
   margin: 0;
 }
 
-.knowledge-content h3,
-.knowledge-tags h4,
-.knowledge-stats-detail h4 {
-  color: #262626;
-  margin-bottom: 16px;
+.knowledge-content,
+.knowledge-tags,
+.knowledge-stats-detail {
+  h3, h4 {
+    color: #262626;
+    margin-bottom: 16px;
+  }
 }
 
 .content-text {
@@ -937,16 +1013,16 @@ onMounted(async () => {
   white-space: pre-wrap;
 }
 
-/* 危险操作样式 */
+// 危险操作样式
 :deep(.danger-item) {
   color: #ff4d4f !important;
+
+  &:hover {
+    background-color: #fff2f0 !important;
+  }
 }
 
-:deep(.danger-item:hover) {
-  background-color: #fff2f0 !important;
-}
-
-/* 响应式 */
+// 响应式
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;

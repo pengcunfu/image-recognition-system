@@ -85,6 +85,57 @@ export class KnowledgeAPI {
   }
 
   /**
+   * 创建知识条目
+   */
+  static createItem(data: {
+    name: string
+    categoryId: number
+    scientificName?: string
+    description: string
+    content: string
+    images?: string
+    characteristics?: string
+    habitat?: string
+    lifespan?: string
+    relatedItems?: string
+    tags?: string
+    difficulty?: number
+    sortOrder?: number
+    status?: string
+  }) {
+    return request.post<KnowledgeCreateResponse>('/api/v1/knowledge/items', data)
+  }
+
+  /**
+   * 更新知识条目
+   */
+  static updateItem(id: number, data: {
+    name?: string
+    categoryId?: number
+    scientificName?: string
+    description?: string
+    content?: string
+    images?: string
+    characteristics?: string
+    habitat?: string
+    lifespan?: string
+    relatedItems?: string
+    tags?: string
+    difficulty?: number
+    sortOrder?: number
+    status?: string
+  }) {
+    return request.put<KnowledgeCreateResponse>(`/api/v1/knowledge/items/${id}`, data)
+  }
+
+  /**
+   * 删除知识条目
+   */
+  static deleteItem(id: number) {
+    return request.delete<void>(`/api/v1/knowledge/items/${id}`)
+  }
+
+  /**
    * 搜索知识条目
    */
   static searchItems(params: {

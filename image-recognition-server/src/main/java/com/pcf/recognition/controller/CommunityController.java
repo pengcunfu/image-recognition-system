@@ -176,9 +176,9 @@ public class CommunityController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer status,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "latest") String sort) {
+            @RequestParam(defaultValue = "0") int sort) {
 
         log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, keyword={}, sort={}", 
                  page, size, category, status, keyword, sort);

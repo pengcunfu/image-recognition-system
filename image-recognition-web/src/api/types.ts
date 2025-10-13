@@ -341,6 +341,23 @@ export interface KnowledgeOperationResult {
 
 // ==================== 社区相关类型 ====================
 
+// 帖子状态枚举
+export enum PostStatus {
+  DRAFT = 1,        // 草稿
+  PENDING = 2,      // 待审核
+  PUBLISHED = 3,    // 已发布
+  REJECTED = 4,     // 已拒绝
+  HIDDEN = 5,       // 已隐藏
+  DELETED = 6       // 已删除
+}
+
+// 排序方式枚举
+export enum SortType {
+  LATEST = 0,       // 最新
+  HOT = 1,          // 最热
+  TOP_FIRST = 2     // 置顶优先
+}
+
 // 帖子
 export interface Post {
   id: number

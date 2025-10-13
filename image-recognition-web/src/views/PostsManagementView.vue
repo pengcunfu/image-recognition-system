@@ -9,12 +9,12 @@
           style="width: 120px"
           @change="handleFilterChange"
         >
-          <a-select-option value="">全部</a-select-option>
-          <a-select-option value="PUBLISHED">已发布</a-select-option>
-          <a-select-option value="PENDING">待审核</a-select-option>
-          <a-select-option value="REJECTED">已拒绝</a-select-option>
-          <a-select-option value="HIDDEN">已隐藏</a-select-option>
-          <a-select-option value="DRAFT">草稿</a-select-option>
+          <a-select-option :value="undefined">全部</a-select-option>
+          <a-select-option :value="PostStatus.PUBLISHED">已发布</a-select-option>
+          <a-select-option :value="PostStatus.PENDING">待审核</a-select-option>
+          <a-select-option :value="PostStatus.REJECTED">已拒绝</a-select-option>
+          <a-select-option :value="PostStatus.HIDDEN">已隐藏</a-select-option>
+          <a-select-option :value="PostStatus.DRAFT">草稿</a-select-option>
         </a-select>
         <a-input-search
           v-model:value="searchKeyword"
@@ -190,12 +190,13 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import CommunityAPI from '@/api/community'
 import type { Post } from '@/api/types'
+import { PostStatus, SortType } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
 const drawerVisible = ref(false)
 const selectedPost = ref<Post | null>(null)
-const filterStatus = ref('')
+const filterStatus = ref<number | undefined>(undefined)
 const searchKeyword = ref('')
 
 // 分页配置
@@ -256,13 +257,14 @@ async function loadPosts() {
   try {
     loading.value = true
     // 使用管理员专用接口，可以看到所有状态的帖子
-    const response = await CommunityAPI.getAdminPosts({
-      page: pagination.current,
-      size: pagination.pageSize,
-      status: filterStatus.value || undefined,
-      keyword: searchKeyword.value || undefined,
-      sort: 'latest'
-    })
+    const response = await CommunityAPI.getAdminPosts(
+      pagination.current,
+      pagination.pageSize,
+      undefined, // category
+      filterStatus.value,
+      searchKeyword.value || undefined,
+      SortType.LATEST
+    )
     
     // 后端返回的是 data 字段，不是 posts
     posts.value = response.data.data || []

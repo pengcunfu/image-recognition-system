@@ -186,7 +186,7 @@ public class CommunityService {
     /**
      * 管理员获取所有帖子（包括所有状态）
      */
-    public PostListResponseDto getAdminPosts(int page, int size, String category, String status, String keyword, String sort) {
+    public PostListResponseDto getAdminPosts(int page, int size, String category, Integer status, String keyword, int sort) {
         log.info("管理员获取帖子列表: page={}, size={}, category={}, status={}, keyword={}, sort={}", 
                  page, size, category, status, keyword, sort);
 
@@ -195,9 +195,10 @@ public class CommunityService {
         LambdaQueryWrapper<CommunityPost> queryWrapper = new LambdaQueryWrapper<>();
         
         // 管理员可以看到所有状态的帖子，但可以按状态筛选
-        if (status != null && !status.isEmpty()) {
+        if (status != null) {
             try {
-                CommunityPost.PostStatus postStatus = CommunityPost.PostStatus.valueOf(status.toUpperCase());
+                CommunityPost.PostStatus postStatus = CommunityPost.PostStatus.fromValue(status);
+                log.info("添加状态筛选条件: status = {} ({})", status, postStatus);
                 queryWrapper.eq(CommunityPost::getStatus, postStatus);
             } catch (IllegalArgumentException e) {
                 log.warn("无效的状态值: {}", status);
@@ -210,22 +211,27 @@ public class CommunityService {
 
         // 关键词搜索（搜索标题和内容）
         if (keyword != null && !keyword.isEmpty()) {
-            queryWrapper.and(wrapper -> wrapper
-                .like(CommunityPost::getTitle, keyword)
-                .or()
-                .like(CommunityPost::getContent, keyword)
+            queryWrapper.and(wrapper -> 
+                wrapper.like(CommunityPost::getTitle, keyword)
+                       .or()
+                       .like(CommunityPost::getContent, keyword)
             );
         }
 
         // 排序
-        if ("hot".equals(sort)) {
-            queryWrapper.orderByDesc(CommunityPost::getLikeCount);
-        } else if ("latest".equals(sort)) {
-            queryWrapper.orderByDesc(CommunityPost::getCreateTime);
-        } else {
-            // 默认：置顶优先，然后按创建时间倒序
-            queryWrapper.orderByDesc(CommunityPost::getIsTop)
-                       .orderByDesc(CommunityPost::getCreateTime);
+        CommunityPost.SortType sortType = CommunityPost.SortType.fromValue(sort);
+        switch (sortType) {
+            case HOT:
+                queryWrapper.orderByDesc(CommunityPost::getLikeCount);
+                break;
+            case TOP_FIRST:
+                queryWrapper.orderByDesc(CommunityPost::getIsTop)
+                           .orderByDesc(CommunityPost::getCreateTime);
+                break;
+            case LATEST:
+            default:
+                queryWrapper.orderByDesc(CommunityPost::getCreateTime);
+                break;
         }
 
         Page<CommunityPost> result = communityPostRepository.selectPage(pageRequest, queryWrapper);

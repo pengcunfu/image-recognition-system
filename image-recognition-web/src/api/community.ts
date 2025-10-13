@@ -368,15 +368,17 @@ export class CommunityAPI {
   /**
    * 管理员获取所有帖子（包括所有状态）
    */
-  static getAdminPosts(params: {
-    page?: number
-    size?: number
-    category?: string
-    status?: string
-    keyword?: string
-    sort?: string
-  }) {
-    return request.get<PostListResponse>('/api/v1/community/admin/posts', { params })
+  static getAdminPosts(
+    page?: number,
+    size?: number,
+    category?: string,
+    status?: number,
+    keyword?: string,
+    sort?: number
+  ) {
+    return request.get<PostListResponse>('/api/v1/community/admin/posts', 
+      { page, size, category, status, keyword, sort }
+    )
   }
 
   /**

@@ -122,8 +122,7 @@ public class SecurityConfig {
                         // 管理员专用接口
                         .requestMatchers(
                                 "/api/v1/admin/**",
-                                "/api/v1/management/**",
-                                "/api/v1/user/admin/**"
+                                "/api/v1/management/**"
                         ).hasRole("ADMIN")
 
                         // 其他所有请求都需要认证

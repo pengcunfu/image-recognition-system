@@ -197,7 +197,7 @@ public class UserController {
 
     // ==================== 管理员用户管理接口 ====================
 
-    @GetMapping("/admin/users")
+    @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserListResponse> getUsers(
             @RequestParam(defaultValue = "1") Integer page,
@@ -220,7 +220,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/admin/users/{id}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserInfoDto> getUserDetail(@PathVariable Long id) {
         log.info("管理员获取用户详情: id={}", id);
@@ -238,7 +238,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/admin/users")
+    @PostMapping("/create")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<CreateUserResponseDto> createUser(@Valid @RequestBody AdminUserCreateRequest request) {
         log.info("管理员创建用户: username={}, email={}, role={}", 
@@ -257,7 +257,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/admin/users/{id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUserUpdateRequest request) {
         log.info("管理员更新用户: id={}", id);
@@ -275,7 +275,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/admin/users/{id}")
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         log.info("管理员删除用户: id={}", id);
@@ -293,7 +293,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/admin/users/{id}/status")
+    @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> toggleUserStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String status = request.get("status");
@@ -312,7 +312,7 @@ public class UserController {
         }
     }
 
-    @PutMapping("/admin/users/{id}/password")
+    @PutMapping("/{id}/password")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String newPassword = request.get("newPassword");
@@ -331,7 +331,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/admin/users/batch")
+    @PostMapping("/batch")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<BatchOperationResultDto> batchUpdateUsers(@RequestBody BatchUserOperationRequest request) {
         log.info("管理员批量操作用户: action={}, userIds={}", request.getAction(), request.getUserIds());
@@ -345,7 +345,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/admin/users/overview")
+    @GetMapping("/overview")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserOverviewDto> getUsersOverview() {
         log.info("管理员获取用户概览");
@@ -359,7 +359,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/admin/users/search")
+    @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserListResponse> searchUsers(
             @RequestParam String keyword,
@@ -379,7 +379,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/admin/users/{id}/login-history")
+    @GetMapping("/{id}/login-history")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<UserLoginHistoryDto> getUserLoginHistory(
             @PathVariable Long id,

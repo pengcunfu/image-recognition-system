@@ -74,56 +74,56 @@ export class UserAPI {
    * 获取用户列表（管理员）
    */
   static getUsers(params: UserQueryParams = {}) {
-    return request.get<UserListResponse>('/api/v1/admin/users', params)
+    return request.get<UserListResponse>('/api/v1/user/list', { params })
   }
 
   /**
    * 获取用户详情（管理员）
    */
   static getUserDetail(id: number) {
-    return request.get<User>(`/api/v1/admin/users/${id}`)
+    return request.get<User>(`/api/v1/user/${id}`)
   }
 
   /**
    * 创建用户（管理员）
    */
   static createUser(data: AdminUserCreateRequest) {
-    return request.post<{ id: number }>('/api/v1/admin/users', data)
+    return request.post<{ id: number }>('/api/v1/user/create', data)
   }
 
   /**
    * 更新用户（管理员）
    */
   static updateUser(id: number, data: AdminUserUpdateRequest) {
-    return request.put<void>(`/api/v1/admin/users/${id}`, data)
+    return request.put<void>(`/api/v1/user/${id}`, data)
   }
 
   /**
    * 删除用户（管理员）
    */
   static deleteUser(id: number) {
-    return request.delete<void>(`/api/v1/admin/users/${id}`)
+    return request.delete<void>(`/api/v1/user/${id}`)
   }
 
   /**
    * 启用/禁用用户（管理员）
    */
   static toggleUserStatus(id: number, status: 'ACTIVE' | 'INACTIVE' | 'BANNED') {
-    return request.put<void>(`/api/v1/admin/users/${id}/status`, { status })
+    return request.put<void>(`/api/v1/user/${id}/status`, { status })
   }
 
   /**
    * 重置用户密码（管理员）
    */
   static resetPassword(id: number, newPassword: string) {
-    return request.put<void>(`/api/v1/admin/users/${id}/password`, { newPassword })
+    return request.put<void>(`/api/v1/user/${id}/password`, { newPassword })
   }
 
   /**
    * 批量操作用户（管理员）
    */
   static batchUpdateUsers(userIds: number[], action: 'activate' | 'deactivate' | 'ban' | 'delete') {
-    return request.post<void>('/api/v1/admin/users/batch', { userIds, action })
+    return request.post<void>('/api/v1/user/batch', { userIds, action })
   }
 
   /**
@@ -138,14 +138,14 @@ export class UserAPI {
       usersByRole: Record<string, number>
       usersByStatus: Record<string, number>
       recentRegistrations: User[]
-    }>('/api/v1/admin/users/overview')
+    }>('/api/v1/user/overview')
   }
 
   /**
    * 导出用户数据（管理员）
    */
   static exportUsers(params: UserQueryParams = {}) {
-    return request.get('/api/v1/admin/users/export', params, { 
+    return request.get('/api/v1/user/export', params, { 
       responseType: 'blob',
       showLoading: true 
     })
@@ -155,7 +155,7 @@ export class UserAPI {
    * 搜索用户
    */
   static searchUsers(keyword: string, params: Partial<UserQueryParams> = {}) {
-    return request.get<UserListResponse>('/api/v1/admin/users/search', {
+    return request.get<UserListResponse>('/api/v1/user/search', {
       keyword,
       ...params
     })
@@ -177,7 +177,7 @@ export class UserAPI {
       total: number
       page: number
       size: number
-    }>(`/api/v1/admin/users/${id}/login-history`, params)
+    }>(`/api/v1/user/${id}/login-history`, params)
   }
 }
 

@@ -314,14 +314,58 @@ public class UserService {
     public CreateUserResponseDto createUser(AdminUserCreateRequest request) {
         log.info("管理员创建用户: username={}", request.getUsername());
         
-        // 模拟创建用户逻辑
-        // 实际项目中应该检查用户名是否已存在，然后插入数据库
-        
-        return CreateUserResponseDto.builder()
-                .success(true)
-                .message("用户创建成功")
-                .userId(System.currentTimeMillis()) // 模拟生成的用户ID
-                .build();
+        try {
+            // 检查用户名是否已存在
+            LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(User::getUsername, request.getUsername())
+                       .or().eq(User::getEmail, request.getEmail());
+            
+            User existingUser = userRepository.selectOne(queryWrapper);
+            if (existingUser != null) {
+                return CreateUserResponseDto.builder()
+                        .success(false)
+                        .message("用户名或邮箱已存在")
+                        .userId(null)
+                        .build();
+            }
+            
+            // 创建新用户
+            User newUser = new User();
+            newUser.setUsername(request.getUsername());
+            newUser.setEmail(request.getEmail());
+            newUser.setPassword(request.getPassword()); // 生产环境应该加密
+            newUser.setName(request.getName());
+            newUser.setPhone(request.getPhone());
+            newUser.setRole(User.UserRole.valueOf(request.getRole()));
+            newUser.setStatus(User.UserStatus.valueOf(request.getStatus() != null ? request.getStatus() : "ACTIVE"));
+            newUser.setVipLevel(request.getVipLevel());
+            newUser.setCreateTime(LocalDateTime.now());
+            newUser.setUpdateTime(LocalDateTime.now());
+            
+            // 插入数据库
+            int result = userRepository.insert(newUser);
+            
+            if (result > 0) {
+                return CreateUserResponseDto.builder()
+                        .success(true)
+                        .message("用户创建成功")
+                        .userId(newUser.getId())
+                        .build();
+            } else {
+                return CreateUserResponseDto.builder()
+                        .success(false)
+                        .message("用户创建失败")
+                        .userId(null)
+                        .build();
+            }
+        } catch (Exception e) {
+            log.error("创建用户失败", e);
+            return CreateUserResponseDto.builder()
+                    .success(false)
+                    .message("用户创建失败: " + e.getMessage())
+                    .userId(null)
+                    .build();
+        }
     }
 
     /**
@@ -330,10 +374,75 @@ public class UserService {
     public boolean updateUser(Long id, AdminUserUpdateRequest request) {
         log.info("管理员更新用户: id={}", id);
         
-        // 模拟更新用户逻辑
-        // 实际项目中应该根据ID查找用户并更新相应字段
-        
-        return true; // 模拟更新成功
+        try {
+            // 检查用户是否存在
+            User existingUser = userRepository.selectById(id);
+            if (existingUser == null) {
+                log.warn("用户不存在: id={}", id);
+                return false;
+            }
+            
+            // 如果要更新用户名或邮箱，检查是否与其他用户冲突
+            if (request.getUsername() != null || request.getEmail() != null) {
+                LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.ne(User::getId, id); // 排除当前用户
+                
+                if (request.getUsername() != null) {
+                    queryWrapper.eq(User::getUsername, request.getUsername());
+                }
+                if (request.getEmail() != null) {
+                    queryWrapper.or().eq(User::getEmail, request.getEmail());
+                }
+                
+                User conflictUser = userRepository.selectOne(queryWrapper);
+                if (conflictUser != null) {
+                    log.warn("用户名或邮箱已被其他用户使用: username={}, email={}", 
+                            request.getUsername(), request.getEmail());
+                    return false;
+                }
+            }
+            
+            // 构建更新条件
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(User::getId, id);
+            
+            // 只更新非空字段
+            if (request.getUsername() != null) {
+                updateWrapper.set(User::getUsername, request.getUsername());
+            }
+            if (request.getEmail() != null) {
+                updateWrapper.set(User::getEmail, request.getEmail());
+            }
+            if (request.getName() != null) {
+                updateWrapper.set(User::getName, request.getName());
+            }
+            if (request.getPhone() != null) {
+                updateWrapper.set(User::getPhone, request.getPhone());
+            }
+            if (request.getRole() != null) {
+                updateWrapper.set(User::getRole, User.UserRole.valueOf(request.getRole()));
+            }
+            if (request.getStatus() != null) {
+                updateWrapper.set(User::getStatus, User.UserStatus.valueOf(request.getStatus()));
+            }
+            if (request.getVipLevel() != null) {
+                updateWrapper.set(User::getVipLevel, request.getVipLevel());
+            }
+            if (request.getVipExpireTime() != null) {
+                updateWrapper.set(User::getVipExpireTime, request.getVipExpireTime());
+            }
+            
+            // 更新时间
+            updateWrapper.set(User::getUpdateTime, LocalDateTime.now());
+            
+            // 执行更新
+            int result = userRepository.update(null, updateWrapper);
+            
+            return result > 0;
+        } catch (Exception e) {
+            log.error("更新用户失败: id={}", id, e);
+            return false;
+        }
     }
 
     /**
@@ -342,10 +451,34 @@ public class UserService {
     public boolean deleteUser(Long id) {
         log.info("管理员删除用户: id={}", id);
         
-        // 模拟删除用户逻辑
-        // 实际项目中应该软删除或硬删除用户
-        
-        return true; // 模拟删除成功
+        try {
+            // 检查用户是否存在
+            User existingUser = userRepository.selectById(id);
+            if (existingUser == null) {
+                log.warn("用户不存在: id={}", id);
+                return false;
+            }
+            
+            // 检查是否为管理员（防止删除管理员账户）
+            if (User.UserRole.ADMIN.equals(existingUser.getRole())) {
+                log.warn("不能删除管理员账户: id={}", id);
+                return false;
+            }
+            
+            // 执行删除（硬删除）
+            int result = userRepository.deleteById(id);
+            
+            if (result > 0) {
+                log.info("用户删除成功: id={}", id);
+                return true;
+            } else {
+                log.warn("用户删除失败: id={}", id);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("删除用户失败: id={}", id, e);
+            return false;
+        }
     }
 
     /**
@@ -354,10 +487,48 @@ public class UserService {
     public boolean updateUserStatus(Long id, String status) {
         log.info("管理员更新用户状态: id={}, status={}", id, status);
         
-        // 模拟更新用户状态逻辑
-        // 实际项目中应该根据ID查找用户并更新状态
-        
-        return true; // 模拟更新成功
+        try {
+            // 检查用户是否存在
+            User existingUser = userRepository.selectById(id);
+            if (existingUser == null) {
+                log.warn("用户不存在: id={}", id);
+                return false;
+            }
+            
+            // 验证状态值
+            User.UserStatus userStatus;
+            try {
+                userStatus = User.UserStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的用户状态: status={}", status);
+                return false;
+            }
+            
+            // 检查是否为管理员（防止禁用管理员账户）
+            if (User.UserRole.ADMIN.equals(existingUser.getRole()) && User.UserStatus.BANNED.equals(userStatus)) {
+                log.warn("不能禁用管理员账户: id={}", id);
+                return false;
+            }
+            
+            // 更新用户状态
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(User::getId, id)
+                        .set(User::getStatus, userStatus)
+                        .set(User::getUpdateTime, LocalDateTime.now());
+            
+            int result = userRepository.update(null, updateWrapper);
+            
+            if (result > 0) {
+                log.info("用户状态更新成功: id={}, status={}", id, status);
+                return true;
+            } else {
+                log.warn("用户状态更新失败: id={}, status={}", id, status);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("更新用户状态失败: id={}, status={}", id, status, e);
+            return false;
+        }
     }
 
     /**
@@ -366,10 +537,39 @@ public class UserService {
     public boolean resetUserPassword(Long id, String newPassword) {
         log.info("管理员重置用户密码: id={}", id);
         
-        // 模拟重置密码逻辑
-        // 实际项目中应该加密新密码并更新到数据库
-        
-        return true; // 模拟重置成功
+        try {
+            // 检查用户是否存在
+            User existingUser = userRepository.selectById(id);
+            if (existingUser == null) {
+                log.warn("用户不存在: id={}", id);
+                return false;
+            }
+            
+            // 验证新密码
+            if (newPassword == null || newPassword.trim().length() < 6) {
+                log.warn("新密码长度不足: id={}", id);
+                return false;
+            }
+            
+            // 更新密码
+            LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(User::getId, id)
+                        .set(User::getPassword, newPassword) // 生产环境应该加密
+                        .set(User::getUpdateTime, LocalDateTime.now());
+            
+            int result = userRepository.update(null, updateWrapper);
+            
+            if (result > 0) {
+                log.info("用户密码重置成功: id={}", id);
+                return true;
+            } else {
+                log.warn("用户密码重置失败: id={}", id);
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("重置用户密码失败: id={}", id, e);
+            return false;
+        }
     }
 
     /**
@@ -378,13 +578,65 @@ public class UserService {
     public BatchOperationResultDto batchUpdateUsers(List<Long> userIds, String action) {
         log.info("管理员批量操作用户: userIds={}, action={}", userIds, action);
         
-        // 模拟批量操作逻辑
         List<UserOperationResult> results = new ArrayList<>();
         int successCount = 0;
         int failedCount = 0;
         
         for (Long userId : userIds) {
-            boolean success = Math.random() > 0.1; // 模拟90%成功率
+            boolean success = false;
+            String message = "";
+            
+            try {
+                // 检查用户是否存在
+                User existingUser = userRepository.selectById(userId);
+                if (existingUser == null) {
+                    message = "用户不存在";
+                } else {
+                    // 检查是否为管理员（防止对管理员进行某些操作）
+                    if (User.UserRole.ADMIN.equals(existingUser.getRole()) && 
+                        ("delete".equals(action) || "ban".equals(action))) {
+                        message = "不能对管理员执行此操作";
+                    } else {
+                        // 根据操作类型执行相应操作
+                        switch (action) {
+                            case "delete":
+                                success = userRepository.deleteById(userId) > 0;
+                                message = success ? "删除成功" : "删除失败";
+                                break;
+                            case "activate":
+                                LambdaUpdateWrapper<User> activateWrapper = new LambdaUpdateWrapper<>();
+                                activateWrapper.eq(User::getId, userId)
+                                              .set(User::getStatus, User.UserStatus.ACTIVE)
+                                              .set(User::getUpdateTime, LocalDateTime.now());
+                                success = userRepository.update(null, activateWrapper) > 0;
+                                message = success ? "激活成功" : "激活失败";
+                                break;
+                            case "deactivate":
+                                LambdaUpdateWrapper<User> deactivateWrapper = new LambdaUpdateWrapper<>();
+                                deactivateWrapper.eq(User::getId, userId)
+                                                .set(User::getStatus, User.UserStatus.INACTIVE)
+                                                .set(User::getUpdateTime, LocalDateTime.now());
+                                success = userRepository.update(null, deactivateWrapper) > 0;
+                                message = success ? "停用成功" : "停用失败";
+                                break;
+                            case "ban":
+                                LambdaUpdateWrapper<User> banWrapper = new LambdaUpdateWrapper<>();
+                                banWrapper.eq(User::getId, userId)
+                                         .set(User::getStatus, User.UserStatus.BANNED)
+                                         .set(User::getUpdateTime, LocalDateTime.now());
+                                success = userRepository.update(null, banWrapper) > 0;
+                                message = success ? "禁用成功" : "禁用失败";
+                                break;
+                            default:
+                                message = "不支持的操作类型";
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("批量操作用户失败: userId={}, action={}", userId, action, e);
+                message = "操作异常: " + e.getMessage();
+            }
+            
             if (success) {
                 successCount++;
             } else {
@@ -394,7 +646,7 @@ public class UserService {
             results.add(UserOperationResult.builder()
                     .userId(userId)
                     .success(success)
-                    .message(success ? "操作成功" : "操作失败")
+                    .message(message)
                     .build());
         }
         
@@ -412,20 +664,76 @@ public class UserService {
     public UserOverviewDto getUsersOverview() {
         log.info("管理员获取用户概览");
         
-        // 模拟用户概览数据
-        // 实际项目中应该从数据库统计各种用户数据
-        
-        return UserOverviewDto.builder()
-                .totalUsers(1000L)
-                .activeUsers(850L)
-                .inactiveUsers(100L)
-                .bannedUsers(50L)
-                .vipUsers(200L)
-                .adminUsers(10L)
-                .todayRegistrations(15L)
-                .weekRegistrations(120L)
-                .monthRegistrations(500L)
-                .build();
+        try {
+            // 统计总用户数
+            Long totalUsers = userRepository.selectCount(null);
+            
+            // 统计各状态用户数
+            Long activeUsers = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getStatus, User.UserStatus.ACTIVE)
+            );
+            
+            Long inactiveUsers = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getStatus, User.UserStatus.INACTIVE)
+            );
+            
+            Long bannedUsers = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getStatus, User.UserStatus.BANNED)
+            );
+            
+            // 统计各角色用户数
+            Long vipUsers = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getRole, User.UserRole.VIP)
+            );
+            
+            Long adminUsers = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getRole, User.UserRole.ADMIN)
+            );
+            
+            // 统计今日注册用户数
+            LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+            Long todayRegistrations = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().ge(User::getCreateTime, todayStart)
+            );
+            
+            // 统计本周注册用户数
+            LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
+            Long weekRegistrations = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().ge(User::getCreateTime, weekStart)
+            );
+            
+            // 统计本月注册用户数
+            LocalDateTime monthStart = LocalDateTime.now().minusDays(30);
+            Long monthRegistrations = userRepository.selectCount(
+                new LambdaQueryWrapper<User>().ge(User::getCreateTime, monthStart)
+            );
+            
+            return UserOverviewDto.builder()
+                    .totalUsers(totalUsers)
+                    .activeUsers(activeUsers)
+                    .inactiveUsers(inactiveUsers)
+                    .bannedUsers(bannedUsers)
+                    .vipUsers(vipUsers)
+                    .adminUsers(adminUsers)
+                    .todayRegistrations(todayRegistrations)
+                    .weekRegistrations(weekRegistrations)
+                    .monthRegistrations(monthRegistrations)
+                    .build();
+        } catch (Exception e) {
+            log.error("获取用户概览失败", e);
+            // 如果查询失败，返回默认值
+            return UserOverviewDto.builder()
+                    .totalUsers(0L)
+                    .activeUsers(0L)
+                    .inactiveUsers(0L)
+                    .bannedUsers(0L)
+                    .vipUsers(0L)
+                    .adminUsers(0L)
+                    .todayRegistrations(0L)
+                    .weekRegistrations(0L)
+                    .monthRegistrations(0L)
+                    .build();
+        }
     }
 
     /**

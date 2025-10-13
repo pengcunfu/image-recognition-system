@@ -38,6 +38,8 @@ public class User {
 
     private Integer vipLevel = 0;
 
+    private LocalDateTime vipExpireTime;
+
     private LocalDateTime lastLoginTime;
 
     @TableField(fill = FieldFill.INSERT)

@@ -41,7 +41,7 @@
               <div class="category-content">
                 <img 
                   v-if="record.image" 
-                  :src="record.image" 
+                  :src="getImageUrl(record.image)" 
                   :alt="record.name"
                   class="category-icon"
                 />
@@ -157,7 +157,7 @@
             @change="handleImageChange"
           >
             <div v-if="formData.image" class="image-preview">
-              <img :src="formData.image" alt="分类图标" />
+              <img :src="getImageUrl(formData.image)" alt="分类图标" />
             </div>
             <div v-else class="upload-placeholder">
               <i class="fas fa-plus"></i>
@@ -200,7 +200,7 @@
         <div class="category-header">
           <img 
             v-if="selectedCategory.image" 
-            :src="selectedCategory.image" 
+            :src="getImageUrl(selectedCategory.image)" 
             :alt="selectedCategory.name"
             class="category-cover"
           />
@@ -243,6 +243,7 @@ import KnowledgeAPI from '@/api/knowledge'
 import FileAPI from '@/api/file'
 import type { KnowledgeCategory } from '@/api/types'
 import { CategoryStatus } from '@/api/types'
+import { getImageUrl } from '@/utils/image'
 
 // 响应式数据
 const loading = ref(false)

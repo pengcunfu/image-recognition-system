@@ -83,7 +83,7 @@
                 v-model:value="formData.verificationCode"
                 size="large"
                 placeholder="请输入6位验证码"
-                maxlength="6"
+                :maxlength="6"
                 class="code-input"
               >
                 <template #prefix>
@@ -191,9 +191,9 @@ const rules: Record<string, Rule[]> = {
 }
 
 // 确认密码验证器
-function validateConfirmPassword(_rule: Rule, value: string) {
+function validateConfirmPassword(_rule: Rule, value: string): Promise<void> {
   if (value && value !== formData.newPassword) {
-    return Promise.reject('两次输入的密码不一致')
+    return Promise.reject(new Error('两次输入的密码不一致'))
   }
   return Promise.resolve()
 }
@@ -232,8 +232,9 @@ async function sendVerificationCode() {
       }
     }, 1000)
     
-  } catch (error: any) {
-    message.error(error.message || '发送验证码失败，请重试')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '发送验证码失败，请重试'
+    message.error(errorMessage)
   }
 }
 
@@ -255,8 +256,9 @@ async function handleSubmit() {
       router.push('/login')
     }, 2000)
     
-  } catch (error: any) {
-    message.error(error.message || '重置密码失败，请重试')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '重置密码失败，请重试'
+    message.error(errorMessage)
   } finally {
     loading.value = false
   }

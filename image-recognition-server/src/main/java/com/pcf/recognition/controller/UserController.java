@@ -212,7 +212,7 @@ public class UserController {
 
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserListResponseDto> getUsers(
+    public ApiResponse<UserListResponse> getUsers(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String keyword,
@@ -225,7 +225,7 @@ public class UserController {
                 page, size, keyword, role, status);
 
         try {
-            UserListResponseDto result = userService.getUserList(page, size, keyword, role, status, sortBy, sortOrder);
+            UserListResponse result = userService.getUserList(page, size, keyword, role, status, sortBy, sortOrder);
             return ApiResponse.success(result, "获取用户列表成功");
         } catch (Exception e) {
             log.error("获取用户列表失败", e);
@@ -374,7 +374,7 @@ public class UserController {
 
     @GetMapping("/admin/users/search")
     @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserListResponseDto> searchUsers(
+    public ApiResponse<UserListResponse> searchUsers(
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
@@ -384,7 +384,7 @@ public class UserController {
         log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
 
         try {
-            UserListResponseDto result = userService.searchUsers(keyword, page, size, role, status);
+            UserListResponse result = userService.searchUsers(keyword, page, size, role, status);
             return ApiResponse.success(result, "搜索用户成功");
         } catch (Exception e) {
             log.error("搜索用户失败", e);

@@ -338,21 +338,6 @@ public class UserDto {
         private String reason; // 状态变更原因
     }
 
-    /**
-     * 批量用户操作请求DTO
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BatchUserOperationRequest {
-        @NotEmpty(message = "用户ID列表不能为空")
-        private List<Long> userIds;
-
-        @NotBlank(message = "操作类型不能为空")
-        private String operation; // activate, deactivate, ban, delete
-
-        private String reason; // 操作原因
-    }
 
     /**
      * 用户操作结果DTO
@@ -365,5 +350,152 @@ public class UserDto {
         private Long userId;
         private boolean success;
         private String message;
+    }
+
+    /**
+     * 管理员用户创建请求DTO
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdminUserCreateRequest {
+        @NotBlank(message = "用户名不能为空")
+        @Size(min = 3, max = 20, message = "用户名长度必须在3-20个字符之间")
+        private String username;
+
+        @NotBlank(message = "邮箱不能为空")
+        @Email(message = "邮箱格式不正确")
+        private String email;
+
+        @NotBlank(message = "密码不能为空")
+        @Size(min = 6, max = 20, message = "密码长度必须在6-20个字符之间")
+        private String password;
+
+        @Size(max = 50, message = "姓名长度不能超过50个字符")
+        private String name;
+
+        @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+        private String phone;
+
+        @NotNull(message = "角色不能为空")
+        private String role;
+
+        private String status = "ACTIVE";
+        
+        private Integer vipLevel;
+    }
+
+    /**
+     * 管理员用户更新请求DTO
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdminUserUpdateRequest {
+        @Size(min = 3, max = 20, message = "用户名长度必须在3-20个字符之间")
+        private String username;
+
+        @Email(message = "邮箱格式不正确")
+        private String email;
+
+        @Size(max = 50, message = "姓名长度不能超过50个字符")
+        private String name;
+
+        @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+        private String phone;
+
+        private String role;
+        private String status;
+        private Integer vipLevel;
+        private LocalDateTime vipExpireTime;
+    }
+
+    /**
+     * 创建用户响应DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CreateUserResponseDto {
+        private Boolean success;
+        private String message;
+        private Long userId;
+    }
+
+    /**
+     * 批量操作结果DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchOperationResultDto {
+        private Integer totalCount;
+        private Integer successCount;
+        private Integer failedCount;
+        private List<UserOperationResult> results;
+    }
+
+    /**
+     * 用户概览DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserOverviewDto {
+        private Long totalUsers;
+        private Long activeUsers;
+        private Long inactiveUsers;
+        private Long bannedUsers;
+        private Long vipUsers;
+        private Long adminUsers;
+        private Long todayRegistrations;
+        private Long weekRegistrations;
+        private Long monthRegistrations;
+    }
+
+    /**
+     * 用户登录历史DTO
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserLoginHistoryDto {
+        private List<LoginRecord> records;
+        private Long total;
+        private Integer page;
+        private Integer size;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class LoginRecord {
+            private Long id;
+            private LocalDateTime loginTime;
+            private String loginIp;
+            private String userAgent;
+            private String location;
+            private Boolean success;
+        }
+    }
+
+    /**
+     * 批量用户操作请求DTO (重命名以避免重复)
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BatchUserOperationRequest {
+        @NotEmpty(message = "用户ID列表不能为空")
+        private List<Long> userIds;
+
+        @NotBlank(message = "操作类型不能为空")
+        private String action; // delete, activate, deactivate, ban
+
+        private String reason; // 操作原因
     }
 }

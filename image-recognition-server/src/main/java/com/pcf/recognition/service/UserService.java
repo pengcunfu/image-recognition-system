@@ -222,4 +222,200 @@ public class UserService {
                 .toList();
     }
 
+    // ==================== 管理员用户管理方法 ====================
+
+    /**
+     * 获取用户列表（管理员）
+     */
+    public UserListResponse getUserList(Integer page, Integer size, String keyword, String role, String status, String sortBy, String sortOrder) {
+        log.info("管理员获取用户列表: page={}, size={}, keyword={}, role={}, status={}", page, size, keyword, role, status);
+        
+        // 模拟用户列表数据，实际项目中应该从数据库查询
+        List<UserListItem> users = new ArrayList<>();
+        
+        // 模拟数据
+        for (int i = 1; i <= size; i++) {
+            users.add(UserListItem.builder()
+                    .id((long) i)
+                    .username("user" + i)
+                    .name("用户" + i)
+                    .email("user" + i + "@example.com")
+                    .avatar("/api/v1/images/avatar" + i + ".jpg")
+                    .role(i % 3 == 0 ? "ADMIN" : (i % 2 == 0 ? "VIP" : "USER"))
+                    .status(i % 10 == 0 ? "BANNED" : "ACTIVE")
+                    .vipLevel(i % 2 == 0 ? (i % 5 + 1) : null)
+                    .createTime(LocalDateTime.now().minusDays(i))
+                    .lastLoginTime(LocalDateTime.now().minusHours(i))
+                    .build());
+        }
+        
+        return UserListResponse.builder()
+                .users(users)
+                .total(100L) // 模拟总数
+                .page(page)
+                .size(size)
+                .totalPages((int) Math.ceil(100.0 / size))
+                .build();
+    }
+
+    /**
+     * 创建用户（管理员）
+     */
+    public CreateUserResponseDto createUser(AdminUserCreateRequest request) {
+        log.info("管理员创建用户: username={}", request.getUsername());
+        
+        // 模拟创建用户逻辑
+        // 实际项目中应该检查用户名是否已存在，然后插入数据库
+        
+        return CreateUserResponseDto.builder()
+                .success(true)
+                .message("用户创建成功")
+                .userId(System.currentTimeMillis()) // 模拟生成的用户ID
+                .build();
+    }
+
+    /**
+     * 更新用户（管理员）
+     */
+    public boolean updateUser(Long id, AdminUserUpdateRequest request) {
+        log.info("管理员更新用户: id={}", id);
+        
+        // 模拟更新用户逻辑
+        // 实际项目中应该根据ID查找用户并更新相应字段
+        
+        return true; // 模拟更新成功
+    }
+
+    /**
+     * 删除用户（管理员）
+     */
+    public boolean deleteUser(Long id) {
+        log.info("管理员删除用户: id={}", id);
+        
+        // 模拟删除用户逻辑
+        // 实际项目中应该软删除或硬删除用户
+        
+        return true; // 模拟删除成功
+    }
+
+    /**
+     * 更新用户状态（管理员）
+     */
+    public boolean updateUserStatus(Long id, String status) {
+        log.info("管理员更新用户状态: id={}, status={}", id, status);
+        
+        // 模拟更新用户状态逻辑
+        // 实际项目中应该根据ID查找用户并更新状态
+        
+        return true; // 模拟更新成功
+    }
+
+    /**
+     * 重置用户密码（管理员）
+     */
+    public boolean resetUserPassword(Long id, String newPassword) {
+        log.info("管理员重置用户密码: id={}", id);
+        
+        // 模拟重置密码逻辑
+        // 实际项目中应该加密新密码并更新到数据库
+        
+        return true; // 模拟重置成功
+    }
+
+    /**
+     * 批量操作用户（管理员）
+     */
+    public BatchOperationResultDto batchUpdateUsers(List<Long> userIds, String action) {
+        log.info("管理员批量操作用户: userIds={}, action={}", userIds, action);
+        
+        // 模拟批量操作逻辑
+        List<UserOperationResult> results = new ArrayList<>();
+        int successCount = 0;
+        int failedCount = 0;
+        
+        for (Long userId : userIds) {
+            boolean success = Math.random() > 0.1; // 模拟90%成功率
+            if (success) {
+                successCount++;
+            } else {
+                failedCount++;
+            }
+            
+            results.add(UserOperationResult.builder()
+                    .userId(userId)
+                    .success(success)
+                    .message(success ? "操作成功" : "操作失败")
+                    .build());
+        }
+        
+        return BatchOperationResultDto.builder()
+                .totalCount(userIds.size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .results(results)
+                .build();
+    }
+
+    /**
+     * 获取用户概览（管理员）
+     */
+    public UserOverviewDto getUsersOverview() {
+        log.info("管理员获取用户概览");
+        
+        // 模拟用户概览数据
+        // 实际项目中应该从数据库统计各种用户数据
+        
+        return UserOverviewDto.builder()
+                .totalUsers(1000L)
+                .activeUsers(850L)
+                .inactiveUsers(100L)
+                .bannedUsers(50L)
+                .vipUsers(200L)
+                .adminUsers(10L)
+                .todayRegistrations(15L)
+                .weekRegistrations(120L)
+                .monthRegistrations(500L)
+                .build();
+    }
+
+    /**
+     * 搜索用户（管理员）
+     */
+    public UserListResponse searchUsers(String keyword, Integer page, Integer size, String role, String status) {
+        log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
+        
+        // 模拟搜索用户逻辑
+        // 实际项目中应该根据关键词在用户名、邮箱、姓名等字段中搜索
+        
+        return getUserList(page, size, keyword, role, status, "createTime", "desc");
+    }
+
+    /**
+     * 获取用户登录历史（管理员）
+     */
+    public UserLoginHistoryDto getUserLoginHistory(Long id, Integer page, Integer size) {
+        log.info("管理员获取用户登录历史: id={}, page={}, size={}", id, page, size);
+        
+        // 模拟登录历史数据
+        List<UserLoginHistoryDto.LoginRecord> records = new ArrayList<>();
+        
+        for (int i = 0; i < size; i++) {
+            records.add(UserLoginHistoryDto.LoginRecord.builder()
+                    .id((long) i + 1)
+                    .loginTime(LocalDateTime.now().minusDays(i))
+                    .loginIp("192.168.1." + (100 + i))
+                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .location("北京市")
+                    .success(i % 10 != 0) // 模拟偶尔登录失败
+                    .build());
+        }
+        
+        return UserLoginHistoryDto.builder()
+                .records(records)
+                .total(50L) // 模拟总记录数
+                .page(page)
+                .size(size)
+                .build();
+    }
+
 }

@@ -501,7 +501,6 @@ function viewActivity(record: any) {
 }
 
 .stat-card {
-  border-left: 4px solid #1890ff;
   transition: all 0.3s ease;
 }
 
@@ -510,21 +509,6 @@ function viewActivity(record: any) {
   transform: translateY(-2px);
 }
 
-.recognition-card {
-  border-left-color: #1890ff;
-}
-
-.users-card {
-  border-left-color: #52c41a;
-}
-
-.vip-card {
-  border-left-color: #faad14;
-}
-
-.posts-card {
-  border-left-color: #722ed1;
-}
 
 .stat-trend {
   display: flex;

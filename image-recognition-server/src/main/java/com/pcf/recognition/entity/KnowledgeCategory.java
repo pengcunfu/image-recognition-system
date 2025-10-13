@@ -19,6 +19,7 @@ public class KnowledgeCategory {
 
     private String name; // 分类名称，如"动物"
 
+    @TableField("`key`") // key是MySQL保留字，需要用反引号
     private String key; // 分类键值，如"animal"
 
     private String description; // 分类描述

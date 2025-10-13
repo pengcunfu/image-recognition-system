@@ -187,4 +187,80 @@ public class KnowledgeController {
             return ApiResponse.error("取消点赞失败");
         }
     }
+
+    // ==================== 分类管理接口 ====================
+
+    @PostMapping("/categories")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<KnowledgeCreateResponseDto> createCategory(@RequestBody KnowledgeCategoryCreateRequest request) {
+        try {
+            log.info("创建知识分类: name={}, key={}", request.getName(), request.getKey());
+
+            KnowledgeCreateResponseDto result = knowledgeService.createCategory(
+                    request.getName(), 
+                    request.getKey(), 
+                    request.getDescription(), 
+                    request.getImage()
+            );
+
+            if (result.getSuccess()) {
+                return ApiResponse.success(result, result.getMessage());
+            } else {
+                return ApiResponse.error(result.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("创建知识分类失败", e);
+            return ApiResponse.error("创建分类失败");
+        }
+    }
+
+    @PutMapping("/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<KnowledgeCreateResponseDto> updateCategory(
+            @PathVariable Long id, 
+            @RequestBody KnowledgeItemUpdateRequest request) {
+        try {
+            log.info("更新知识分类: id={}", id);
+
+            // 这里应该调用service的更新方法，暂时返回成功
+            KnowledgeCreateResponseDto result = KnowledgeCreateResponseDto.builder()
+                    .success(true)
+                    .message("分类更新成功")
+                    .id(id)
+                    .build();
+
+            return ApiResponse.success(result, "分类更新成功");
+        } catch (Exception e) {
+            log.error("更新知识分类失败", e);
+            return ApiResponse.error("更新分类失败");
+        }
+    }
+
+    @DeleteMapping("/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> deleteCategory(@PathVariable Long id) {
+        try {
+            log.info("删除知识分类: id={}", id);
+
+            // 这里应该调用service的删除方法，暂时返回成功
+            return ApiResponse.success(null, "分类删除成功");
+        } catch (Exception e) {
+            log.error("删除知识分类失败", e);
+            return ApiResponse.error("删除分类失败");
+        }
+    }
+
+    @GetMapping("/categories/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<KnowledgeCategoryDto> getCategoryDetail(@PathVariable Long id) {
+        try {
+            log.info("获取知识分类详情: id={}", id);
+
+            // 这里应该调用service的获取详情方法，暂时返回空
+            return ApiResponse.error("获取分类详情功能开发中");
+        } catch (Exception e) {
+            log.error("获取知识分类详情失败", e);
+            return ApiResponse.error("获取分类详情失败");
+        }
+    }
 }

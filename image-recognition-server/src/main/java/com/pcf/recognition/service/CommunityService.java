@@ -181,6 +181,86 @@ public class CommunityService {
         );
     }
 
+    // ==================== 管理员方法 ====================
+
+    /**
+     * 审核通过帖子
+     */
+    public void approvePost(Long postId) {
+        log.info("审核通过帖子: postId={}", postId);
+        
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        post.setStatus(CommunityPost.PostStatus.PUBLISHED);
+        communityPostRepository.updateById(post);
+    }
+
+    /**
+     * 拒绝帖子发布
+     */
+    public void rejectPost(Long postId, String reason) {
+        log.info("拒绝帖子发布: postId={}, reason={}", postId, reason);
+        
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        post.setStatus(CommunityPost.PostStatus.REJECTED);
+        communityPostRepository.updateById(post);
+    }
+
+    /**
+     * 置顶/取消置顶帖子
+     */
+    public void toggleTopPost(Long postId, Boolean isTop) {
+        log.info("置顶帖子: postId={}, isTop={}", postId, isTop);
+        
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        post.setIsTop(isTop);
+        communityPostRepository.updateById(post);
+    }
+
+    /**
+     * 切换帖子可见性
+     */
+    public void togglePostVisibility(Long postId, Boolean isHidden) {
+        log.info("切换帖子可见性: postId={}, isHidden={}", postId, isHidden);
+        
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        if (isHidden) {
+            post.setStatus(CommunityPost.PostStatus.HIDDEN);
+        } else {
+            post.setStatus(CommunityPost.PostStatus.PUBLISHED);
+        }
+        communityPostRepository.updateById(post);
+    }
+
+    /**
+     * 删除帖子
+     */
+    public void deletePost(Long postId) {
+        log.info("删除帖子: postId={}", postId);
+        
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        communityPostRepository.deleteById(postId);
+    }
+
     /**
      * 转换帖子实体为DTO
      */

@@ -55,7 +55,9 @@ public class CommunityPost {
     // 帖子状态枚举
     public enum PostStatus {
         DRAFT("草稿"),
+        PENDING("待审核"),
         PUBLISHED("已发布"),
+        REJECTED("已拒绝"),
         HIDDEN("已隐藏"),
         DELETED("已删除");
 

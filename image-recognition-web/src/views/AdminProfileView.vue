@@ -1697,17 +1697,6 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: #999;
-  background: #fafafa;
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  transition: border-color 0.3s ease;
-}
-
-.upload-placeholder:hover {
-  border-color: #1890ff;
-  color: #1890ff;
 }
 
 .upload-placeholder i {

@@ -652,27 +652,10 @@ onMounted(async () => {
 }
 
 /* 模态框样式 */
-.image-uploader {
-  display: flex;
-  justify-content: center;
-}
-
-.image-uploader :deep(.ant-upload) {
-  width: 120px;
-  height: 120px;
-}
-
-.image-preview {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
 .image-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
 
 .upload-placeholder {
@@ -680,16 +663,6 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: #666;
-  border: 2px dashed #d9d9d9;
-  border-radius: 8px;
-  transition: border-color 0.3s;
-}
-
-.upload-placeholder:hover {
-  border-color: #1890ff;
-  color: #1890ff;
 }
 
 .upload-placeholder i {

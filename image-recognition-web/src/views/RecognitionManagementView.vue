@@ -796,7 +796,6 @@ onMounted(() => {
 }
 
 .stat-card {
-  border-left: 4px solid;
   transition: all 0.3s ease;
 }
 
@@ -805,21 +804,6 @@ onMounted(() => {
   transform: translateY(-2px);
 }
 
-.total-recognition {
-  border-left-color: #1890ff;
-}
-
-.success-recognition {
-  border-left-color: #52c41a;
-}
-
-.today-recognition {
-  border-left-color: #faad14;
-}
-
-.accuracy-rate {
-  border-left-color: #722ed1;
-}
 
 .stat-trend {
   display: flex;

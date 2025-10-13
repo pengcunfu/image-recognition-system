@@ -29,6 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -140,7 +141,6 @@ public class SecurityConfig {
                             
                             ApiResponse<Object> apiResponse = ApiResponse.error(401, "认证失败，请先登录");
                             
-                            ObjectMapper objectMapper = new ObjectMapper();
                             String jsonResponse = objectMapper.writeValueAsString(apiResponse);
                             response.getWriter().write(jsonResponse);
                         })
@@ -154,7 +154,6 @@ public class SecurityConfig {
                             
                             ApiResponse<Object> apiResponse = ApiResponse.error(403, "访问被拒绝，权限不足");
                             
-                            ObjectMapper objectMapper = new ObjectMapper();
                             String jsonResponse = objectMapper.writeValueAsString(apiResponse);
                             response.getWriter().write(jsonResponse);
                         })

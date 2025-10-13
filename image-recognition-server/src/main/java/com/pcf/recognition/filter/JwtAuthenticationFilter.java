@@ -121,8 +121,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                path.startsWith("/api/v1/auth/captcha") ||
                path.startsWith("/api/v1/auth/email-code") ||
                path.startsWith("/api/v1/auth/forgot-password") ||
+               path.startsWith("/api/v1/knowledge/categories") ||
+               path.startsWith("/api/v1/knowledge/items") ||
+               path.startsWith("/api/v1/knowledge/search") ||
+               path.startsWith("/api/v1/knowledge/popular") ||
+               path.startsWith("/api/v1/knowledge/latest") ||
+               path.startsWith("/api/v1/knowledge/stats") ||
+               path.startsWith("/api/v1/community/posts") ||
+               path.startsWith("/api/v1/files/download") ||
+               path.startsWith("/api/v1/files/image") ||
                path.startsWith("/static/") ||
                path.startsWith("/public/") ||
-               path.equals("/favicon.ico");
+               path.startsWith("/swagger-ui/") ||
+               path.startsWith("/v3/api-docs/") ||
+               path.equals("/favicon.ico") ||
+               path.equals("/error");
     }
 }

@@ -66,7 +66,7 @@ public class BatchDto {
          * 总记录数
          */
         private Long total;
-
+        
         /**
          * 总页数
          */

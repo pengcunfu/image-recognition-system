@@ -18,13 +18,10 @@
     <a-card class="filter-card">
       <div class="filter-bar">
         <div class="filter-tabs">
-          <a-radio-group v-model:value="activeFilter" button-style="solid">
+          <a-radio-group v-model:value="activeFilter" button-style="solid" @change="handleFilterChange">
             <a-radio-button value="all">全部</a-radio-button>
             <a-radio-button value="hot">热门</a-radio-button>
             <a-radio-button value="latest">最新</a-radio-button>
-            <a-radio-button value="question">问答</a-radio-button>
-            <a-radio-button value="share">分享</a-radio-button>
-            <a-radio-button value="discussion">讨论</a-radio-button>
           </a-radio-group>
         </div>
         <div class="search-section">
@@ -120,35 +117,64 @@
     </a-card>
 
     <!-- 帖子列表 -->
-    <div class="posts-container">
-      <PostCard
-        v-for="post in filteredPosts"
-        :key="post.id"
-        :post="post"
-        @viewDetail="viewPostDetail"
-        @previewImage="previewImage"
-        @searchByTag="searchByTag"
-        @toggleLike="toggleLike"
-        @toggle-favorite="toggleFavorite"
-        @reply="replyPost"
-      />
-    </div>
+    <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
+      <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
+      <div v-else class="posts-container">
+        <PostCard
+          v-for="post in filteredPosts"
+          :key="post.id"
+          :post="post"
+          @viewDetail="viewPostDetail"
+          @previewImage="previewImage"
+          @searchByTag="searchByTag"
+          @toggleLike="toggleLike"
+          @toggle-favorite="toggleFavorite"
+          @reply="replyPost"
+        />
+      </div>
+    </a-spin>
 
     <!-- 加载更多 -->
-    <div class="load-more">
-      <a-button @click="loadMore" :loading="loading">
-        加载更多
+    <div v-if="filteredPosts.length > 0" class="load-more">
+      <a-button @click="loadMore" :loading="loading" size="large">
+        {{ pagination.current * pagination.pageSize >= pagination.total ? '没有更多了' : '加载更多' }}
       </a-button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import PostPublishModal from '@/components/PostPublishModal.vue'
 import PostCard from '@/components/PostCard.vue'
+import { CommunityAPI } from '@/api/community'
+import { FileAPI } from '@/api/file'
+import type { Post, CreatePostRequest } from '@/api/types'
+
+// 扩展的帖子类型（用于前端显示）
+interface ExtendedPost {
+  id: number
+  title: string
+  content: string
+  category: string
+  author: {
+    name: string
+    avatar: string
+    level: string
+  }
+  type: string
+  views: number
+  likes: number
+  replies: number
+  createTime: string
+  isLiked: boolean
+  isFavorited: boolean
+  tags: string[]
+  images: string[]
+  topReplies?: any[]
+}
 
 const router = useRouter()
 const activeFilter = ref('all')
@@ -157,10 +183,17 @@ const loading = ref(false)
 const publishModalVisible = ref(false)
 const showAdvancedSearch = ref(false)
 
-// 当前用户信息
+// 分页参数
+const pagination = reactive({
+  current: 1,
+  pageSize: 12,
+  total: 0
+})
+
+// 当前用户信息（从localStorage或Vuex获取）
 const currentUser = reactive({
-  name: '张三',
-  avatar: ''
+  name: localStorage.getItem('userName') || '用户',
+  avatar: localStorage.getItem('userAvatar') || ''
 })
 
 // 高级搜索条件
@@ -171,90 +204,96 @@ const advancedSearch = reactive({
 })
 
 // 帖子数据
-const postsData = ref([
-  {
-    id: 1,
-    title: '求助：如何提高模糊图片的识别准确率？',
-    author: {
-      name: '张三',
-      avatar: '',
-      level: '资深用户'
-    },
-    content: '今天用AI识别了一张模糊的动物照片，结果准确率达到了95%！真的很神奇，但是我想进一步提高准确率。想请教大家有什么提高识别准确率的技巧吗？比如图片预处理、参数调整等方面的经验。我尝试了一些基本的方法，但效果不是特别明显，希望能得到大家的指导。',
-    type: 'question',
-    createTime: '2小时前',
-    views: 156,
-    likes: 24,
-    replies: 8,
-    isLiked: false,
-    isFavorited: false,
-    tags: ['AI识别', '图像处理', '问题求助'],
-    images: ['/api/placeholder/300/200'],
-    topReplies: []
-  },
-  {
-    id: 2,
-    title: '花卉识别分享 - AI识别准确率惊人！',
-    author: {
-      name: '王五',
-      avatar: '',
-      level: '新手'
-    },
-    content: '分享一下我今天识别的几种花卉，AI的识别能力真的越来越强了！特别是对于这些常见花卉的识别准确率非常高。我用系统识别了玫瑰、菊花、百合等多种花卉，准确率都在90%以上。这对于我这个植物爱好者来说真是太有用了！推荐大家也试试看。',
-    type: 'share',
-    createTime: '4小时前',
-    views: 89,
-    likes: 15,
-    replies: 3,
-    isLiked: true,
-    isFavorited: false,
-    tags: ['技术分享', '花卉识别', '经验总结'],
-    images: ['/api/placeholder/300/200', '/api/placeholder/300/200', '/api/placeholder/300/200', '/api/placeholder/300/200'],
-    topReplies: []
-  },
-  {
-    id: 3,
-    title: '讨论：AI图像识别的未来发展趋势',
-    author: {
-      name: '赵六',
-      avatar: '',
-      level: '专家'
-    },
-    content: '大家觉得AI图像识别技术在未来会如何发展？会不会完全替代人工识别？我个人认为AI在标准化场景下已经表现得非常出色，但在一些特殊情况下，人工识别仍然有其不可替代的价值。比如艺术品鉴定、医学影像的最终确认等。欢迎大家发表看法，让我们一起探讨这个有趣的话题！',
-    type: 'discussion',
-    createTime: '1天前',
-    views: 234,
-    likes: 45,
-    replies: 18,
-    isLiked: false,
-    isFavorited: true,
-    tags: ['AI识别', '深度学习', '技术讨论', '未来趋势'],
-    images: ['/api/placeholder/400/240'],
-    topReplies: []
-  }
-])
+const postsData = ref<ExtendedPost[]>([])
 
-// 筛选后的帖子
+// 加载帖子列表
+async function loadPosts() {
+  try {
+    loading.value = true
+    
+    // 确定排序方式
+    let sort: 'latest' | 'hot' | 'top' = 'latest'
+    if (activeFilter.value === 'hot') {
+      sort = 'hot'
+    } else if (activeFilter.value === 'latest') {
+      sort = 'latest'
+    }
+    
+    const response = await CommunityAPI.getPosts({
+      page: pagination.current,
+      size: pagination.pageSize,
+      sort
+    })
+    
+    console.log('帖子列表响应:', response.data)
+    
+    // 转换数据格式
+    postsData.value = response.data.data.map(post => ({
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      category: post.category,
+      author: {
+        name: post.authorName || '未知用户',
+        avatar: FileAPI.getImageUrl(post.authorAvatar),
+        level: '用户' // 可以根据用户角色设置
+      },
+      type: post.category || 'discussion',
+      views: post.viewCount,
+      likes: post.likeCount,
+      replies: post.commentCount,
+      createTime: formatTime(post.createTime),
+      isLiked: false, // 需要从后端获取当前用户的点赞状态
+      isFavorited: false, // 需要从后端获取当前用户的收藏状态
+      tags: post.tags ? post.tags.split(',').filter((t: string) => t.trim()) : [],
+      images: post.images ? JSON.parse(post.images).map((url: string) => FileAPI.getImageUrl(url)) : [],
+      topReplies: []
+    })) as ExtendedPost[]
+    
+    pagination.total = response.data.total
+    
+    console.log('转换后的帖子数据:', postsData.value)
+  } catch (error) {
+    console.error('加载帖子列表失败:', error)
+    message.error('加载帖子列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 格式化时间
+function formatTime(timeStr: string): string {
+  const time = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - time.getTime()
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 30) {
+    return `${days}天前`
+  } else {
+    return time.toLocaleDateString()
+  }
+}
+
+// 筛选后的帖子（客户端筛选）
 const filteredPosts = computed(() => {
   let result = postsData.value
-
-  // 按类型筛选
-  if (activeFilter.value !== 'all') {
-    if (activeFilter.value === 'hot') {
-      result = result.sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies))
-    } else if (activeFilter.value === 'latest') {
-      result = result.sort((a, b) => new Date(b.createTime).getTime() - new Date(a.createTime).getTime())
-    } else {
-      result = result.filter(post => post.type === activeFilter.value)
-    }
-  }
 
   // 按关键词搜索
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
     result = result.filter(post => 
       post.content.toLowerCase().includes(keyword) ||
-      post.author.name.toLowerCase().includes(keyword)
+      post.title.toLowerCase().includes(keyword) ||
+      post.author.name.toLowerCase().includes(keyword) ||
+      post.tags.some(tag => tag.toLowerCase().includes(keyword))
     )
   }
 
@@ -266,14 +305,54 @@ function openPublishModal() {
   publishModalVisible.value = true
 }
 
-function handlePublish(postData: any) {
-  // 添加到帖子列表
-  postsData.value.unshift(postData)
+async function handlePublish(postData: any) {
+  try {
+    console.log('发布帖子数据:', postData)
+    
+    // 构建请求数据
+    const tags = Array.isArray(postData.tags) 
+      ? postData.tags 
+      : (typeof postData.tags === 'string' ? postData.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t) : [])
+    
+    const createRequest: CreatePostRequest = {
+      title: postData.title,
+      content: postData.content,
+      category: postData.category || '综合讨论',
+      tags: tags,
+      images: postData.images || undefined
+    }
+    
+    const response = await CommunityAPI.createPost(createRequest)
+    
+    if (response.data.success) {
+      message.success('发布成功！')
+      publishModalVisible.value = false
+      // 重新加载帖子列表
+      pagination.current = 1
+      await loadPosts()
+    } else {
+      message.error(response.data.message || '发布失败')
+    }
+  } catch (error) {
+    console.error('发布帖子失败:', error)
+    message.error('发布失败，请重试')
+  }
 }
 
-function handleSaveDraft(draftData: any) {
-  // 处理保存草稿逻辑
-  console.log('保存草稿:', draftData)
+async function handleSaveDraft(draftData: any) {
+  // 保存草稿到本地存储
+  try {
+    const drafts = JSON.parse(localStorage.getItem('postDrafts') || '[]')
+    drafts.push({
+      ...draftData,
+      saveTime: new Date().toISOString()
+    })
+    localStorage.setItem('postDrafts', JSON.stringify(drafts))
+    message.success('草稿已保存')
+  } catch (error) {
+    console.error('保存草稿失败:', error)
+    message.error('保存草稿失败')
+  }
 }
 
 
@@ -317,40 +396,106 @@ function addLocation() {
 
 function handleSearch() {
   // 搜索逻辑在 computed 中处理
+  console.log('搜索关键词:', searchKeyword.value)
 }
 
-
-function toggleLike(post: any) {
-  post.isLiked = !post.isLiked
-  post.likes += post.isLiked ? 1 : -1
-  message.success(post.isLiked ? '点赞成功' : '取消点赞')
+async function toggleLike(post: any) {
+  try {
+    if (post.isLiked) {
+      // 取消点赞
+      await CommunityAPI.unlikePost(post.id)
+      post.isLiked = false
+      post.likes--
+      message.success('取消点赞')
+    } else {
+      // 点赞
+      await CommunityAPI.likePost(post.id)
+      post.isLiked = true
+      post.likes++
+      message.success('点赞成功')
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
-function toggleFavorite(post: any) {
+async function toggleFavorite(post: any) {
+  // 收藏功能暂时使用本地状态
+  // TODO: 等待后端添加收藏API
   post.isFavorited = !post.isFavorited
-  message.success(post.isFavorited ? '收藏成功' : '取消收藏')
+  
+  // 保存到本地存储
+  try {
+    const favorites = JSON.parse(localStorage.getItem('postFavorites') || '[]')
+    if (post.isFavorited) {
+      if (!favorites.includes(post.id)) {
+        favorites.push(post.id)
+      }
+      message.success('收藏成功')
+    } else {
+      const index = favorites.indexOf(post.id)
+      if (index > -1) {
+        favorites.splice(index, 1)
+      }
+      message.success('取消收藏')
+    }
+    localStorage.setItem('postFavorites', JSON.stringify(favorites))
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  }
 }
 
 function replyPost(post: any) {
-  message.info(`回复帖子：${post.content.substring(0, 20)}...`)
+  // 跳转到帖子详情页并聚焦评论框
+  router.push({
+    path: `/user/community/post/${post.id}`,
+    query: { action: 'reply' }
+  })
 }
 
 function sharePost(post: any) {
-  message.info('分享功能开发中')
+  // 复制分享链接
+  const shareUrl = `${window.location.origin}/user/community/post/${post.id}`
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    message.success('分享链接已复制到剪贴板')
+  }).catch(() => {
+    message.info(`分享链接：${shareUrl}`)
+  })
 }
 
 function previewImage(images: string[], index: number) {
+  // 可以使用图片预览组件
+  console.log('预览图片:', images, index)
   message.info(`预览图片 ${index + 1}`)
 }
 
-
-function loadMore() {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    message.info('已加载更多内容')
-  }, 1000)
+async function loadMore() {
+  if (pagination.current * pagination.pageSize >= pagination.total) {
+    message.info('没有更多内容了')
+    return
+  }
+  
+  pagination.current++
+  await loadPosts()
 }
+
+// 监听筛选器变化
+function handleFilterChange() {
+  pagination.current = 1
+  loadPosts()
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadPosts()
+})
+
+// 导出给模板使用
+defineExpose({
+  loadPosts,
+  handleFilterChange
+})
 </script>
 
 <style scoped>

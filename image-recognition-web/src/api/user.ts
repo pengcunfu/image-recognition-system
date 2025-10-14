@@ -74,7 +74,7 @@ export class UserAPI {
    * 获取用户列表（管理员）
    */
   static getUsers(params: UserQueryParams = {}) {
-    return request.get<UserListResponse>('/api/v1/user/list', { params })
+    return request.get<UserListResponse>('/api/v1/user/list', params)
   }
 
   /**

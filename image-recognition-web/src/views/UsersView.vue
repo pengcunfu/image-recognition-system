@@ -174,6 +174,28 @@
         :rules="formRules"
         layout="vertical"
       >
+        <!-- 头像上传 -->
+        <a-form-item label="用户头像">
+          <a-upload
+            v-model:file-list="avatarFileList"
+            name="avatar"
+            list-type="picture-card"
+            class="avatar-uploader"
+            :show-upload-list="false"
+            :before-upload="beforeAvatarUpload"
+            @change="handleAvatarChange"
+          >
+            <div v-if="formData.avatar" class="avatar-preview">
+              <img :src="formData.avatar" alt="avatar" />
+            </div>
+            <div v-else class="upload-placeholder">
+              <i class="fas fa-plus"></i>
+              <div>上传头像</div>
+            </div>
+          </a-upload>
+          <div class="upload-tips">支持 JPG、PNG 格式，大小不超过 2MB</div>
+        </a-form-item>
+        
         <a-row :gutter="16">
           <a-col :span="12">
             <a-form-item label="用户名" name="username">
@@ -276,6 +298,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { UserAPI } from '@/api/user'
+import FileAPI from '@/api/file'
 import type { 
   User, 
   UserListResponse, 
@@ -333,7 +356,7 @@ const rowSelection = computed(() => ({
 const modalVisible = ref(false)
 const isEditing = ref(false)
 const formRef = ref()
-const formData = reactive<AdminUserCreateRequest & { id?: number }>({
+const formData = reactive<AdminUserCreateRequest & { id?: number; avatar?: string }>({
   username: '',
   email: '',
   phone: '',
@@ -341,8 +364,13 @@ const formData = reactive<AdminUserCreateRequest & { id?: number }>({
   password: '',
   role: 'USER' as 'USER' | 'VIP' | 'ADMIN',
   status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE' | 'BANNED',
-  vipLevel: 1
+  vipLevel: 1,
+  avatar: ''
 })
+
+// 头像上传
+const avatarFileList = ref<any[]>([])
+const uploadingAvatar = ref(false)
 
 // 表单验证规则
 const formRules = {
@@ -450,12 +478,52 @@ async function editUser(record: User) {
       name: user.name,
       role: user.role,
       status: user.status,
-      vipLevel: user.vipLevel
+      vipLevel: user.vipLevel,
+      avatar: user.avatar || ''
     })
     modalVisible.value = true
   } catch (error) {
     console.error('获取用户详情失败:', error)
     message.error('获取用户详情失败')
+  }
+}
+
+// 头像上传前验证
+function beforeAvatarUpload(file: File) {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png'
+  if (!isJpgOrPng) {
+    message.error('只能上传 JPG/PNG 格式的图片！')
+    return false
+  }
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    message.error('图片大小不能超过 2MB！')
+    return false
+  }
+  return true
+}
+
+// 头像上传处理
+async function handleAvatarChange(info: any) {
+  if (info.file.status === 'uploading') {
+    return
+  }
+  
+  if (info.file.originFileObj) {
+    try {
+      uploadingAvatar.value = true
+      message.loading({ content: '正在上传头像...', key: 'uploadAvatar' })
+      
+      const response = await FileAPI.uploadFile(info.file.originFileObj)
+      formData.avatar = response.data.url
+      
+      message.success({ content: '头像上传成功', key: 'uploadAvatar' })
+    } catch (error) {
+      console.error('头像上传失败:', error)
+      message.error({ content: '头像上传失败', key: 'uploadAvatar' })
+    } finally {
+      uploadingAvatar.value = false
+    }
   }
 }
 
@@ -618,18 +686,19 @@ async function handleSubmit() {
     await formRef.value.validate()
     
     if (isEditing.value) {
-      const updateData: AdminUserUpdateRequest = {
+      const updateData: AdminUserUpdateRequest & { avatar?: string } = {
         email: formData.email,
         phone: formData.phone,
         name: formData.name,
         role: formData.role,
         status: formData.status,
-        vipLevel: formData.vipLevel
+        vipLevel: formData.vipLevel,
+        avatar: formData.avatar
       }
       await UserAPI.updateUser(formData.id!, updateData)
       message.success('用户更新成功')
     } else {
-      const createData: AdminUserCreateRequest = {
+      const createData: AdminUserCreateRequest & { avatar?: string } = {
         username: formData.username,
         email: formData.email,
         phone: formData.phone,
@@ -637,7 +706,8 @@ async function handleSubmit() {
         password: formData.password,
         role: formData.role,
         status: formData.status,
-        vipLevel: formData.vipLevel
+        vipLevel: formData.vipLevel,
+        avatar: formData.avatar
       }
       await UserAPI.createUser(createData)
       message.success('用户创建成功')
@@ -669,8 +739,10 @@ function resetForm() {
     password: '',
     role: 'USER' as 'USER' | 'VIP' | 'ADMIN',
     status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE' | 'BANNED',
-    vipLevel: 1
+    vipLevel: 1,
+    avatar: ''
   })
+  avatarFileList.value = []
   formRef.value?.resetFields()
 }
 
@@ -910,5 +982,55 @@ $selected-color: #e6f7ff;
 .ant-avatar {
   background-color: $primary-color;
   font-weight: 600;
+}
+
+// 头像上传样式
+.avatar-uploader {
+  :deep(.ant-upload) {
+    width: 128px;
+    height: 128px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  
+  i {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  
+  div {
+    font-size: 14px;
+  }
+}
+
+.upload-tips {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
 }
 </style>

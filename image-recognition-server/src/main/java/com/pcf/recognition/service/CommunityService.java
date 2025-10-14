@@ -368,4 +368,83 @@ public class CommunityService {
         
         return dto;
     }
+
+    /**
+     * 收藏帖子
+     */
+    public void collectPost(Long postId, Long userId) {
+        log.info("收藏帖子: postId={}, userId={}", postId, userId);
+        
+        // 检查帖子是否存在
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        // TODO: 实现收藏逻辑（需要创建收藏表）
+        // 暂时只记录日志
+        log.info("用户 {} 收藏了帖子 {}", userId, postId);
+    }
+
+    /**
+     * 取消收藏帖子
+     */
+    public void uncollectPost(Long postId, Long userId) {
+        log.info("取消收藏帖子: postId={}, userId={}", postId, userId);
+        
+        // TODO: 实现取消收藏逻辑（需要创建收藏表）
+        // 暂时只记录日志
+        log.info("用户 {} 取消收藏了帖子 {}", userId, postId);
+    }
+
+    /**
+     * 举报帖子
+     */
+    public void reportPost(Long postId, Long userId, String type, String description) {
+        log.info("举报帖子: postId={}, userId={}, type={}, description={}", postId, userId, type, description);
+        
+        // 检查帖子是否存在
+        CommunityPost post = communityPostRepository.selectById(postId);
+        if (post == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        // TODO: 实现举报逻辑（需要创建举报表）
+        // 暂时只记录日志
+        log.warn("用户 {} 举报了帖子 {}，类型：{}，描述：{}", userId, postId, type, description);
+    }
+
+    /**
+     * 获取相关推荐帖子
+     */
+    public java.util.List<PostDto> getRelatedPosts(Long postId, int limit) {
+        log.info("获取相关推荐帖子: postId={}, limit={}", postId, limit);
+        
+        // 获取当前帖子
+        CommunityPost currentPost = communityPostRepository.selectById(postId);
+        if (currentPost == null) {
+            throw new RuntimeException("帖子不存在");
+        }
+        
+        // 查询相同分类的其他已发布帖子
+        LambdaQueryWrapper<CommunityPost> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CommunityPost::getStatus, CommunityPost.PostStatus.PUBLISHED)
+                    .ne(CommunityPost::getId, postId); // 排除当前帖子
+        
+        // 如果有分类，优先推荐同分类的
+        if (currentPost.getCategory() != null && !currentPost.getCategory().isEmpty()) {
+            queryWrapper.eq(CommunityPost::getCategory, currentPost.getCategory());
+        }
+        
+        // 按点赞数排序，获取热门帖子
+        queryWrapper.orderByDesc(CommunityPost::getLikeCount)
+                    .orderByDesc(CommunityPost::getCreateTime)
+                    .last("LIMIT " + limit);
+        
+        java.util.List<CommunityPost> relatedPosts = communityPostRepository.selectList(queryWrapper);
+        
+        return relatedPosts.stream()
+                .map(this::convertToPostDto)
+                .collect(Collectors.toList());
+    }
 }

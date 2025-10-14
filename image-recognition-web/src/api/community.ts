@@ -141,10 +141,17 @@ export class CommunityAPI {
    * 举报帖子
    */
   static reportPost(postId: number, data: {
-    type: 'spam' | 'inappropriate' | 'copyright' | 'other'
+    type: 'spam' | 'abuse' | 'inappropriate' | 'copyright' | 'other'
     description: string
   }) {
     return request.post<OperationResult>(`/api/v1/community/posts/${postId}/report`, data)
+  }
+
+  /**
+   * 获取相关推荐帖子
+   */
+  static getRelatedPosts(postId: number, limit: number = 3) {
+    return request.get<Post[]>(`/api/v1/community/posts/${postId}/related`, { limit })
   }
 
   /**

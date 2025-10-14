@@ -386,87 +386,42 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { CommunityAPI } from '@/api/community'
+import { FileAPI } from '@/api/file'
+import type { Post, Comment, AddCommentRequest } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 
-// 当前用户信息
+// 当前用户信息（从localStorage获取）
 const currentUser = reactive({
-  name: '张三',
-  avatar: '',
+  name: localStorage.getItem('userName') || '用户',
+  avatar: localStorage.getItem('userAvatar') || '',
   level: '资深用户'
 })
 
+// 加载状态
+const loading = ref(false)
+
 // 帖子数据
 const post = ref({
-  id: 1,
-  title: 'AI图像识别技巧分享：如何提高识别准确率',
-  author: '技术专家李四',
+  id: 0,
+  title: '',
+  author: '',
   authorAvatar: '',
-  authorLevel: '专家',
-  isVip: true,
-  type: 'share',
-  createTime: '2小时前',
-  lastEditTime: '1小时前',
-  views: 1234,
-  likes: 89,
-  comments: 23,
-  bookmarks: 45,
-  tags: ['图像识别', 'AI技术', '准确率优化', '深度学习'],
-  content: `
-    <p>大家好！今天我想和大家分享一些在使用AI图像识别过程中提高准确率的实用技巧。</p>
-    
-    <h3>1. 图片质量优化</h3>
-    <p>图片质量是影响识别准确率的关键因素：</p>
-    <ul>
-      <li><strong>分辨率</strong>：建议使用至少512x512像素的图片</li>
-      <li><strong>清晰度</strong>：避免模糊、抖动的图片</li>
-      <li><strong>光照条件</strong>：确保良好的光照，避免过暗或过亮</li>
-      <li><strong>角度选择</strong>：选择正面或侧面清晰的角度</li>
-    </ul>
-    
-    <h3>2. 背景处理</h3>
-    <p>简洁的背景有助于AI更好地识别主体：</p>
-    <ul>
-      <li>尽量选择纯色或简单的背景</li>
-      <li>避免复杂的背景干扰</li>
-      <li>确保主体与背景有明显对比</li>
-    </ul>
-    
-    <h3>3. 多角度拍摄</h3>
-    <p>对于复杂物体，可以尝试多个角度：</p>
-    <ul>
-      <li>正面、侧面、俯视等不同角度</li>
-      <li>局部特征的特写</li>
-      <li>整体轮廓的展示</li>
-    </ul>
-    
-    <p>希望这些技巧对大家有帮助！欢迎在评论区分享你们的经验。</p>
-  `,
-  images: [
-    {
-      url: '/api/placeholder/400/300',
-      description: '高质量图片示例'
-    },
-    {
-      url: '/api/placeholder/400/300',
-      description: '背景处理对比'
-    }
-  ],
-  recognitionResults: [
-    {
-      id: 1,
-      image: '/api/placeholder/150/150',
-      label: '金毛犬',
-      confidence: 95
-    },
-    {
-      id: 2,
-      image: '/api/placeholder/150/150',
-      label: '玫瑰花',
-      confidence: 88
-    }
-  ]
+  authorLevel: '',
+  isVip: false,
+  type: '',
+  createTime: '',
+  lastEditTime: '',
+  views: 0,
+  likes: 0,
+  comments: 0,
+  bookmarks: 0,
+  tags: [] as string[],
+  content: '',
+  images: [] as { url: string; description?: string }[],
+  recognitionResults: [] as { id: number; image: string; label: string; confidence: number }[]
 })
 
 // 交互状态
@@ -475,40 +430,7 @@ const isBookmarked = ref(false)
 const isAuthor = computed(() => post.value.author === currentUser.name)
 
 // 评论相关
-const comments = ref([
-  {
-    id: 1,
-    author: '新手小王',
-    authorAvatar: '',
-    authorLevel: '新手',
-    isAuthor: false,
-    createTime: '1小时前',
-    content: '非常实用的技巧！我试了一下，识别准确率确实提高了不少。特别是背景处理这个建议很有用。',
-    likes: 12,
-    isLiked: false,
-    replies: [
-      {
-        id: 11,
-        author: '技术专家李四',
-        authorAvatar: '',
-        createTime: '30分钟前',
-        content: '很高兴能帮到你！继续加油！'
-      }
-    ]
-  },
-  {
-    id: 2,
-    author: 'AI爱好者',
-    authorAvatar: '',
-    authorLevel: '资深用户',
-    isAuthor: false,
-    createTime: '45分钟前',
-    content: '请问楼主，对于动物识别，有什么特别的建议吗？我在识别宠物时准确率不太理想。',
-    likes: 8,
-    isLiked: true,
-    replies: []
-  }
-])
+const comments = ref<any[]>([])
 
 const newComment = reactive({
   content: ''
@@ -522,35 +444,7 @@ const loadingComments = ref(false)
 const hasMoreComments = ref(true)
 
 // 相关推荐
-const relatedPosts = ref([
-  {
-    id: 2,
-    title: '深度学习在图像识别中的应用',
-    excerpt: '探讨现代深度学习技术在图像识别领域的最新应用...',
-    author: '研究员张三',
-    createTime: '1天前',
-    likes: 156,
-    thumbnail: '/api/placeholder/80/60'
-  },
-  {
-    id: 3,
-    title: '常见动物识别问题解答',
-    excerpt: '总结了用户在动物识别过程中遇到的常见问题...',
-    author: 'AI专家王五',
-    createTime: '2天前',
-    likes: 98,
-    thumbnail: '/api/placeholder/80/60'
-  },
-  {
-    id: 4,
-    title: '图像预处理技术详解',
-    excerpt: '详细介绍各种图像预处理技术对识别效果的影响...',
-    author: '算法工程师',
-    createTime: '3天前',
-    likes: 134,
-    thumbnail: '/api/placeholder/80/60'
-  }
-])
+const relatedPosts = ref<any[]>([])
 
 // 图片预览
 const imagePreviewVisible = ref(false)
@@ -567,15 +461,12 @@ const sortedComments = computed(() => {
 })
 
 // 初始化
-onMounted(() => {
+onMounted(async () => {
   // 从路由参数获取帖子ID
   const postId = route.params.id
   if (postId) {
-    loadPostDetail(postId)
+    await loadPostDetail(postId as string)
   }
-  
-  // 增加浏览量
-  post.value.views++
 })
 
 // 方法
@@ -583,9 +474,139 @@ function goBack() {
   router.push('/user/community')
 }
 
-function loadPostDetail(postId: string | number) {
-  // 这里应该调用API获取帖子详情
-  console.log('Loading post detail for ID:', postId)
+// 加载帖子详情
+async function loadPostDetail(postId: string | number) {
+  try {
+    loading.value = true
+    console.log('加载帖子详情, ID:', postId)
+    
+    const response = await CommunityAPI.getPostDetail(Number(postId))
+    const postData = response.data.post
+    
+    console.log('帖子详情数据:', postData)
+    
+    // 转换数据格式
+    post.value = {
+      id: postData.id,
+      title: postData.title,
+      author: postData.authorName || '未知用户',
+      authorAvatar: FileAPI.getImageUrl(postData.authorAvatar),
+      authorLevel: '用户', // 可以根据用户角色设置
+      isVip: false, // 需要从用户信息判断
+      type: postData.category || 'discussion',
+      createTime: formatTime(postData.createTime),
+      lastEditTime: postData.updateTime ? formatTime(postData.updateTime) : '',
+      views: postData.viewCount,
+      likes: postData.likeCount,
+      comments: postData.commentCount,
+      bookmarks: 0, // 需要从后端获取
+      tags: postData.tags ? postData.tags.split(',').filter((t: string) => t.trim()) : [],
+      content: postData.content,
+      images: postData.images ? JSON.parse(postData.images).map((url: string) => ({
+        url: FileAPI.getImageUrl(url),
+        description: ''
+      })) : [],
+      recognitionResults: []
+    }
+    
+    // 加载评论
+    await loadComments(postData.id)
+    
+    // 加载相关推荐（先从响应中获取，如果没有则调用API）
+    if (response.data.relatedPosts && response.data.relatedPosts.length > 0) {
+      relatedPosts.value = response.data.relatedPosts.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        excerpt: p.content ? p.content.substring(0, 50) + '...' : '',
+        author: p.authorName || '未知用户',
+        createTime: formatTime(p.createTime),
+        likes: p.likeCount,
+        thumbnail: '/api/placeholder/80/60'
+      }))
+    } else {
+      // 调用专门的相关推荐API
+      await loadRelatedPosts(postData.id)
+    }
+    
+  } catch (error) {
+    console.error('加载帖子详情失败:', error)
+    message.error('加载帖子详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载相关推荐帖子
+async function loadRelatedPosts(postId: number) {
+  try {
+    const response = await CommunityAPI.getRelatedPosts(postId, 3)
+    
+    relatedPosts.value = response.data.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      excerpt: p.content ? p.content.substring(0, 50) + '...' : '',
+      author: p.authorName || '未知用户',
+      createTime: formatTime(p.createTime),
+      likes: p.likeCount,
+      thumbnail: '/api/placeholder/80/60'
+    }))
+  } catch (error) {
+    console.error('加载相关推荐失败:', error)
+  }
+}
+
+// 加载评论
+async function loadComments(postId: number) {
+  try {
+    loadingComments.value = true
+    const response = await CommunityAPI.getPostComments(postId, {
+      page: 1,
+      size: 20
+    })
+    
+    console.log('评论数据:', response.data)
+    
+    // 转换评论数据
+    comments.value = response.data.comments.map((comment: any) => ({
+      id: comment.id,
+      author: comment.authorName || '未知用户',
+      authorAvatar: FileAPI.getImageUrl(comment.authorAvatar),
+      authorLevel: '用户',
+      isAuthor: comment.authorId === post.value.id,
+      createTime: formatTime(comment.createTime),
+      content: comment.content,
+      likes: comment.likeCount || 0,
+      isLiked: false,
+      replies: []
+    }))
+    
+    hasMoreComments.value = response.data.total > 20
+  } catch (error) {
+    console.error('加载评论失败:', error)
+  } finally {
+    loadingComments.value = false
+  }
+}
+
+// 格式化时间
+function formatTime(timeStr: string): string {
+  const time = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - time.getTime()
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 30) {
+    return `${days}天前`
+  } else {
+    return time.toLocaleDateString()
+  }
 }
 
 function getAuthorLevelColor(level: string) {
@@ -643,16 +664,42 @@ function previewCommentImage(imageUrl: string) {
   imagePreviewVisible.value = true
 }
 
-function toggleLike() {
-  isLiked.value = !isLiked.value
-  post.value.likes += isLiked.value ? 1 : -1
-  message.success(isLiked.value ? '点赞成功' : '取消点赞')
+async function toggleLike() {
+  try {
+    if (isLiked.value) {
+      await CommunityAPI.unlikePost(post.value.id)
+      isLiked.value = false
+      post.value.likes--
+      message.success('取消点赞')
+    } else {
+      await CommunityAPI.likePost(post.value.id)
+      isLiked.value = true
+      post.value.likes++
+      message.success('点赞成功')
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
-function toggleBookmark() {
-  isBookmarked.value = !isBookmarked.value
-  post.value.bookmarks += isBookmarked.value ? 1 : -1
-  message.success(isBookmarked.value ? '收藏成功' : '取消收藏')
+async function toggleBookmark() {
+  try {
+    if (isBookmarked.value) {
+      await CommunityAPI.uncollectPost(post.value.id)
+      isBookmarked.value = false
+      post.value.bookmarks--
+      message.success('取消收藏')
+    } else {
+      await CommunityAPI.collectPost(post.value.id)
+      isBookmarked.value = true
+      post.value.bookmarks++
+      message.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
 function scrollToComments() {
@@ -663,19 +710,43 @@ function scrollToComments() {
 }
 
 function sharePost() {
-  message.info('分享功能开发中')
+  // 复制分享链接
+  const shareUrl = `${window.location.origin}/user/community/post/${post.value.id}`
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    message.success('分享链接已复制到剪贴板')
+  }).catch(() => {
+    message.info(`分享链接：${shareUrl}`)
+  })
 }
 
-function reportPost() {
-  message.info('举报功能开发中')
+async function reportPost() {
+  try {
+    await CommunityAPI.reportPost(post.value.id, {
+      type: 'inappropriate',
+      description: '用户举报该帖子'
+    })
+    message.success('举报成功，我们会尽快处理')
+  } catch (error) {
+    console.error('举报失败:', error)
+    message.error('举报失败，请重试')
+  }
 }
 
 function editPost() {
+  // TODO: 跳转到编辑页面
   message.info('编辑功能开发中')
 }
 
-function deletePost() {
-  message.info('删除功能开发中')
+async function deletePost() {
+  try {
+    await CommunityAPI.deletePost(post.value.id)
+    message.success('删除成功')
+    // 返回社区列表
+    router.push('/user/community')
+  } catch (error) {
+    console.error('删除帖子失败:', error)
+    message.error('删除失败')
+  }
 }
 
 function insertEmoji() {
@@ -695,36 +766,45 @@ async function submitComment() {
   
   submittingComment.value = true
   try {
-    // 模拟API请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    const comment = {
-      id: Date.now(),
-      author: currentUser.name,
-      authorAvatar: currentUser.avatar,
-      authorLevel: currentUser.level,
-      isAuthor: false,
-      createTime: '刚刚',
-      content: newComment.content,
-      likes: 0,
-      isLiked: false,
-      replies: []
+    const requestData: AddCommentRequest = {
+      content: newComment.content
     }
     
-    comments.value.unshift(comment)
-    post.value.comments++
-    newComment.content = ''
-    message.success('评论发表成功')
+    const response = await CommunityAPI.addComment(post.value.id, requestData)
+    
+    if (response.data.success) {
+      // 重新加载评论
+      await loadComments(post.value.id)
+      
+      post.value.comments++
+      newComment.content = ''
+      message.success('评论发表成功')
+    } else {
+      message.error(response.data.message || '评论发表失败')
+    }
   } catch (error) {
+    console.error('评论发表失败:', error)
     message.error('评论发表失败')
   } finally {
     submittingComment.value = false
   }
 }
 
-function toggleCommentLike(comment: any) {
-  comment.isLiked = !comment.isLiked
-  comment.likes = (comment.likes || 0) + (comment.isLiked ? 1 : -1)
+async function toggleCommentLike(comment: any) {
+  try {
+    if (comment.isLiked) {
+      await CommunityAPI.unlikeComment(comment.id)
+      comment.isLiked = false
+      comment.likes--
+    } else {
+      await CommunityAPI.likeComment(comment.id)
+      comment.isLiked = true
+      comment.likes++
+    }
+  } catch (error) {
+    console.error('评论点赞操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
 function replyToComment(comment: any) {
@@ -737,32 +817,60 @@ function cancelReply() {
   replyContent.value = ''
 }
 
-function submitReply(comment: any) {
+async function submitReply(comment: any) {
   if (!replyContent.value.trim()) return
   
-  const reply = {
-    id: Date.now(),
-    author: currentUser.name,
-    authorAvatar: currentUser.avatar,
-    createTime: '刚刚',
-    content: replyContent.value
+  try {
+    const requestData: AddCommentRequest = {
+      content: replyContent.value,
+      parentId: comment.id
+    }
+    
+    const response = await CommunityAPI.addComment(post.value.id, requestData)
+    
+    if (response.data.success) {
+      // 添加到回复列表
+      if (!comment.replies) {
+        comment.replies = []
+      }
+      comment.replies.push({
+        id: response.data.commentId,
+        author: currentUser.name,
+        authorAvatar: currentUser.avatar,
+        createTime: '刚刚',
+        content: replyContent.value
+      })
+      
+      cancelReply()
+      message.success('回复发表成功')
+    } else {
+      message.error(response.data.message || '回复发表失败')
+    }
+  } catch (error) {
+    console.error('回复发表失败:', error)
+    message.error('回复发表失败')
   }
-  
-  if (!comment.replies) {
-    comment.replies = []
-  }
-  comment.replies.push(reply)
-  
-  cancelReply()
-  message.success('回复发表成功')
 }
 
 function reportComment(comment: any) {
+  // TODO: 实现举报功能
   message.info('举报功能开发中')
 }
 
-function deleteComment(comment: any) {
-  message.info('删除功能开发中')
+async function deleteComment(comment: any) {
+  try {
+    await CommunityAPI.deleteComment(comment.id)
+    // 从列表中移除
+    const index = comments.value.findIndex(c => c.id === comment.id)
+    if (index > -1) {
+      comments.value.splice(index, 1)
+      post.value.comments--
+    }
+    message.success('删除成功')
+  } catch (error) {
+    console.error('删除评论失败:', error)
+    message.error('删除失败')
+  }
 }
 
 function loadMoreComments() {
@@ -775,8 +883,12 @@ function loadMoreComments() {
   }, 1000)
 }
 
-function viewRelatedPost(post: any) {
-  router.push(`/user/community/post/${post.id}`)
+async function viewRelatedPost(relatedPost: any) {
+  // 跳转到相关帖子并重新加载
+  await router.push(`/user/community/post/${relatedPost.id}`)
+  await loadPostDetail(relatedPost.id)
+  // 滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 </script>
 

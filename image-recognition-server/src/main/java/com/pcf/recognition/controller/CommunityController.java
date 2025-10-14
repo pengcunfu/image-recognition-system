@@ -6,12 +6,16 @@ import com.pcf.recognition.service.CommunityService;
 import com.pcf.recognition.util.TokenUtil;
 
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.List;
 
 /**
  * 社区控制器
@@ -287,6 +291,112 @@ public class CommunityController {
             log.error("删除帖子失败", e);
             return ApiResponse.error("删除失败");
         }
+    }
+
+    /**
+     * 收藏帖子
+     */
+    @PostMapping("/posts/{id}/collect")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
+    public ApiResponse<Void> collectPost(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        
+        log.info("收藏帖子请求: postId={}", id);
+        
+        try {
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
+
+            communityService.collectPost(id, userId);
+            return ApiResponse.success(null, "收藏成功");
+        } catch (Exception e) {
+            log.error("收藏帖子失败", e);
+            return ApiResponse.error("收藏失败");
+        }
+    }
+
+    /**
+     * 取消收藏帖子
+     */
+    @DeleteMapping("/posts/{id}/collect")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
+    public ApiResponse<Void> uncollectPost(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        
+        log.info("取消收藏帖子请求: postId={}", id);
+        
+        try {
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
+
+            communityService.uncollectPost(id, userId);
+            return ApiResponse.success(null, "取消收藏成功");
+        } catch (Exception e) {
+            log.error("取消收藏帖子失败", e);
+            return ApiResponse.error("取消收藏失败");
+        }
+    }
+
+    /**
+     * 举报帖子
+     */
+    @PostMapping("/posts/{id}/report")
+    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
+    public ApiResponse<Void> reportPost(
+            @PathVariable Long id,
+            @RequestBody ReportRequest request,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+        
+        log.info("举报帖子请求: postId={}, type={}", id, request.getType());
+        
+        try {
+            Long userId = tokenUtil.getUserIdFromHeader(token);
+            if (userId == null) {
+                return ApiResponse.error("无效的Token");
+            }
+
+            communityService.reportPost(id, userId, request.getType(), request.getDescription());
+            return ApiResponse.success(null, "举报成功，我们会尽快处理");
+        } catch (Exception e) {
+            log.error("举报帖子失败", e);
+            return ApiResponse.error("举报失败");
+        }
+    }
+
+    /**
+     * 获取相关推荐帖子
+     */
+    @GetMapping("/posts/{id}/related")
+    public ApiResponse<List<PostDto>> getRelatedPosts(@PathVariable Long id) {
+        
+        log.info("获取相关推荐帖子请求: postId={}", id);
+        
+        try {
+            List<PostDto> relatedPosts = communityService.getRelatedPosts(id, 3);
+            return ApiResponse.success(relatedPosts, "获取相关推荐成功");
+        } catch (Exception e) {
+            log.error("获取相关推荐失败", e);
+            return ApiResponse.error("获取相关推荐失败");
+        }
+    }
+
+    /**
+     * 举报请求类
+     */
+    @Data
+    public static class ReportRequest {
+        @NotBlank(message = "举报类型不能为空")
+        private String type; // spam, abuse, inappropriate, other
+        
+        @NotBlank(message = "举报说明不能为空")
+        @Size(max = 500, message = "举报说明不能超过500字")
+        private String description;
     }
 
 }

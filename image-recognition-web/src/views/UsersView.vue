@@ -27,9 +27,9 @@
             v-model:value="filterRole"
             placeholder="选择角色"
             style="width: 100%"
-            allow-clear
             @change="handleFilterChange"
           >
+            <a-select-option :value="undefined">全部角色</a-select-option>
             <a-select-option :value="UserRole.USER">普通用户</a-select-option>
             <a-select-option :value="UserRole.VIP">VIP用户</a-select-option>
             <a-select-option :value="UserRole.ADMIN">管理员</a-select-option>
@@ -40,9 +40,9 @@
             v-model:value="filterStatus"
             placeholder="选择状态"
             style="width: 100%"
-            allow-clear
             @change="handleFilterChange"
           >
+            <a-select-option :value="undefined">全部状态</a-select-option>
             <a-select-option :value="UserStatus.ACTIVE">活跃</a-select-option>
             <a-select-option :value="UserStatus.INACTIVE">未激活</a-select-option>
             <a-select-option :value="UserStatus.BANNED">已禁用</a-select-option>

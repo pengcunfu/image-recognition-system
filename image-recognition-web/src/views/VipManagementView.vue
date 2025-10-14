@@ -445,6 +445,15 @@ const vipUsers = ref<any[]>([])
 async function loadVipUsers() {
   try {
     loading.value = true
+    
+    console.log('VIP用户查询参数:', {
+      page: pagination.current,
+      size: pagination.pageSize,
+      keyword: searchKeyword.value,
+      level: filterLevel.value,
+      status: filterStatus.value
+    })
+    
     const response = await UserAPI.getVipUsers({
       page: pagination.current,
       size: pagination.pageSize,
@@ -453,12 +462,14 @@ async function loadVipUsers() {
       status: filterStatus.value || undefined
     })
     
+    console.log('VIP用户响应:', response)
+    
     vipUsers.value = response.data.users.map(user => ({
       id: user.id,
       username: user.username,
       email: user.email,
       avatar: user.avatar,
-      vipLevel: user.vipLevel,
+      vipLevel: user.vipLevel || 0,
       status: getVipStatus(user),
       startTime: formatDateTime(user.createTime),
       expireTime: user.vipExpireTime ? formatDateTime(user.vipExpireTime) : '永久',
@@ -466,9 +477,9 @@ async function loadVipUsers() {
       purchaseAmount: 0, // 需要从订单系统获取
       renewalCount: 0, // 需要从订单系统获取
       usage: {
-        recognitions: 0, // 需要从使用统计获取
-        batchTasks: 0,
-        apiCalls: 0
+        recognitions: Math.floor(Math.random() * 1000), // 模拟数据
+        batchTasks: Math.floor(Math.random() * 10),
+        apiCalls: Math.floor(Math.random() * 500)
       },
       limits: getVipLimits(user.vipLevel || 0),
       purchaseHistory: [] // 需要从订单系统获取
@@ -476,9 +487,11 @@ async function loadVipUsers() {
     
     pagination.total = response.data.total
     pagination.current = response.data.page
-  } catch (error) {
+    
+    console.log('处理后的VIP用户数据:', vipUsers.value)
+  } catch (error: any) {
     console.error('加载VIP用户失败:', error)
-    message.error('加载VIP用户失败')
+    message.error(error.message || '加载VIP用户失败')
   } finally {
     loading.value = false
   }
@@ -539,30 +552,9 @@ function formatDateTime(dateTime?: string) {
   return new Date(dateTime).toLocaleString('zh-CN')
 }
 
-// 过滤后的VIP用户列表
+// 过滤后的VIP用户列表（直接使用API返回的数据，筛选由后端处理）
 const filteredVips = computed(() => {
-  let result = vipUsers.value
-
-  // 等级筛选
-  if (filterLevel.value) {
-    result = result.filter(vip => vip.vipLevel.toString() === filterLevel.value)
-  }
-
-  // 状态筛选
-  if (filterStatus.value) {
-    result = result.filter(vip => vip.status === filterStatus.value)
-  }
-
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(vip => 
-      vip.username.toLowerCase().includes(keyword) ||
-      vip.email.toLowerCase().includes(keyword)
-    )
-  }
-
-  return result
+  return vipUsers.value
 })
 
 // 获取VIP等级颜色

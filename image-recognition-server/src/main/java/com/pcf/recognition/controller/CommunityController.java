@@ -50,14 +50,14 @@ public class CommunityController {
 
     @GetMapping("/posts/{id}")
     // 公开接口，无需权限验证
-    public ApiResponse<PostDto> getPostDetail(
+    public ApiResponse<PostDetailResponseDto> getPostDetail(
             @PathVariable Long id) {
 
         log.info("获取帖子详情请求: id={}", id);
 
         try {
             PostDetailResponseDto result = communityService.getPostDetail(id);
-            return ApiResponse.success(result.getPost(), "获取帖子详情成功");
+            return ApiResponse.success(result, "获取帖子详情成功");
         } catch (Exception e) {
             log.error("获取帖子详情失败", e);
             return ApiResponse.error("帖子不存在或获取失败");

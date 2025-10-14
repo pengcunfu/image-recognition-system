@@ -345,7 +345,7 @@ function handleTableChange(pag: any) {
 async function viewPost(post: Post) {
   try {
     const response = await CommunityAPI.getPostDetail(post.id)
-    selectedPost.value = response.data.post
+    selectedPost.value = response.data.post // 从 PostDetailResponse 中获取 post
     drawerVisible.value = true
   } catch (error) {
     console.error('获取帖子详情失败:', error)

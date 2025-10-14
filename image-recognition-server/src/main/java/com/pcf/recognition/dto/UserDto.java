@@ -383,6 +383,9 @@ public class UserDto {
         private String status = "ACTIVE";
         
         private Integer vipLevel;
+        
+        @Size(max = 500, message = "头像URL长度不能超过500个字符")
+        private String avatar;
     }
 
     /**
@@ -408,6 +411,9 @@ public class UserDto {
         private String status;
         private Integer vipLevel;
         private LocalDateTime vipExpireTime;
+        
+        @Size(max = 500, message = "头像URL长度不能超过500个字符")
+        private String avatar;
     }
 
     /**

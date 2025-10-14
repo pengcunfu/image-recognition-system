@@ -85,7 +85,7 @@
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'avatar'">
-            <a-avatar :src="record.avatar" :size="32">
+            <a-avatar :src="FileAPI.getImageUrl(record.avatar)" :size="32">
               {{ record.name?.charAt(0) || record.username?.charAt(0) }}
             </a-avatar>
           </template>
@@ -186,7 +186,7 @@
             @change="handleAvatarChange"
           >
             <div v-if="formData.avatar" class="avatar-preview">
-              <img :src="formData.avatar" alt="avatar" />
+              <img :src="FileAPI.getImageUrl(formData.avatar)" alt="avatar" />
             </div>
             <div v-else class="upload-placeholder">
               <i class="fas fa-plus"></i>
@@ -259,7 +259,7 @@
       <div v-if="selectedUser" class="user-detail">
         <a-descriptions :column="1" bordered>
           <a-descriptions-item label="头像">
-            <a-avatar :src="selectedUser.avatar" :size="64">
+            <a-avatar :src="FileAPI.getImageUrl(selectedUser.avatar)" :size="64">
               {{ selectedUser.name?.charAt(0) || selectedUser.username?.charAt(0) }}
             </a-avatar>
           </a-descriptions-item>

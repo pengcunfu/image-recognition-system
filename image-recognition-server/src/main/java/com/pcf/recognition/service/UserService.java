@@ -348,6 +348,7 @@ public class UserService {
             newUser.setPassword(request.getPassword()); // 生产环境应该加密
             newUser.setName(request.getName());
             newUser.setPhone(request.getPhone());
+            newUser.setAvatar(request.getAvatar());
             newUser.setRole(User.UserRole.valueOf(request.getRole()));
             newUser.setStatus(User.UserStatus.valueOf(request.getStatus() != null ? request.getStatus() : "ACTIVE"));
             newUser.setVipLevel(request.getVipLevel());
@@ -430,6 +431,9 @@ public class UserService {
             }
             if (request.getPhone() != null) {
                 updateWrapper.set(User::getPhone, request.getPhone());
+            }
+            if (request.getAvatar() != null) {
+                updateWrapper.set(User::getAvatar, request.getAvatar());
             }
             if (request.getRole() != null) {
                 updateWrapper.set(User::getRole, User.UserRole.valueOf(request.getRole()));

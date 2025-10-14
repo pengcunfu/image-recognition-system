@@ -304,6 +304,11 @@ public class AuthDto {
         private Integer vipLevel;
 
         /**
+         * VIP过期时间
+         */
+        private LocalDateTime vipExpireTime;
+
+        /**
          * 最后登录时间
          */
         private LocalDateTime lastLoginTime;

@@ -49,9 +49,10 @@ public class UserService {
                 .phone(user.getPhone() != null ? user.getPhone() : "")
                 .avatar(user.getAvatar() != null ? user.getAvatar() : "/api/v1/images/default-avatar.png")
                 .bio(user.getBio() != null ? user.getBio() : "")
-                .role(user.getRole().name().toLowerCase())
-                .status(user.getStatus().name().toLowerCase())
+                .role(user.getRole().name())
+                .status(user.getStatus().name())
                 .vipLevel(user.getVipLevel())
+                .vipExpireTime(user.getVipExpireTime())
                 .lastLoginTime(user.getLastLoginTime())
                 .createTime(user.getCreateTime())
                 .build();

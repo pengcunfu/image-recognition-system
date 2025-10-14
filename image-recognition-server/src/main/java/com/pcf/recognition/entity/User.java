@@ -48,8 +48,32 @@ public class User {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    @TableLogic
-    private Integer deleted;
+    @TableLogic(value = "NOT_DELETED", delval = "DELETED")
+    private DeleteStatus deleted = DeleteStatus.NOT_DELETED;
+
+    // 删除状态枚举
+    @Getter
+    public enum DeleteStatus {
+        NOT_DELETED("NOT_DELETED", "未删除"),
+        DELETED("DELETED", "已删除");
+
+        private final String value;
+        private final String description;
+
+        DeleteStatus(String value, String description) {
+            this.value = value;
+            this.description = description;
+        }
+
+        public static DeleteStatus fromValue(String value) {
+            for (DeleteStatus status : values()) {
+                if (status.value.equals(value)) {
+                    return status;
+                }
+            }
+            throw new IllegalArgumentException("Invalid delete status value: " + value);
+        }
+    }
 
     // 用户角色枚举
     @Getter

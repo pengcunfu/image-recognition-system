@@ -3,32 +3,22 @@
     <div class="page-header">
       <h1 class="page-title">用户管理</h1>
       <div class="header-actions">
-        <a-input-search
-          v-model:value="searchKeyword"
-          placeholder="搜索用户名、邮箱或手机号"
-          style="width: 300px; margin-right: 16px"
-          @search="handleSearch"
-          @change="handleSearchChange"
-        />
+        <a-input-search v-model:value="searchKeyword" placeholder="搜索用户名、邮箱或手机号"
+          style="width: 300px; margin-right: 16px" @search="handleSearch" @change="handleSearchChange" />
         <a-button type="primary" @click="showAddModal">
-        <template #icon>
-          <i class="fas fa-plus"></i>
-        </template>
-        添加用户
-      </a-button>
-    </div>
+          <template #icon>
+            <i class="fas fa-plus"></i>
+          </template>
+          添加用户
+        </a-button>
+      </div>
     </div>
 
     <!-- 筛选器 -->
     <a-card class="filter-card" size="small">
       <a-row :gutter="16">
         <a-col :span="6">
-          <a-select
-            v-model:value="filterRole"
-            placeholder="选择角色"
-            style="width: 100%"
-            @change="handleFilterChange"
-          >
+          <a-select v-model:value="filterRole" placeholder="选择角色" style="width: 100%" @change="handleFilterChange">
             <a-select-option :value="undefined">全部角色</a-select-option>
             <a-select-option :value="UserRole.USER">普通用户</a-select-option>
             <a-select-option :value="UserRole.VIP">VIP用户</a-select-option>
@@ -36,12 +26,7 @@
           </a-select>
         </a-col>
         <a-col :span="6">
-          <a-select
-            v-model:value="filterStatus"
-            placeholder="选择状态"
-            style="width: 100%"
-            @change="handleFilterChange"
-          >
+          <a-select v-model:value="filterStatus" placeholder="选择状态" style="width: 100%" @change="handleFilterChange">
             <a-select-option :value="undefined">全部状态</a-select-option>
             <a-select-option :value="UserStatus.ACTIVE">活跃</a-select-option>
             <a-select-option :value="UserStatus.INACTIVE">未激活</a-select-option>
@@ -49,40 +34,24 @@
           </a-select>
         </a-col>
         <a-col :span="6">
-          <a-select
-            v-model:value="sortBy"
-            placeholder="排序方式"
-            style="width: 100%"
-            @change="handleFilterChange"
-          >
+          <a-select v-model:value="sortBy" placeholder="排序方式" style="width: 100%" @change="handleFilterChange">
             <a-select-option value="createTime">注册时间</a-select-option>
             <a-select-option value="lastLoginTime">最后登录</a-select-option>
             <a-select-option value="username">用户名</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="6">
-          <a-select
-            v-model:value="sortOrder"
-            placeholder="排序顺序"
-            style="width: 100%"
-            @change="handleFilterChange"
-          >
+          <a-select v-model:value="sortOrder" placeholder="排序顺序" style="width: 100%" @change="handleFilterChange">
             <a-select-option value="desc">降序</a-select-option>
             <a-select-option value="asc">升序</a-select-option>
           </a-select>
         </a-col>
       </a-row>
     </a-card>
-    
+
     <a-card class="table-card">
-      <a-table 
-        :columns="userColumns" 
-        :data-source="users"
-        :pagination="pagination"
-        :loading="loading"
-        :row-selection="rowSelection"
-        @change="handleTableChange"
-      >
+      <a-table :columns="userColumns" :data-source="users" :pagination="pagination" :loading="loading"
+        :row-selection="rowSelection" @change="handleTableChange">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'avatar'">
             <a-avatar :src="FileAPI.getImageUrl(record.avatar)" :size="32">
@@ -95,10 +64,7 @@
             </a-tag>
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag 
-              :color="getStatusColor(record.status)"
-              class="status-tag"
-            >
+            <a-tag :color="getStatusColor(record.status)" class="status-tag">
               {{ getStatusText(record.status) }}
             </a-tag>
           </template>
@@ -142,7 +108,7 @@
                 </template>
                 <a-button type="link" size="small">
                   更多 <i class="fas fa-chevron-down"></i>
-              </a-button>
+                </a-button>
               </a-dropdown>
             </a-space>
           </template>
@@ -161,30 +127,13 @@
     </a-card>
 
     <!-- 添加/编辑用户模态框 -->
-    <a-modal
-      v-model:open="modalVisible"
-      :title="isEditing ? '编辑用户' : '添加用户'"
-      :width="600"
-      @ok="handleSubmit"
-      @cancel="handleCancel"
-    >
-      <a-form
-        ref="formRef"
-        :model="formData"
-        :rules="formRules"
-        layout="vertical"
-      >
+    <a-modal v-model:open="modalVisible" :title="isEditing ? '编辑用户' : '添加用户'" :width="600" @ok="handleSubmit"
+      @cancel="handleCancel">
+      <a-form ref="formRef" :model="formData" :rules="formRules" layout="vertical">
         <!-- 头像上传 -->
         <a-form-item label="用户头像">
-          <a-upload
-            v-model:file-list="avatarFileList"
-            name="avatar"
-            list-type="picture-card"
-            class="avatar-uploader"
-            :show-upload-list="false"
-            :before-upload="beforeAvatarUpload"
-            @change="handleAvatarChange"
-          >
+          <a-upload v-model:file-list="avatarFileList" name="avatar" list-type="picture-card" class="avatar-uploader"
+            :show-upload-list="false" :before-upload="beforeAvatarUpload" @change="handleAvatarChange">
             <div v-if="formData.avatar" class="avatar-preview">
               <img :src="FileAPI.getImageUrl(formData.avatar)" alt="avatar" />
             </div>
@@ -195,7 +144,7 @@
           </a-upload>
           <div class="upload-tips">支持 JPG、PNG 格式，大小不超过 2MB</div>
         </a-form-item>
-        
+
         <a-row :gutter="16">
           <a-col :span="12">
             <a-form-item label="用户名" name="username">
@@ -250,12 +199,7 @@
     </a-modal>
 
     <!-- 用户详情抽屉 -->
-    <a-drawer
-      v-model:open="drawerVisible"
-      title="用户详情"
-      :width="600"
-      placement="right"
-    >
+    <a-drawer v-model:open="drawerVisible" title="用户详情" :width="600" placement="right">
       <div v-if="selectedUser" class="user-detail">
         <a-descriptions :column="1" bordered>
           <a-descriptions-item label="头像">
@@ -299,10 +243,10 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { UserAPI } from '@/api/user'
 import FileAPI from '@/api/file'
-import type { 
-  User, 
-  UserListResponse, 
-  AdminUserCreateRequest, 
+import type {
+  User,
+  UserListResponse,
+  AdminUserCreateRequest,
   AdminUserUpdateRequest,
   UserQueryParams,
   BatchUserOperationRequest
@@ -383,6 +327,7 @@ const formRules = {
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
   ],
   phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
   ],
   password: [
@@ -471,7 +416,7 @@ async function editUser(record: User) {
   try {
     const response = await UserAPI.getUserDetail(record.id)
     const user = response.data
-    
+
     isEditing.value = true
     Object.assign(formData, {
       id: user.id,
@@ -511,15 +456,15 @@ async function handleAvatarChange(info: any) {
   if (info.file.status === 'uploading') {
     return
   }
-  
+
   if (info.file.originFileObj) {
     try {
       uploadingAvatar.value = true
       message.loading({ content: '正在上传头像...', key: 'uploadAvatar' })
-      
+
       const response = await FileAPI.uploadFile(info.file.originFileObj)
       formData.avatar = response.data.url
-      
+
       message.success({ content: '头像上传成功', key: 'uploadAvatar' })
     } catch (error) {
       console.error('头像上传失败:', error)
@@ -546,7 +491,7 @@ async function viewUser(record: User) {
 async function toggleUserStatus(record: User) {
   const newStatus = record.status === 'ACTIVE' ? 'BANNED' : 'ACTIVE'
   const action = newStatus === 'ACTIVE' ? '启用' : '禁用'
-  
+
   Modal.confirm({
     title: `确认${action}用户`,
     content: `确定要${action}用户 ${record.username} 吗？`,
@@ -618,7 +563,7 @@ async function batchEnable() {
     message.warning('请选择要操作的用户')
     return
   }
-  
+
   Modal.confirm({
     title: '批量启用',
     content: `确定要启用选中的 ${selectedRowKeys.value.length} 个用户吗？`,
@@ -641,7 +586,7 @@ async function batchDisable() {
     message.warning('请选择要操作的用户')
     return
   }
-  
+
   Modal.confirm({
     title: '批量禁用',
     content: `确定要禁用选中的 ${selectedRowKeys.value.length} 个用户吗？`,
@@ -664,7 +609,7 @@ async function batchDelete() {
     message.warning('请选择要操作的用户')
     return
   }
-  
+
   Modal.confirm({
     title: '批量删除',
     content: `确定要删除选中的 ${selectedRowKeys.value.length} 个用户吗？此操作不可恢复！`,
@@ -687,7 +632,7 @@ async function batchDelete() {
 async function handleSubmit() {
   try {
     await formRef.value.validate()
-    
+
     if (isEditing.value) {
       const updateData: AdminUserUpdateRequest & { avatar?: string } = {
         email: formData.email,
@@ -715,7 +660,7 @@ async function handleSubmit() {
       await UserAPI.createUser(createData)
       message.success('用户创建成功')
     }
-    
+
     modalVisible.value = false
     resetForm()
     loadUsers()
@@ -871,7 +816,7 @@ $selected-color: #e6f7ff;
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
-    
+
     .ant-input-search {
       width: 100% !important;
       margin-right: 0 !important;
@@ -885,24 +830,24 @@ $selected-color: #e6f7ff;
     align-items: stretch;
     gap: 16px;
   }
-  
+
   .filter-card {
     .ant-row {
       flex-direction: column;
     }
-    
+
     .ant-col {
       width: 100% !important;
       margin-bottom: 12px;
     }
   }
-  
+
   .table-card {
     :deep(.ant-table-wrapper) {
       overflow-x: auto;
     }
   }
-  
+
   .batch-actions {
     text-align: center;
   }
@@ -1006,7 +951,7 @@ $selected-color: #e6f7ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   img {
     width: 100%;
     height: 100%;
@@ -1020,12 +965,12 @@ $selected-color: #e6f7ff;
   align-items: center;
   justify-content: center;
   color: #999;
-  
+
   i {
     font-size: 24px;
     margin-bottom: 8px;
   }
-  
+
   div {
     font-size: 14px;
   }

@@ -90,7 +90,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'user'">
             <div class="user-info">
-              <a-avatar :src="record.avatar" size="small">
+              <a-avatar :src="FileAPI.getImageUrl(record.avatar)" size="small">
                 {{ record.username.charAt(0) }}
               </a-avatar>
               <div class="user-details">
@@ -197,7 +197,7 @@
     >
       <div v-if="selectedVip" class="vip-detail">
         <div class="vip-header">
-          <a-avatar :src="selectedVip.avatar" size="large">
+          <a-avatar :src="FileAPI.getImageUrl(selectedVip.avatar)" size="large">
             {{ selectedVip.username.charAt(0) }}
           </a-avatar>
           <div class="vip-info">
@@ -363,6 +363,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { UserAPI } from '@/api/user'
+import FileAPI from '@/api/file'
 import type { User } from '@/api/types'
 
 // 响应式数据

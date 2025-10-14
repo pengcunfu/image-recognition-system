@@ -48,7 +48,7 @@ public class User {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    @TableLogic(value = "NOT_DELETED", delval = "DELETED")
+    @TableLogic(value = "'NOT_DELETED'", delval = "'DELETED'")
     private DeleteStatus deleted = DeleteStatus.NOT_DELETED;
 
     // 删除状态枚举

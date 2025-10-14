@@ -1,12 +1,12 @@
 ---
 alwaysApply: true
 ---
-# Git Commit Rules
+# Git 提交规则
 
-After each conversation, if project files are modified, commit them using git.
+在每次对话结束后，如果项目文件有修改，使用 git 提交它们。
 
-## Commit Requirements:
-- Use English commit messages with brief descriptions
-- Format: type: brief description (e.g., fix: user login issue)
-- Ensure code compiles before committing
-- Push to remote repository if needed
+## 提交要求：
+- 使用英文提交消息，并附上简短描述
+- 格式：type: brief description（例如：fix: user login issue）
+- 提交前确保代码能够编译
+- 如有需要推送到远程仓库

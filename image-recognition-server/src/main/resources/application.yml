@@ -18,8 +18,8 @@ spring:
   mail:
     host: smtp.qq.com
     port: 587
-    username: YOUR_EMAIL_USERNAME  # 请替换为你的邮箱用户名
-    password: YOUR_EMAIL_PASSWORD  # 请替换为你的邮箱密码或授权码
+    username: huaqiwill@qq.com  # 请替换为你的邮箱用户名
+    password: anbdmjgjzdnrdced  # 请替换为你的邮箱密码或授权码
     properties:
       mail:
         smtp:

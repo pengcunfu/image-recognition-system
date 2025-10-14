@@ -54,30 +54,51 @@ public class User {
     // 用户角色枚举
     @Getter
     public enum UserRole {
-        USER("普通用户"),
-        VIP("VIP用户"),
-        ADMIN("管理员");
+        USER(1, "普通用户"),
+        VIP(2, "VIP用户"),
+        ADMIN(3, "管理员");
 
+        private final int value;
         private final String description;
 
-        UserRole(String description) {
+        UserRole(int value, String description) {
+            this.value = value;
             this.description = description;
         }
 
+        public static UserRole fromValue(int value) {
+            for (UserRole role : values()) {
+                if (role.value == value) {
+                    return role;
+                }
+            }
+            throw new IllegalArgumentException("Invalid role value: " + value);
+        }
     }
 
     // 用户状态枚举
     @Getter
     public enum UserStatus {
-        ACTIVE("激活"),
-        INACTIVE("未激活"),
-        BANNED("封禁"),
-        DELETED("已删除");
+        ACTIVE(1, "激活"),
+        INACTIVE(2, "未激活"),
+        BANNED(3, "封禁"),
+        DELETED(4, "已删除");
 
+        private final int value;
         private final String description;
 
-        UserStatus(String description) {
+        UserStatus(int value, String description) {
+            this.value = value;
             this.description = description;
+        }
+
+        public static UserStatus fromValue(int value) {
+            for (UserStatus status : values()) {
+                if (status.value == value) {
+                    return status;
+                }
+            }
+            throw new IllegalArgumentException("Invalid status value: " + value);
         }
     }
 }

@@ -369,7 +369,7 @@ const knowledgeColumns = [
     dataIndex: 'name', 
     key: 'name',
     width: 400
-  },
+  },  
   { 
     title: '作者', 
     dataIndex: 'authorId', 

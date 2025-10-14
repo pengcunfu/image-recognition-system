@@ -203,8 +203,8 @@ public class UserController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer role,
+            @RequestParam(required = false) Integer status,
             @RequestParam(defaultValue = "createTime") String sortBy,
             @RequestParam(defaultValue = "desc") String sortOrder) {
         
@@ -365,8 +365,8 @@ public class UserController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size,
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) Integer role,
+            @RequestParam(required = false) Integer status) {
         
         log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
 

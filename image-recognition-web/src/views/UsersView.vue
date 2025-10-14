@@ -30,9 +30,9 @@
             allow-clear
             @change="handleFilterChange"
           >
-            <a-select-option value="USER">普通用户</a-select-option>
-            <a-select-option value="VIP">VIP用户</a-select-option>
-            <a-select-option value="ADMIN">管理员</a-select-option>
+            <a-select-option :value="UserRole.USER">普通用户</a-select-option>
+            <a-select-option :value="UserRole.VIP">VIP用户</a-select-option>
+            <a-select-option :value="UserRole.ADMIN">管理员</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="6">
@@ -43,9 +43,9 @@
             allow-clear
             @change="handleFilterChange"
           >
-            <a-select-option value="ACTIVE">活跃</a-select-option>
-            <a-select-option value="INACTIVE">未激活</a-select-option>
-            <a-select-option value="BANNED">已禁用</a-select-option>
+            <a-select-option :value="UserStatus.ACTIVE">活跃</a-select-option>
+            <a-select-option :value="UserStatus.INACTIVE">未激活</a-select-option>
+            <a-select-option :value="UserStatus.BANNED">已禁用</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="6">
@@ -284,13 +284,14 @@ import type {
   UserQueryParams,
   BatchUserOperationRequest
 } from '@/api/types'
+import { UserRole, UserStatus } from '@/api/types'
 
 // 响应式数据
 const loading = ref(false)
 const users = ref<User[]>([])
 const searchKeyword = ref('')
-const filterRole = ref<string>()
-const filterStatus = ref<string>()
+const filterRole = ref<number | undefined>()
+const filterStatus = ref<number | undefined>()
 const sortBy = ref('createTime')
 const sortOrder = ref('desc')
 
@@ -382,11 +383,13 @@ async function loadUsers() {
       page: pagination.current,
       size: pagination.pageSize,
       keyword: searchKeyword.value || undefined,
-      role: filterRole.value as 'USER' | 'VIP' | 'ADMIN' | undefined,
-      status: filterStatus.value as 'ACTIVE' | 'INACTIVE' | 'BANNED' | undefined,
+      role: filterRole.value,  // 直接使用数字枚举值
+      status: filterStatus.value,  // 直接使用数字枚举值
       sortBy: sortBy.value as 'createTime' | 'lastLoginTime' | 'username',
       sortOrder: sortOrder.value as 'asc' | 'desc'
     }
+
+    console.log('用户查询参数:', params)
 
     const response = await UserAPI.getUsers(params)
     users.value = response.data.users

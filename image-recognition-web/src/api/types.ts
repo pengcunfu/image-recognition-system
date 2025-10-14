@@ -35,6 +35,21 @@ export interface UserInfo {
 
 // ==================== 用户管理相关类型 ====================
 
+// 用户角色枚举
+export enum UserRole {
+  USER = 1,    // 普通用户
+  VIP = 2,     // VIP用户
+  ADMIN = 3    // 管理员
+}
+
+// 用户状态枚举
+export enum UserStatus {
+  ACTIVE = 1,      // 激活
+  INACTIVE = 2,    // 未激活
+  BANNED = 3,      // 封禁
+  DELETED = 4      // 已删除
+}
+
 // 用户基本信息
 export interface User {
   id: number
@@ -149,8 +164,8 @@ export interface UserQueryParams {
   page?: number
   size?: number
   keyword?: string
-  role?: 'USER' | 'VIP' | 'ADMIN'
-  status?: 'ACTIVE' | 'INACTIVE' | 'BANNED'
+  role?: number  // 使用枚举值：1=USER, 2=VIP, 3=ADMIN
+  status?: number  // 使用枚举值：1=ACTIVE, 2=INACTIVE, 3=BANNED, 4=DELETED
   sortBy?: 'createTime' | 'lastLoginTime' | 'username'
   sortOrder?: 'asc' | 'desc'
 }

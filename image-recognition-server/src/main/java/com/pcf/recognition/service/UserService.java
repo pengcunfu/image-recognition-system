@@ -230,7 +230,7 @@ public class UserService {
     /**
      * 获取用户列表（管理员）
      */
-    public UserListResponse getUserList(Integer page, Integer size, String keyword, String role, String status, String sortBy, String sortOrder) {
+    public UserListResponse getUserList(Integer page, Integer size, String keyword, Integer role, Integer status, String sortBy, String sortOrder) {
         log.info("管理员获取用户列表: page={}, size={}, keyword={}, role={}, status={}", page, size, keyword, role, status);
         
         // 构建查询条件
@@ -245,14 +245,26 @@ public class UserService {
             );
         }
         
-        // 角色筛选
-        if (role != null && !role.trim().isEmpty()) {
-            queryWrapper.eq(User::getRole, role);
+        // 角色筛选（使用枚举值）
+        if (role != null) {
+            try {
+                User.UserRole userRole = User.UserRole.fromValue(role);
+                queryWrapper.eq(User::getRole, userRole);
+                log.info("添加角色筛选条件: role = {} ({})", role, userRole);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的角色值: {}", role);
+            }
         }
         
-        // 状态筛选
-        if (status != null && !status.trim().isEmpty()) {
-            queryWrapper.eq(User::getStatus, status);
+        // 状态筛选（使用枚举值）
+        if (status != null) {
+            try {
+                User.UserStatus userStatus = User.UserStatus.fromValue(status);
+                queryWrapper.eq(User::getStatus, userStatus);
+                log.info("添加状态筛选条件: status = {} ({})", status, userStatus);
+            } catch (IllegalArgumentException e) {
+                log.warn("无效的状态值: {}", status);
+            }
         }
         
         // 排序
@@ -739,7 +751,7 @@ public class UserService {
     /**
      * 搜索用户（管理员）
      */
-    public UserListResponse searchUsers(String keyword, Integer page, Integer size, String role, String status) {
+    public UserListResponse searchUsers(String keyword, Integer page, Integer size, Integer role, Integer status) {
         log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
         
         // 模拟搜索用户逻辑

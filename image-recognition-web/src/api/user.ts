@@ -10,7 +10,8 @@ import type {
   AdminUserCreateRequest,
   AdminUserUpdateRequest,
   UserQueryParams,
-  OperationResult
+  OperationResult,
+  AdminDashboardStats
 } from './types'
 
 /**
@@ -247,6 +248,13 @@ export class UserAPI {
    */
   static resetVipUsage(id: number, data: { reason?: string }) {
     return request.put<void>(`/api/v1/user/vip/${id}/reset-usage`, data)
+  }
+
+  /**
+   * 获取管理员仪表盘统计数据
+   */
+  static getAdminDashboardStats() {
+    return request.get<AdminDashboardStats>('/api/v1/user/admin/dashboard/stats')
   }
 }
 

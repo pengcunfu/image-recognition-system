@@ -518,4 +518,22 @@ public class UserDto {
         private Long expiring; // 即将过期（7天内）
         private Long monthlyRevenue; // 本月收入
     }
+
+    /**
+     * 管理员仪表盘统计数据DTO
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AdminDashboardStatsDto {
+        private Long totalRecognitions; // 总识别次数
+        private Long totalUsers; // 总用户数
+        private Long vipUsers; // VIP用户数
+        private Long totalPosts; // 总帖子数
+        private Long todayRecognitions; // 今日识别
+        private Long knowledgeItems; // 知识库条目数
+        private Long pendingPosts; // 待审核帖子数
+        private Double systemActivity; // 系统活跃度
+    }
 }

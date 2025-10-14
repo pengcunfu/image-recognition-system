@@ -434,6 +434,20 @@ public class UserController {
         }
     }
 
+    @GetMapping("/admin/dashboard/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<AdminDashboardStatsDto> getAdminDashboardStats() {
+        log.info("管理员获取仪表盘统计数据");
+
+        try {
+            AdminDashboardStatsDto stats = userService.getAdminDashboardStats();
+            return ApiResponse.success(stats, "获取仪表盘统计数据成功");
+        } catch (Exception e) {
+            log.error("获取仪表盘统计数据失败", e);
+            return ApiResponse.error("获取仪表盘统计数据失败");
+        }
+    }
+
     @PutMapping("/vip/{id}/extend")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> extendVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {

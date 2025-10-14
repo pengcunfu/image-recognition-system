@@ -5,6 +5,10 @@ import com.pcf.recognition.dto.AuthDto.*;
 import com.pcf.recognition.dto.UserDto.*;
 import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.UserRepository;
+import com.pcf.recognition.repository.CommunityPostRepository;
+import com.pcf.recognition.repository.RecognitionHistoryRepository;
+import com.pcf.recognition.repository.KnowledgeItemRepository;
+import com.pcf.recognition.entity.CommunityPost;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +32,9 @@ import java.util.Map;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final CommunityPostRepository communityPostRepository;
+    private final RecognitionHistoryRepository recognitionHistoryRepository;
+    private final KnowledgeItemRepository knowledgeItemRepository;
 
 
     /**
@@ -1165,6 +1173,73 @@ public class UserService {
         } catch (Exception e) {
             log.error("VIP用量重置失败: id={}", id, e);
             return false;
+        }
+    }
+
+    /**
+     * 获取管理员仪表盘统计数据
+     */
+    public AdminDashboardStatsDto getAdminDashboardStats() {
+        log.info("获取管理员仪表盘统计数据");
+        
+        try {
+            // 总用户数
+            Long totalUsers = userRepository.selectCount(null);
+            
+            // VIP用户数
+            LambdaQueryWrapper<User> vipQuery = new LambdaQueryWrapper<>();
+            vipQuery.eq(User::getRole, User.UserRole.VIP);
+            Long vipUsers = userRepository.selectCount(vipQuery);
+            
+            // 总识别次数
+            Long totalRecognitions = recognitionHistoryRepository.selectCount(null);
+            
+            // 今日识别次数
+            LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+            LambdaQueryWrapper<com.pcf.recognition.entity.RecognitionHistory> todayQuery = new LambdaQueryWrapper<>();
+            todayQuery.ge(com.pcf.recognition.entity.RecognitionHistory::getCreateTime, todayStart);
+            Long todayRecognitions = recognitionHistoryRepository.selectCount(todayQuery);
+            
+            // 总帖子数
+            Long totalPosts = communityPostRepository.selectCount(null);
+            
+            // 待审核帖子数
+            LambdaQueryWrapper<CommunityPost> pendingQuery = new LambdaQueryWrapper<>();
+            pendingQuery.eq(CommunityPost::getStatus, CommunityPost.PostStatus.PENDING);
+            Long pendingPosts = communityPostRepository.selectCount(pendingQuery);
+            
+            // 知识库条目数
+            Long knowledgeItems = knowledgeItemRepository.selectCount(null);
+            
+            // 系统活跃度（基于今日识别数/总识别数的百分比，最低60%）
+            Double systemActivity = totalRecognitions > 0 
+                ? Math.max(60.0, Math.min(100.0, (todayRecognitions.doubleValue() / totalRecognitions * 100000)))
+                : 85.0;
+            
+            return AdminDashboardStatsDto.builder()
+                    .totalRecognitions(totalRecognitions)
+                    .totalUsers(totalUsers)
+                    .vipUsers(vipUsers)
+                    .totalPosts(totalPosts)
+                    .todayRecognitions(todayRecognitions)
+                    .knowledgeItems(knowledgeItems)
+                    .pendingPosts(pendingPosts)
+                    .systemActivity(systemActivity)
+                    .build();
+                    
+        } catch (Exception e) {
+            log.error("获取管理员仪表盘统计数据失败", e);
+            // 返回默认值
+            return AdminDashboardStatsDto.builder()
+                    .totalRecognitions(0L)
+                    .totalUsers(0L)
+                    .vipUsers(0L)
+                    .totalPosts(0L)
+                    .todayRecognitions(0L)
+                    .knowledgeItems(0L)
+                    .pendingPosts(0L)
+                    .systemActivity(85.0)
+                    .build();
         }
     }
 

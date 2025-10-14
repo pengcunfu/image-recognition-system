@@ -204,9 +204,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
+import { UserAPI } from '@/api/user'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import {
@@ -237,14 +238,30 @@ const router = useRouter()
 
 // 统计数据
 const stats = reactive({
-  totalRecognitions: 125678,
-  totalUsers: 8956,
-  vipUsers: 1234,
-  totalPosts: 3456,
-  todayRecognitions: 1890,
-  knowledgeItems: 2678,
-  pendingPosts: 15,
-  systemActivity: 98.5
+  totalRecognitions: 0,
+  totalUsers: 0,
+  vipUsers: 0,
+  totalPosts: 0,
+  todayRecognitions: 0,
+  knowledgeItems: 0,
+  pendingPosts: 0,
+  systemActivity: 0
+})
+
+// 加载统计数据
+async function loadDashboardStats() {
+  try {
+    const response = await UserAPI.getAdminDashboardStats()
+    Object.assign(stats, response.data)
+  } catch (error) {
+    console.error('加载仪表盘统计数据失败:', error)
+    message.error('加载统计数据失败')
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadDashboardStats()
 })
 
 // 生成最近30天的识别数据

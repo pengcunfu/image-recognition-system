@@ -176,6 +176,18 @@ export interface BatchUserOperationRequest {
   action: 'delete' | 'activate' | 'deactivate' | 'ban'
 }
 
+// 管理员仪表盘统计数据
+export interface AdminDashboardStats {
+  totalRecognitions: number
+  totalUsers: number
+  vipUsers: number
+  totalPosts: number
+  todayRecognitions: number
+  knowledgeItems: number
+  pendingPosts: number
+  systemActivity: number
+}
+
 // ==================== 认证相关类型 ====================
 
 // 登录请求

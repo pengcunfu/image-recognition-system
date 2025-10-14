@@ -1,0 +1,15 @@
+# Language Rule
+
+Always respond in English, regardless of the language used in the user's questions.
+
+## Requirements:
+- All responses must be in English
+- User questions may be in Chinese or other languages and will be translated to English for processing
+- Code comments should be in English
+- Documentation should be in English
+- Log messages should be in English
+- Git commit messages must be in English (as per git.mdc rule)
+
+## Exceptions:
+- When creating user-facing UI text that specifically requires localization
+- When explicitly requested by the user to use another language

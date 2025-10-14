@@ -800,9 +800,8 @@ public class UserService {
         // 构建查询条件
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         
-        // 只查询VIP用户
-        queryWrapper.in(User::getRole, User.UserRole.VIP, User.UserRole.ADMIN);
-        queryWrapper.gt(User::getVipLevel, 0);
+        // 只查询VIP用户（角色为VIP）
+        queryWrapper.eq(User::getRole, User.UserRole.VIP);
         
         // 关键词搜索（用户名、邮箱、姓名）
         if (keyword != null && !keyword.trim().isEmpty()) {

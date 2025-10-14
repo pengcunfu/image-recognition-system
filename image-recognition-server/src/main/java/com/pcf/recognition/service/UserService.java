@@ -400,15 +400,25 @@ public class UserService {
                 LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
                 queryWrapper.ne(User::getId, id); // 排除当前用户
                 
-                if (request.getUsername() != null) {
-                    queryWrapper.eq(User::getUsername, request.getUsername());
-                }
-                if (request.getEmail() != null) {
-                    queryWrapper.or().eq(User::getEmail, request.getEmail());
-                }
+                // 使用 and 包裹 OR 条件，避免逻辑错误
+                queryWrapper.and(wrapper -> {
+                    if (request.getUsername() != null && request.getEmail() != null) {
+                        // 用户名和邮箱都要检查
+                        wrapper.eq(User::getUsername, request.getUsername())
+                               .or()
+                               .eq(User::getEmail, request.getEmail());
+                    } else if (request.getUsername() != null) {
+                        // 只检查用户名
+                        wrapper.eq(User::getUsername, request.getUsername());
+                    } else if (request.getEmail() != null) {
+                        // 只检查邮箱
+                        wrapper.eq(User::getEmail, request.getEmail());
+                    }
+                });
                 
-                User conflictUser = userRepository.selectOne(queryWrapper);
-                if (conflictUser != null) {
+                // 使用 selectList 而不是 selectOne，因为可能有多个冲突
+                List<User> conflictUsers = userRepository.selectList(queryWrapper);
+                if (!conflictUsers.isEmpty()) {
                     log.warn("用户名或邮箱已被其他用户使用: username={}, email={}", 
                             request.getUsername(), request.getEmail());
                     return false;

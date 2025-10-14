@@ -50,7 +50,7 @@
           
           <template v-else-if="column.key === 'author'">
             <div class="author-info">
-              <a-avatar :src="record.authorAvatar" size="small">
+              <a-avatar :src="FileAPI.getImageUrl(record.authorAvatar)" size="small">
                 {{ record.authorName ? record.authorName.charAt(0) : 'U' }}
               </a-avatar>
               <span class="author-name">{{ record.authorName || '未知用户' }}</span>
@@ -128,7 +128,7 @@
         <div class="post-header">
           <h2>{{ selectedPost.title }}</h2>
           <div class="post-info">
-            <a-avatar :src="selectedPost.authorAvatar">
+            <a-avatar :src="FileAPI.getImageUrl(selectedPost.authorAvatar)">
               {{ selectedPost.authorName ? selectedPost.authorName.charAt(0) : 'U' }}
             </a-avatar>
             <div class="author-details">
@@ -189,6 +189,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import CommunityAPI from '@/api/community'
+import FileAPI from '@/api/file'
 import type { Post } from '@/api/types'
 import { PostStatus, SortType } from '@/api/types'
 

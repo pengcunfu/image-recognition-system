@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.pcf.recognition.dto.CommunityDto.*;
 import com.pcf.recognition.entity.CommunityPost;
 import com.pcf.recognition.entity.CommunityComment;
+import com.pcf.recognition.entity.User;
 import com.pcf.recognition.repository.CommunityPostRepository;
 import com.pcf.recognition.repository.CommunityCommentRepository;
+import com.pcf.recognition.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +28,7 @@ public class CommunityService {
 
     private final CommunityPostRepository communityPostRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final UserRepository userRepository;
 
     /**
      * 获取帖子列表（分页）
@@ -333,6 +336,16 @@ public class CommunityService {
         PostDto dto = new PostDto();
         BeanUtils.copyProperties(post, dto);
         dto.setStatus(post.getStatus().name());
+        
+        // 获取作者信息
+        if (post.getAuthorId() != null) {
+            User author = userRepository.selectById(post.getAuthorId());
+            if (author != null) {
+                dto.setAuthorName(author.getName() != null ? author.getName() : author.getUsername());
+                dto.setAuthorAvatar(author.getAvatar() != null ? author.getAvatar() : "/api/v1/files/default-avatar.png");
+            }
+        }
+        
         return dto;
     }
 
@@ -343,6 +356,16 @@ public class CommunityService {
         CommentDto dto = new CommentDto();
         BeanUtils.copyProperties(comment, dto);
         dto.setStatus(comment.getStatus().name());
+        
+        // 获取评论者信息
+        if (comment.getAuthorId() != null) {
+            User author = userRepository.selectById(comment.getAuthorId());
+            if (author != null) {
+                dto.setAuthorName(author.getName() != null ? author.getName() : author.getUsername());
+                dto.setAuthorAvatar(author.getAvatar() != null ? author.getAvatar() : "/api/v1/files/default-avatar.png");
+            }
+        }
+        
         return dto;
     }
 }

@@ -8,13 +8,20 @@
       </a-button>
     </div>
 
+    <!-- 加载状态 -->
+    <a-spin :spinning="loading" size="large" tip="加载中...">
+      <div v-if="!loading && !knowledge.id" style="text-align: center; padding: 100px 0;">
+        <a-empty description="知识内容不存在" />
+      </div>
+
+      <div v-else>
     <!-- 知识详情卡片 -->
     <a-card class="knowledge-card">
       <!-- 知识头部 -->
       <div class="knowledge-header">
         <div class="knowledge-main-info">
           <div class="knowledge-image">
-            <img :src="knowledge.image" :alt="knowledge.title" />
+            <img :src="knowledge.image || '/api/placeholder/400/300'" :alt="knowledge.title" />
           </div>
           <div class="knowledge-info">
             <h1 class="knowledge-title">{{ knowledge.title }}</h1>
@@ -290,7 +297,7 @@
               class="related-item"
               @click="viewRelated(related)"
             >
-              <img :src="related.image" :alt="related.title" />
+              <img :src="related.image || '/api/placeholder/80/60'" :alt="related.title" />
               <div class="related-content">
                 <h4>{{ related.title }}</h4>
                 <p>{{ related.description }}</p>
@@ -321,6 +328,8 @@
         </p>
       </div>
     </a-modal>
+      </div>
+    </a-spin>
   </div>
 </template>
 
@@ -328,201 +337,43 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { KnowledgeAPI } from '@/api/knowledge'
+import { FileAPI } from '@/api/file'
+import type { KnowledgeItem } from '@/api/types'
 
 const route = useRoute()
 const router = useRouter()
 
+// 加载状态
+const loading = ref(true)
+
 // 知识详情数据
-const knowledge = ref({
-  id: 1,
-  title: '金毛犬识别指南',
-  description: '金毛寻回犬是一种大型犬种，以其友善的性格和金色的毛发而闻名',
-  category: '动物',
-  difficulty: '简单',
-  image: '/api/placeholder/400/300',
-  views: 1234,
-  bookmarks: 89,
-  likes: 156,
-  createTime: '2024-01-15',
-  updateTime: '2025-01-01',
-  scientificName: 'Canis lupus familiaris',
-  commonNames: ['金毛', '金毛寻回犬', 'Golden Retriever'],
-  habitat: '家庭环境，适应性强',
-  size: '体重：25-34kg，身高：51-61cm',
-  content: `
-    <h3>基本介绍</h3>
-    <p>金毛寻回犬（Golden Retriever）是一种大型犬，原产于苏格兰，最初培育用于狩猎水鸟。它们以其友善、聪明和忠诚的性格而闻名于世。</p>
-    
-    <h3>外观特征</h3>
-    <ul>
-      <li><strong>毛色：</strong>金黄色到深金色，毛发浓密且有光泽</li>
-      <li><strong>体型：</strong>中大型犬，雄性通常比雌性更大</li>
-      <li><strong>头部：</strong>宽阔的头骨，友善的表情</li>
-      <li><strong>耳朵：</strong>中等大小，下垂</li>
-      <li><strong>尾巴：</strong>毛发浓密，呈羽毛状</li>
-    </ul>
-    
-    <h3>性格特点</h3>
-    <ul>
-      <li>友善温和，对人类和其他动物都很友好</li>
-      <li>聪明易训，学习能力强</li>
-      <li>忠诚可靠，是优秀的家庭伴侣</li>
-      <li>活泼好动，需要充足的运动</li>
-      <li>适合与儿童相处</li>
-    </ul>
-    
-    <h3>护理要点</h3>
-    <ul>
-      <li>定期梳理毛发，保持清洁</li>
-      <li>提供充足的运动和活动空间</li>
-      <li>均衡饮食，控制体重</li>
-      <li>定期健康检查</li>
-    </ul>
-  `,
-  features: [
-    {
-      id: 1,
-      name: '金黄色毛发',
-      description: '最显著的特征，毛色从浅金色到深金色不等',
-      image: '/api/placeholder/200/150'
-    },
-    {
-      id: 2,
-      name: '友善表情',
-      description: '眼神温和，表情友善，给人亲近感',
-      image: '/api/placeholder/200/150'
-    },
-    {
-      id: 3,
-      name: '中大型体型',
-      description: '体型匀称，肌肉发达，运动能力强',
-      image: '/api/placeholder/200/150'
-    }
-  ],
-  tips: [
-    {
-      title: '观察毛色',
-      description: '金毛犬的毛色是最明显的识别特征，通常呈现金黄色到深金色',
-      examples: [
-        {
-          image: '/api/placeholder/150/150',
-          description: '浅金色毛发'
-        },
-        {
-          image: '/api/placeholder/150/150',
-          description: '深金色毛发'
-        }
-      ]
-    },
-    {
-      title: '注意体型特征',
-      description: '金毛犬属于中大型犬，体型匀称，肌肉发达',
-      examples: [
-        {
-          image: '/api/placeholder/150/150',
-          description: '侧面体型'
-        },
-        {
-          image: '/api/placeholder/150/150',
-          description: '正面体型'
-        }
-      ]
-    },
-    {
-      title: '观察面部表情',
-      description: '金毛犬通常表情友善，眼神温和',
-      examples: [
-        {
-          image: '/api/placeholder/150/150',
-          description: '友善表情'
-        }
-      ]
-    }
-  ],
-  keyPoints: [
-    {
-      title: '毛色识别',
-      description: '金黄色是主要特征，从浅金到深金都有',
-      icon: 'fas fa-paint-brush'
-    },
-    {
-      title: '体型大小',
-      description: '中大型犬，体重通常在25-34kg之间',
-      icon: 'fas fa-weight'
-    },
-    {
-      title: '耳朵形状',
-      description: '中等大小的下垂耳，毛发浓密',
-      icon: 'fas fa-leaf'
-    },
-    {
-      title: '性格表现',
-      description: '友善温和，对人类表现出亲近感',
-      icon: 'fas fa-heart'
-    }
-  ],
-  gallery: [
-    {
-      url: '/api/placeholder/300/200',
-      description: '成年金毛犬全身照'
-    },
-    {
-      url: '/api/placeholder/300/200',
-      description: '金毛犬头部特写'
-    },
-    {
-      url: '/api/placeholder/300/200',
-      description: '金毛犬幼犬'
-    },
-    {
-      url: '/api/placeholder/300/200',
-      description: '金毛犬运动姿态'
-    }
-  ],
-  quiz: [
-    {
-      question: '金毛犬最显著的特征是什么？',
-      image: '/api/placeholder/300/200',
-      options: ['黑色毛发', '金黄色毛发', '白色毛发', '棕色毛发'],
-      correct: 1
-    },
-    {
-      question: '金毛犬属于什么体型？',
-      options: ['小型犬', '中型犬', '中大型犬', '超大型犬'],
-      correct: 2
-    },
-    {
-      question: '金毛犬的性格特点是什么？',
-      options: ['凶猛好斗', '友善温和', '胆小怯懦', '冷漠疏离'],
-      correct: 1
-    }
-  ]
+const knowledge = ref<any>({
+  id: 0,
+  title: '',
+  description: '',
+  category: '',
+  difficulty: '',
+  image: '',
+  views: 0,
+  bookmarks: 0,
+  likes: 0,
+  createTime: '',
+  updateTime: '',
+  scientificName: '',
+  commonNames: [],
+  habitat: '',
+  size: '',
+  content: '',
+  features: null,
+  tips: null,
+  keyPoints: null,
+  gallery: null,
+  quiz: null
 })
 
 // 相关知识
-const relatedKnowledge = ref([
-  {
-    id: 2,
-    title: '拉布拉多犬识别',
-    description: '另一种常见的大型犬种，与金毛犬有相似之处',
-    image: '/api/placeholder/80/60',
-    category: '动物'
-  },
-  {
-    id: 3,
-    title: '边境牧羊犬识别',
-    description: '聪明的中型犬种，善于牧羊',
-    image: '/api/placeholder/80/60',
-    category: '动物'
-  },
-  {
-    id: 4,
-    title: '犬类毛色识别指南',
-    description: '不同犬种的毛色特征对比',
-    image: '/api/placeholder/80/60',
-    category: '动物'
-  }
-])
+const relatedKnowledge = ref<any[]>([])
 
 // 状态管理
 const isBookmarked = ref(false)
@@ -547,11 +398,8 @@ onMounted(() => {
   // 从路由参数获取知识ID
   const knowledgeId = route.params.id
   if (knowledgeId) {
-    loadKnowledgeDetail(knowledgeId)
+    loadKnowledgeDetail(knowledgeId as string)
   }
-  
-  // 增加浏览量
-  knowledge.value.views++
 })
 
 // 方法
@@ -559,9 +407,168 @@ function goBack() {
   router.push('/user/knowledge')
 }
 
-function loadKnowledgeDetail(knowledgeId: string | number) {
-  // 这里应该调用API获取知识详情
-  console.log('Loading knowledge detail for ID:', knowledgeId)
+async function loadKnowledgeDetail(knowledgeId: string) {
+  try {
+    loading.value = true
+    console.log('加载知识详情, ID:', knowledgeId)
+    
+    const response = await KnowledgeAPI.getItemDetail(knowledgeId)
+    const item = response.data
+    
+    console.log('知识详情数据:', item)
+    
+    // 转换数据格式
+    knowledge.value = {
+      id: item.id,
+      title: item.name,
+      description: item.description,
+      category: '', // 需要从分类ID获取分类名称
+      difficulty: getDifficultyText(item.difficulty),
+      image: FileAPI.getFirstImage(item.images),
+      views: item.viewCount || 0,
+      bookmarks: item.favoriteCount || 0,
+      likes: item.likeCount || 0,
+      createTime: item.createTime?.split(' ')[0] || '',
+      updateTime: item.updateTime?.split(' ')[0] || '',
+      scientificName: item.scientificName || '',
+      commonNames: [], // 可以从tags解析
+      habitat: item.habitat || '',
+      size: '', // 可以从characteristics解析
+      content: item.content || item.description,
+      features: parseFeatures(item.characteristics),
+      tips: null, // 可以从content解析
+      keyPoints: parseKeyPoints(item.characteristics),
+      gallery: parseGallery(item.images),
+      quiz: null // 测试功能暂未实现
+    }
+    
+    // 加载分类名称
+    if (item.categoryId) {
+      await loadCategoryName(item.categoryId)
+    }
+    
+    // 加载相关知识
+    await loadRelatedKnowledge(knowledgeId)
+    
+  } catch (error) {
+    console.error('加载知识详情失败:', error)
+    message.error('加载知识详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载分类名称
+async function loadCategoryName(categoryId: number) {
+  try {
+    const response = await KnowledgeAPI.getCategories()
+    const category = response.data.find(cat => cat.id === categoryId)
+    if (category) {
+      knowledge.value.category = category.name
+    }
+  } catch (error) {
+    console.error('加载分类名称失败:', error)
+  }
+}
+
+// 加载相关知识
+async function loadRelatedKnowledge(itemId: string) {
+  try {
+    const response = await KnowledgeAPI.getRelatedItems(itemId, 3)
+    relatedKnowledge.value = response.data.map(item => ({
+      id: item.id,
+      title: item.name,
+      description: item.description,
+      image: FileAPI.getFirstImage(item.images),
+      category: '' // 可以后续加载
+    }))
+    console.log('相关知识加载成功:', relatedKnowledge.value)
+  } catch (error) {
+    console.error('加载相关知识失败:', error)
+    // 如果相关知识接口失败，不影响主流程
+  }
+}
+
+// 解析特征数据
+function parseFeatures(characteristics: string | undefined): any[] | null {
+  if (!characteristics) return null
+  
+  try {
+    // 尝试解析JSON格式的特征数据
+    const parsed = JSON.parse(characteristics)
+    if (Array.isArray(parsed)) {
+      return parsed.map((item, index) => ({
+        id: index + 1,
+        name: item.name || item.title || '',
+        description: item.description || item.desc || '',
+        image: item.image || '/api/placeholder/200/150'
+      }))
+    }
+  } catch {
+    // 如果不是JSON，按文本处理
+    const lines = characteristics.split('\n').filter(line => line.trim())
+    if (lines.length > 0) {
+      return lines.map((line, index) => ({
+        id: index + 1,
+        name: `特征 ${index + 1}`,
+        description: line.trim(),
+        image: '/api/placeholder/200/150'
+      }))
+    }
+  }
+  
+  return null
+}
+
+// 解析识别要点
+function parseKeyPoints(characteristics: string | undefined): any[] | null {
+  if (!characteristics) return null
+  
+  try {
+    const parsed = JSON.parse(characteristics)
+    if (Array.isArray(parsed)) {
+      return parsed.map(item => ({
+        title: item.name || item.title || '',
+        description: item.description || item.desc || '',
+        icon: item.icon || 'fas fa-check'
+      }))
+    }
+  } catch {
+    // 如果不是JSON，返回null
+  }
+  
+  return null
+}
+
+// 解析图片画廊
+function parseGallery(imagesJson: string | undefined): any[] | null {
+  if (!imagesJson) return null
+  
+  try {
+    const images = JSON.parse(imagesJson)
+    if (Array.isArray(images) && images.length > 0) {
+      return images.map((url, index) => ({
+        url: FileAPI.getImageUrl(url),
+        description: `图片 ${index + 1}`
+      }))
+    }
+  } catch {
+    // 如果不是JSON，尝试作为单个URL处理
+    return [{
+      url: FileAPI.getImageUrl(imagesJson),
+      description: '图片'
+    }]
+  }
+  
+  return null
+}
+
+// 获取难度文本
+function getDifficultyText(difficulty: number | undefined): string {
+  if (!difficulty) return '一般'
+  if (difficulty <= 3) return '简单'
+  if (difficulty <= 6) return '一般'
+  return '困难'
 }
 
 function getCategoryColor(category: string) {
@@ -584,22 +591,59 @@ function getDifficultyColor(difficulty: string) {
   return colors[difficulty] || 'default'
 }
 
-function toggleBookmark() {
-  isBookmarked.value = !isBookmarked.value
-  knowledge.value.bookmarks += isBookmarked.value ? 1 : -1
-  message.success(isBookmarked.value ? '收藏成功' : '取消收藏')
+async function toggleBookmark() {
+  try {
+    if (isBookmarked.value) {
+      // 取消收藏
+      await KnowledgeAPI.uncollectItem(knowledge.value.id)
+      isBookmarked.value = false
+      knowledge.value.bookmarks--
+      message.success('取消收藏')
+    } else {
+      // 收藏
+      await KnowledgeAPI.collectItem(knowledge.value.id)
+      isBookmarked.value = true
+      knowledge.value.bookmarks++
+      message.success('收藏成功')
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+    message.error('操作失败，请重试')
+  }
 }
 
 function shareKnowledge() {
-  message.info('分享功能开发中')
+  // 复制分享链接到剪贴板
+  const shareUrl = `${window.location.origin}/user/knowledge/${knowledge.value.id}`
+  navigator.clipboard.writeText(shareUrl).then(() => {
+    message.success('分享链接已复制到剪贴板')
+  }).catch(() => {
+    message.info(`分享链接：${shareUrl}`)
+  })
 }
 
 function printKnowledge() {
   window.print()
 }
 
-function reportKnowledge() {
-  message.info('举报功能开发中')
+async function reportKnowledge() {
+  try {
+    // 简单的举报提示，实际应该有一个表单
+    const result = await new Promise<string>((resolve) => {
+      // 这里应该弹出一个举报表单，暂时用简单提示代替
+      message.info('举报功能：请选择举报类型')
+      resolve('inappropriate')
+    })
+    
+    await KnowledgeAPI.reportItem(knowledge.value.id, {
+      type: 'inappropriate',
+      description: '用户举报'
+    })
+    
+    message.success('举报已提交，我们会尽快处理')
+  } catch (error) {
+    console.error('举报失败:', error)
+  }
 }
 
 function previewImage(imageUrl: string, description: string = '') {

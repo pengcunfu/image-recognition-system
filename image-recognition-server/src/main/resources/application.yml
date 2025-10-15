@@ -135,7 +135,7 @@ image:
 
 # JWT配置
 jwt:
-  secret: YOUR_JWT_SECRET_KEY  # 请替换为你的JWT密钥（建议使用64位以上的随机字符串）
+  secret: 8ZkP3xQ7vT2bN9mK4sF6jH1dG5fR8aL0cB3eY7uI2oP5qS8tD  # 请替换为你的JWT密钥（建议使用64位以上的随机字符串）
   expiration: 86400
 
 # Doubao AI配置

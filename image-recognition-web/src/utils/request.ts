@@ -1,5 +1,7 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { message } from 'ant-design-vue'
+import { AuthUtils } from './auth'
+import { loadingManager } from '@/directives/loading'
 
 // 导出baseURL供其他模块使用
 export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
@@ -16,13 +18,11 @@ export interface ApiResponse<T = any> {
 export interface RequestConfig extends AxiosRequestConfig {
   showError?: boolean // 是否显示错误消息，默认true
   showLoading?: boolean // 是否显示加载状态，默认true
-  returnRaw?: boolean // 是否返回原始响应数据（不经过业务状态码检查），默认false
   headers?: Record<string, string> // 请求头
 }
 
 class RequestService {
   private instance: AxiosInstance
-  private loadingCount = 0
 
   constructor() {
     // 创建axios实例
@@ -48,7 +48,7 @@ class RequestService {
     this.instance.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         // 添加认证token
-        const token = this.getToken()
+        const token = AuthUtils.getToken()
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -56,14 +56,14 @@ class RequestService {
         // 显示加载状态
         const requestConfig = config as RequestConfig
         if (requestConfig.showLoading !== false) {
-          this.showLoading()
+          loadingManager.show()
         }
 
         console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`, config.data || config.params)
         return config
       },
       (error: any) => {
-        this.hideLoading()
+        loadingManager.hide()
         return Promise.reject(error)
       }
     )
@@ -75,17 +75,12 @@ class RequestService {
   private setupResponseInterceptor() {
     this.instance.interceptors.response.use(
       (response: AxiosResponse<ApiResponse>) => {
-        this.hideLoading()
+        loadingManager.hide()
         
         const { data } = response
         const config = response.config as RequestConfig
         
         console.log(`[Response] ${response.config.url}`, data)
-
-        // 如果是原始请求，直接返回完整响应
-        if (config.returnRaw) {
-          return response
-        }
 
         // 检查业务状态码
         if (data.code !== 200) {
@@ -102,7 +97,7 @@ class RequestService {
         return response
       },
       (error: any) => {
-        this.hideLoading()
+        loadingManager.hide()
         
         console.error('[Request Error]', error)
         
@@ -117,7 +112,7 @@ class RequestService {
 
           // 如果是401未授权，执行跳转登录逻辑
           if (status === 401) {
-            this.handleUnauthorized()
+            AuthUtils.handleUnauthorized()
           }
 
           // 显示错误消息
@@ -147,46 +142,13 @@ class RequestService {
   }
 
   /**
-   * 获取存储的token
+   * 原始请求方法 - 返回完整的ApiResponse
+   * 用于需要访问完整响应对象（包括 code、message、timestamp）的场景
    */
-  private getToken(): string | null {
-    return localStorage.getItem('userToken') || sessionStorage.getItem('userToken')
-  }
-
-  /**
-   * 处理未授权情况
-   */
-  private handleUnauthorized() {
-    // 清除token
-    localStorage.removeItem('userToken')
-    sessionStorage.removeItem('userToken')
-    
-    // 跳转到登录页
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login'
-    }
-  }
-
-  /**
-   * 显示加载状态
-   */
-  private showLoading() {
-    this.loadingCount++
-    if (this.loadingCount === 1) {
-      // 这里可以显示全局loading
-      console.log('[Loading] Start')
-    }
-  }
-
-  /**
-   * 隐藏加载状态
-   */
-  private hideLoading() {
-    this.loadingCount = Math.max(0, this.loadingCount - 1)
-    if (this.loadingCount === 0) {
-      // 这里可以隐藏全局loading
-      console.log('[Loading] End')
-    }
+  rawRequest<T = any>(config: RequestConfig): Promise<ApiResponse<T>> {
+    return this.instance
+      .request(config)
+      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**
@@ -274,51 +236,6 @@ class RequestService {
         document.body.removeChild(link)
         window.URL.revokeObjectURL(downloadUrl)
       })
-  }
-
-  /**
-   * 原始GET请求 - 返回完整的ApiResponse
-   */
-  getRaw<T = any>(url: string, params?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance
-      .get(url, { ...config, params, returnRaw: true } as RequestConfig)
-      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
-  }
-
-  /**
-   * 原始POST请求 - 返回完整的ApiResponse
-   */
-  postRaw<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance
-      .post(url, data, { ...config, returnRaw: true } as RequestConfig)
-      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
-  }
-
-  /**
-   * 原始PUT请求 - 返回完整的ApiResponse
-   */
-  putRaw<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance
-      .put(url, data, { ...config, returnRaw: true } as RequestConfig)
-      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
-  }
-
-  /**
-   * 原始DELETE请求 - 返回完整的ApiResponse
-   */
-  deleteRaw<T = any>(url: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance
-      .delete(url, { ...config, returnRaw: true } as RequestConfig)
-      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
-  }
-
-  /**
-   * 原始PATCH请求 - 返回完整的ApiResponse
-   */
-  patchRaw<T = any>(url: string, data?: any, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return this.instance
-      .patch(url, data, { ...config, returnRaw: true } as RequestConfig)
-      .then((res: AxiosResponse<ApiResponse<T>>) => res.data)
   }
 
   /**

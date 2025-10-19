@@ -1,70 +1,95 @@
 ﻿<template>
-  <div class="register-container">
-    <!-- 动态背景 -->
-    <div class="bg-animation">
-      <div class="floating-shape">
-        <i class="fas fa-user-plus"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-shield-alt"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-rocket"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-star"></i>
-      </div>
-    </div>
-
-    <div class="register-box">
+  <div :style="{ 
+    background: '#f5f5f5', 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    padding: '20px' 
+  }">
+    <div :style="{ 
+      background: 'white', 
+      borderRadius: '20px', 
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', 
+      border: '1px solid #e8e8e8', 
+      width: '900px', 
+      maxWidth: '95vw', 
+      minHeight: '600px', 
+      display: 'flex', 
+      overflow: 'hidden' 
+    }">
       <!-- 左侧信息区域 -->
-      <div class="register-info">
-        <div class="info-icon">
-          <i class="fas fa-rocket"></i>
+      <div :style="{ 
+        flex: 1, 
+        background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        color: 'white' 
+      }">
+        <div :style="{ fontSize: '48px', marginBottom: '24px' }">
+          <RocketOutlined />
         </div>
-        <h3 class="info-title">开启智能识别之旅</h3>
-        <p class="info-subtitle">注册成为我们的用户，享受强大的图像识别服务和知识社区</p>
+        <h3 :style="{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px', textAlign: 'center' }">
+          开启智能识别之旅
+        </h3>
+        <p :style="{ fontSize: '14px', opacity: 0.9, textAlign: 'center', lineHeight: 1.6, maxWidth: '300px', marginBottom: '40px' }">
+          注册成为我们的用户，享受强大的图像识别服务和知识社区
+        </p>
         
-        <ul class="benefits-list">
-          <li class="benefit-item">
-            <i class="fas fa-bolt"></i>
+        <ul :style="{ listStyle: 'none', padding: 0, margin: 0, width: '100%' }">
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <ThunderboltOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>毫秒级图像识别</span>
           </li>
-          <li class="benefit-item">
-            <i class="fas fa-database"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <DatabaseOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>海量知识库支持</span>
           </li>
-          <li class="benefit-item">
-            <i class="fas fa-users"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <TeamOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>专业社区交流</span>
           </li>
-          <li class="benefit-item">
-            <i class="fas fa-cloud"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <CloudOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>云端存储历史</span>
           </li>
-          <li class="benefit-item">
-            <i class="fas fa-mobile-alt"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <MobileOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>多平台同步使用</span>
           </li>
-          <li class="benefit-item">
-            <i class="fas fa-headset"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <CustomerServiceOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>24/7 技术支持</span>
           </li>
         </ul>
       </div>
       
       <!-- 右侧注册表单 -->
-      <div class="register-form-container">
-        <div class="form-header">
-          <h2 class="form-title">创建账户</h2>
-          <p class="form-subtitle">填写以下信息完成注册，开启智能识别之旅</p>
+      <div :style="{ 
+        flex: 1, 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center',
+        overflowY: 'auto' 
+      }">
+        <div :style="{ textAlign: 'center', marginBottom: '32px' }">
+          <h2 :style="{ fontSize: '24px', fontWeight: 'bold', color: '#262626', marginBottom: '8px' }">
+            创建账户
+          </h2>
+          <p :style="{ color: '#666', fontSize: '14px', margin: 0 }">
+            填写以下信息完成注册，开启智能识别之旅
+          </p>
         </div>
         
         <a-form
           ref="formRef"
           :model="formData"
           :rules="rules"
-          class="register-form"
+          :style="{ maxWidth: '320px', margin: '0 auto', width: '100%' }"
           @finish="handleRegister"
         >
           <!-- 用户名输入 -->
@@ -75,10 +100,10 @@
               placeholder="请输入用户名（3-20位字符）"
             >
               <template #prefix>
-                <i class="fas fa-user"></i>
+                <UserOutlined />
               </template>
               <template #suffix>
-                <i v-if="usernameValid" class="fas fa-check" style="color: #52c41a;"></i>
+                <CheckOutlined v-if="usernameValid" :style="{ color: '#52c41a' }" />
               </template>
             </a-input>
           </a-form-item>
@@ -92,32 +117,32 @@
               type="email"
             >
               <template #prefix>
-                <i class="fas fa-envelope"></i>
+                <MailOutlined />
               </template>
               <template #suffix>
-                <i v-if="emailValid" class="fas fa-check" style="color: #52c41a;"></i>
+                <CheckOutlined v-if="emailValid" :style="{ color: '#52c41a' }" />
               </template>
             </a-input>
           </a-form-item>
           
           <!-- 邮箱验证码 -->
           <a-form-item name="emailCode">
-            <div class="email-group">
+            <div :style="{ display: 'flex', gap: '12px' }">
               <a-input
                 v-model:value="formData.emailCode"
                 size="large"
                 placeholder="请输入邮箱验证码"
                 :maxlength="6"
-                class="email-input"
+                :style="{ flex: 1 }"
               >
                 <template #prefix>
-                  <i class="fas fa-shield-alt"></i>
+                  <SafetyOutlined />
                 </template>
               </a-input>
               <a-button 
+                size="large"
                 :disabled="codeCountdown > 0 || !emailValid"
                 @click="sendEmailCode"
-                class="send-code-btn"
               >
                 {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
               </a-button>
@@ -133,18 +158,26 @@
               @input="updatePasswordStrength"
             >
               <template #prefix>
-                <i class="fas fa-lock"></i>
+                <LockOutlined />
               </template>
             </a-input-password>
             
             <!-- 密码强度指示器 -->
-            <div v-if="formData.password" class="password-strength">
-              <div class="strength-label">密码强度：<span>{{ strengthText }}</span></div>
-              <div class="strength-bar">
-                <div 
-                  class="strength-fill" 
-                  :class="`strength-${passwordStrength}`"
-                ></div>
+            <div v-if="formData.password" :style="{ marginTop: '8px' }">
+              <div :style="{ fontSize: '12px', color: '#666', marginBottom: '4px' }">
+                密码强度：
+                <span :style="{ 
+                  color: passwordStrength === 'weak' ? '#ff4d4f' : passwordStrength === 'medium' ? '#faad14' : '#52c41a',
+                  fontWeight: 500 
+                }">{{ strengthText }}</span>
+              </div>
+              <div :style="{ height: '4px', background: '#f0f0f0', borderRadius: '2px', overflow: 'hidden' }">
+                <div :style="{ 
+                  height: '100%',
+                  width: passwordStrength === 'weak' ? '33%' : passwordStrength === 'medium' ? '66%' : '100%',
+                  background: passwordStrength === 'weak' ? '#ff4d4f' : passwordStrength === 'medium' ? '#faad14' : '#52c41a',
+                  transition: 'all 0.3s ease'
+                }"></div>
               </div>
             </div>
           </a-form-item>
@@ -157,7 +190,7 @@
               placeholder="请再次输入密码"
             >
               <template #prefix>
-                <i class="fas fa-lock"></i>
+                <LockOutlined />
               </template>
             </a-input-password>
           </a-form-item>
@@ -166,9 +199,9 @@
           <a-form-item name="agreement">
             <a-checkbox v-model:checked="formData.agreement">
               我已阅读并同意
-              <router-link to="/terms" class="agreement-link">《用户服务协议》</router-link>
+              <router-link to="/terms" :style="{ color: '#1890ff', textDecoration: 'none' }">《用户服务协议》</router-link>
               和
-              <router-link to="/privacy" class="agreement-link">《隐私政策》</router-link>
+              <router-link to="/privacy" :style="{ color: '#1890ff', textDecoration: 'none' }">《隐私政策》</router-link>
             </a-checkbox>
           </a-form-item>
           
@@ -187,7 +220,7 @@
               block
               html-type="submit"
               :loading="loading"
-              class="register-btn"
+              :style="{ height: '48px', fontSize: '16px', fontWeight: 500 }"
             >
               完成注册
             </a-button>
@@ -195,8 +228,8 @@
         </a-form>
         
         <!-- 登录链接 -->
-        <div class="login-link">
-          已有账户？<router-link to="/login">立即登录</router-link>
+        <div :style="{ textAlign: 'center', color: '#666', fontSize: '14px', marginTop: '16px' }">
+          已有账户？<router-link to="/login" :style="{ color: '#1890ff', textDecoration: 'none', fontWeight: 500 }">立即登录</router-link>
         </div>
       </div>
     </div>
@@ -209,6 +242,20 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
 import { AuthAPI } from '@/api/auth'
+import {
+  UserOutlined,
+  MailOutlined,
+  LockOutlined,
+  SafetyOutlined,
+  CheckOutlined,
+  RocketOutlined,
+  ThunderboltOutlined,
+  DatabaseOutlined,
+  TeamOutlined,
+  CloudOutlined,
+  MobileOutlined,
+  CustomerServiceOutlined
+} from '@ant-design/icons-vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -366,4 +413,3 @@ async function handleRegister() {
   }
 }
 </script>
-

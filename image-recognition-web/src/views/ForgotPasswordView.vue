@@ -1,66 +1,90 @@
 ﻿<template>
-  <div class="forgot-container">
-    <!-- 动态背景 -->
-    <div class="bg-animation">
-      <div class="floating-shape">
-        <i class="fas fa-key"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-lock"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-shield-alt"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-envelope"></i>
-      </div>
-    </div>
-
-    <div class="forgot-box">
+  <div :style="{ 
+    background: '#f5f5f5', 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    padding: '20px' 
+  }">
+    <div :style="{ 
+      background: 'white', 
+      borderRadius: '20px', 
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', 
+      border: '1px solid #e8e8e8', 
+      width: '900px', 
+      maxWidth: '95vw', 
+      minHeight: '550px', 
+      display: 'flex', 
+      overflow: 'hidden' 
+    }">
       <!-- 左侧信息区域 -->
-      <div class="forgot-info">
-        <div class="info-icon">
-          <i class="fas fa-key"></i>
+      <div :style="{ 
+        flex: 1, 
+        background: 'linear-gradient(135deg, #faad14 0%, #fa8c16 100%)', 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        color: 'white' 
+      }">
+        <div :style="{ fontSize: '64px', marginBottom: '24px' }">
+          <KeyOutlined />
         </div>
-        <h3 class="info-title">安全找回密码</h3>
-        <p class="info-subtitle">通过多重验证确保您的账户安全，快速找回密码重新使用系统</p>
+        <h3 :style="{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px', textAlign: 'center' }">
+          安全找回密码
+        </h3>
+        <p :style="{ fontSize: '14px', opacity: 0.9, textAlign: 'center', lineHeight: 1.6, maxWidth: '300px', marginBottom: '40px' }">
+          通过多重验证确保您的账户安全，快速找回密码重新使用系统
+        </p>
         
-        <ul class="security-tips">
-          <li class="security-tip">
-            <i class="fas fa-shield-alt"></i>
+        <ul :style="{ listStyle: 'none', padding: 0, margin: 0, width: '100%' }">
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <SafetyOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>多重身份验证保护</span>
           </li>
-          <li class="security-tip">
-            <i class="fas fa-clock"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <ClockCircleOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>验证码5分钟内有效</span>
           </li>
-          <li class="security-tip">
-            <i class="fas fa-lock"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <LockOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>密码加密安全传输</span>
           </li>
-          <li class="security-tip">
-            <i class="fas fa-history"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <HistoryOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>操作记录可追溯</span>
           </li>
-          <li class="security-tip">
-            <i class="fas fa-user-shield"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <SecurityScanOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>账户异常监控保护</span>
           </li>
         </ul>
       </div>
       
       <!-- 右侧表单区域 -->
-      <div class="forgot-form-container">
-        <div class="form-header">
-          <h2 class="form-title">找回密码</h2>
-          <p class="form-subtitle">请输入邮箱地址和验证码，然后设置新密码</p>
+      <div :style="{ 
+        flex: 1, 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center' 
+      }">
+        <div :style="{ textAlign: 'center', marginBottom: '32px' }">
+          <h2 :style="{ fontSize: '24px', fontWeight: 'bold', color: '#262626', marginBottom: '8px' }">
+            找回密码
+          </h2>
+          <p :style="{ color: '#666', fontSize: '14px', margin: 0 }">
+            请输入邮箱地址和验证码，然后设置新密码
+          </p>
         </div>
         
         <a-form
           ref="formRef"
           :model="formData"
           :rules="rules"
-          class="forgot-form"
+          :style="{ maxWidth: '320px', margin: '0 auto', width: '100%' }"
           @finish="handleSubmit"
         >
           <!-- 邮箱输入 -->
@@ -71,29 +95,29 @@
               placeholder="请输入注册时使用的邮箱"
             >
               <template #prefix>
-                <i class="fas fa-envelope"></i>
+                <MailOutlined />
               </template>
             </a-input>
           </a-form-item>
           
           <!-- 验证码输入 -->
           <a-form-item name="verificationCode">
-            <div class="code-group">
+            <div :style="{ display: 'flex', gap: '12px' }">
               <a-input
                 v-model:value="formData.verificationCode"
                 size="large"
                 placeholder="请输入6位验证码"
                 :maxlength="6"
-                class="code-input"
+                :style="{ flex: 1 }"
               >
                 <template #prefix>
-                  <i class="fas fa-shield-alt"></i>
+                  <SafetyOutlined />
                 </template>
               </a-input>
               <a-button 
+                size="large"
                 :disabled="!formData.email || codeCountdown > 0"
                 @click="sendVerificationCode"
-                class="resend-btn"
               >
                 {{ codeCountdown > 0 ? `${codeCountdown}秒后重发` : '发送验证码' }}
               </a-button>
@@ -108,7 +132,7 @@
               placeholder="请输入新密码"
             >
               <template #prefix>
-                <i class="fas fa-lock"></i>
+                <LockOutlined />
               </template>
             </a-input-password>
           </a-form-item>
@@ -121,7 +145,7 @@
               placeholder="请再次输入新密码"
             >
               <template #prefix>
-                <i class="fas fa-lock"></i>
+                <LockOutlined />
               </template>
             </a-input-password>
           </a-form-item>
@@ -134,7 +158,7 @@
               block
               :loading="loading"
               html-type="submit"
-              class="reset-btn"
+              :style="{ height: '48px', fontSize: '16px', fontWeight: 500 }"
             >
               重置密码
             </a-button>
@@ -142,8 +166,8 @@
         </a-form>
         
         <!-- 返回登录 -->
-        <div class="back-to-login">
-          记起密码了？<router-link to="/login">返回登录</router-link>
+        <div :style="{ textAlign: 'center', color: '#666', fontSize: '14px', marginTop: '16px' }">
+          记起密码了？<router-link to="/login" :style="{ color: '#1890ff', textDecoration: 'none', fontWeight: 500 }">返回登录</router-link>
         </div>
       </div>
     </div>
@@ -156,6 +180,15 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
 import { AuthAPI } from '@/api/auth'
+import {
+  KeyOutlined,
+  MailOutlined,
+  LockOutlined,
+  SafetyOutlined,
+  ClockCircleOutlined,
+  HistoryOutlined,
+  SecurityScanOutlined
+} from '@ant-design/icons-vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -264,4 +297,3 @@ async function handleSubmit() {
   }
 }
 </script>
-

@@ -2,13 +2,6 @@
 
 > 基于 Doubao-1.5-thinking-vision-pro 的通用图像识别平台
 
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://openjdk.java.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green.svg)](https://spring.io/projects/spring-boot)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3.5-blue.svg)](https://vuejs.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
-
-## 项目简介
-
 智能图像识别系统是一个基于人工智能的图像分析平台，能够精准识别图像中的物体种类、名称、颜色、形状、材质等核心属性。系统采用前后端分离架构，集成了火山引擎 Doubao AI 大模型，提供高精度的图像识别服务。
 
 ### 核心特性
@@ -42,22 +35,10 @@
 
 ## 快速开始
 
-### 开发模式（推荐）
+### 开发模式
 
 使用热重载功能进行开发：
 
-**Windows:**
-```bash
-./dev-start.bat
-```
-
-**Linux/macOS:**
-```bash
-chmod +x dev-start.sh
-./dev-start.sh
-```
-
-或手动启动：
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
@@ -70,7 +51,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 - **MySQL**: 8.0+ (或使用 Docker)
 - **Redis**: 7+ (或使用 Docker)
 
-### 一键部署 (推荐)
+### 一键部署
 
 使用 Docker Compose 进行一键部署：
 
@@ -79,55 +60,10 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 git clone https://github.com/pengcunfu/image-recognition-system.git
 cd image-recognition-system
 
-# 2. 配置环境变量
-cp env.example .env
-# 编辑 .env 文件，设置您的 API 密钥
-
-# 3. 一键部署
-chmod +x scripts/deploy.sh
-./scripts/deploy.sh
+docker-compose up -d
 ```
 
-**Windows 用户:**
-```cmd
-scripts\deploy.bat
-```
 
-**远程数据库部署:**
-```bash
-# 使用远程数据库 (8.155.40.179)
-cp env.remote.example .env
-./scripts/deploy-remote.sh
-```
-
-### 手动部署
-
-<details>
-<summary>点击展开手动部署步骤</summary>
-
-#### 后端部署
-
-```bash
-# 1. 数据库准备
-mysql -u root -p < docker/mysql/init.sql
-
-# 2. 编译运行
-mvn clean package -DskipTests
-java -jar target/demo-0.0.1-SNAPSHOT.jar
-```
-
-#### 前端部署
-
-```bash
-cd frontend
-npm install
-npm run build
-
-# 使用 Nginx 部署
-cp dist/* /var/www/html/
-```
-
-</details>
 
 ## 访问地址
 

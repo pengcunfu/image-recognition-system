@@ -1,12 +1,77 @@
 ---
 alwaysApply: true
 ---
-# Git 提交规则
 
-在每次对话结束后，如果项目文件有修改，使用 git 提交它们。
+## Git 提交规范
 
-## 提交要求：
-- 使用英文提交消息，并附上简短描述
-- 格式：type: brief description（例如：fix: user login issue）
-- 提交前确保代码能够编译
-- 如有需要推送到远程仓库
+### 提交消息格式
+
+遵循 Conventional Commits 规范:
+
+```
+<type>(<scope>): <subject>
+```
+
+### Type 类型
+
+- **feat**: 新功能
+- **fix**: 修复 bug
+- **docs**: 文档更新
+- **style**: 代码格式调整(不影响代码逻辑)
+- **refactor**: 代码重构(既不是新功能也不是修复 bug)
+- **perf**: 性能优化
+- **test**: 测试相关
+- **build**: 构建系统或外部依赖的更改
+- **ci**: CI 配置文件和脚本的更改
+- **chore**: 其他不修改源代码或测试文件的更改
+- **revert**: 回滚之前的提交
+
+### Scope 范围(可选)
+
+- **frontend**: 前端相关
+- **backend**: 后端相关
+- **api**: API 接口相关
+- **db**: 数据库相关
+- **config**: 配置相关
+- **security**: 安全相关
+- **deploy**: 部署相关
+
+### 提交示例
+
+- feat(backend): add image batch recognition API
+- feat(frontend): implement user profile page with Arco Design
+- fix(api): correct JWT token validation logic
+- fix(frontend): resolve image upload preview issue
+- docs: update API documentation for recognition endpoints
+- refactor(backend): extract role validation logic to interceptor
+- chore(config): update Docker Compose configuration
+- build(deps): upgrade Spring Boot to 3.5.6
+
+### 提交要求
+
+1. 使用英文提交消息,并附上简短描述
+2. 提交前确保代码能够编译,无语法错误
+3. 每次提交只解决一个问题,避免一次提交包含多个不相关的改动
+4. 提交前进行代码审查,确保符合项目规范
+5. 敏感信息不要提交到版本控制系统
+
+### 分支管理
+
+- **main/master**: 生产环境代码,只接受合并请求
+- **develop**: 开发环境代码,功能开发完成后合并到此
+- **feature/***: 新功能开发
+- **fix/***: bug 修复
+- **hotfix/***: 紧急修复生产环境问题
+
+### .gitignore 规范
+
+确保以下内容不被提交:
+
+- 依赖目录: node_modules/, target/
+- 环境配置: .env, .env.local, .env.production
+- IDE 配置: .idea/, .vscode/, *.iml
+- 构建产物: dist/, build/
+- 日志文件: *.log, logs/
+- 临时文件: *.tmp, *.cache
+- 操作系统文件: .DS_Store, Thumbs.db
+- 上传文件: uploads/ (开发环境)

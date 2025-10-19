@@ -8,7 +8,7 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 # 复制npm国内镜像配置
-COPY ../docker/npm/.npmrc /root/.npmrc
+COPY .npmrc /root/.npmrc
 
 # 复制前端项目文件
 COPY package*.json ./
@@ -32,7 +32,7 @@ RUN apk add --no-cache curl
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # 复制自定义 nginx 配置
-COPY ../docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # 暴露端口
 EXPOSE 80

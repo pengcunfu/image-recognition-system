@@ -9,19 +9,17 @@ import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
 
 // 管理员组件
 import DashboardLayout from '@/components/layout/DashboardLayout.vue'
-import DashboardView from '@/views/DashboardView.vue'
-import UsersView from '@/views/UsersView.vue'
-import OrdersView from '@/views/OrdersView.vue'
-import AnalyticsView from '@/views/AnalyticsView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-
-// 新增管理页面组件
-import PostsManagementView from '@/views/PostsManagementView.vue'
-import KnowledgeManagementView from '@/views/KnowledgeManagementView.vue'
-import CategoryManagementView from '@/views/CategoryManagementView.vue'
-import VipManagementView from '@/views/VipManagementView.vue'
-import RecognitionManagementView from '@/views/RecognitionManagementView.vue'
-import AdminProfileView from '@/views/AdminProfileView.vue'
+import DashboardView from '@/views/admin/DashboardView.vue'
+import UsersView from '@/views/admin/UsersView.vue'
+import OrdersView from '@/views/admin/OrdersView.vue'
+import AnalyticsView from '@/views/admin/AnalyticsView.vue'
+import SettingsView from '@/views/admin/SettingsView.vue'
+import PostsManagementView from '@/views/admin/PostsManagementView.vue'
+import KnowledgeManagementView from '@/views/admin/KnowledgeManagementView.vue'
+import CategoryManagementView from '@/views/admin/CategoryManagementView.vue'
+import VipManagementView from '@/views/admin/VipManagementView.vue'
+import RecognitionManagementView from '@/views/admin/RecognitionManagementView.vue'
+import AdminProfileView from '@/views/admin/AdminProfileView.vue'
 
 // 用户组件
 import UserLayout from '@/components/layout/UserLayout.vue'

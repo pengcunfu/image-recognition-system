@@ -8,7 +8,7 @@ import RegisterView from '@/views/RegisterView.vue'
 import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
 
 // 管理员组件
-import DashboardLayout from '@/components/layout/DashboardLayout.vue'
+import DashboardLayout from '@/layout/DashboardLayout.vue'
 import DashboardView from '@/views/admin/DashboardView.vue'
 import UsersView from '@/views/admin/UsersView.vue'
 import OrdersView from '@/views/admin/OrdersView.vue'
@@ -22,7 +22,7 @@ import RecognitionManagementView from '@/views/admin/RecognitionManagementView.v
 import AdminProfileView from '@/views/admin/AdminProfileView.vue'
 
 // 用户组件
-import UserLayout from '@/components/layout/UserLayout.vue'
+import UserLayout from '@/layout/UserLayout.vue'
 import UserDashboardView from '@/views/user/UserDashboardView.vue'
 import ImageRecognitionView from '@/views/user/ImageRecognitionView.vue'
 import BatchRecognitionView from '@/views/user/BatchRecognitionView.vue'

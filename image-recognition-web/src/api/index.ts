@@ -35,7 +35,6 @@ export const {
   register: authRegister,
   logout: authLogout,
   validateToken,
-  getCaptcha,
   forgotPassword,
   sendSmsCode,
   verifySmsCode

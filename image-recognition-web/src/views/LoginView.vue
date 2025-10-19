@@ -1,59 +1,81 @@
 <template>
-  <div class="login-container">
-    <!-- 动态背景 -->
-    <div class="bg-animation">
-      <div class="floating-shape">
-        <i class="fas fa-brain"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-eye"></i>
-      </div>
-      <div class="floating-shape">
-        <i class="fas fa-camera"></i>
-      </div>
-    </div>
-
-    <div class="login-box">
+  <div :style="{ 
+    background: '#f5f5f5', 
+    minHeight: '100vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    position: 'relative', 
+    overflow: 'hidden' 
+  }">
+    <div :style="{ 
+      background: 'white', 
+      borderRadius: '20px', 
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', 
+      border: '1px solid #e8e8e8', 
+      width: '900px', 
+      maxWidth: '95vw', 
+      minHeight: '600px', 
+      display: 'flex', 
+      overflow: 'hidden', 
+      position: 'relative', 
+      zIndex: 1 
+    }">
       <!-- 左侧信息区域 -->
-      <div class="login-info">
-        <!-- <div class="system-logo">
-          <i class="fas fa-eye"></i>
-        </div> -->
-        <h1 class="system-title">智能图像识别系统</h1>
-        <p class="system-subtitle">基于深度学习的通用图像识别平台，提供识别、学习、交流一体化服务</p>
+      <div :style="{ 
+        flex: 1, 
+        background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        color: 'white', 
+        position: 'relative' 
+      }">
+        <h1 :style="{ fontSize: '28px', fontWeight: 'bold', marginBottom: '16px', textAlign: 'center' }">智能图像识别系统</h1>
+        <p :style="{ fontSize: '16px', opacity: 0.9, textAlign: 'center', lineHeight: 1.6, maxWidth: '300px' }">
+          基于深度学习的通用图像识别平台，提供识别、学习、交流一体化服务
+        </p>
         
-        <ul class="feature-list">
-          <li class="feature-item">
-            <i class="fas fa-zap"></i>
+        <ul :style="{ marginTop: '40px', listStyle: 'none', padding: 0 }">
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <ThunderboltOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>毫秒级识别响应</span>
           </li>
-          <li class="feature-item">
-            <i class="fas fa-brain"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <BulbOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>智能知识延展</span>
           </li>
-          <li class="feature-item">
-            <i class="fas fa-users"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <TeamOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>社区互动交流</span>
           </li>
-          <li class="feature-item">
-            <i class="fas fa-shield-alt"></i>
+          <li :style="{ display: 'flex', alignItems: 'center', marginBottom: '16px', fontSize: '14px', opacity: 0.9 }">
+            <SafetyOutlined :style="{ marginRight: '12px', fontSize: '16px' }" />
             <span>企业级安全保障</span>
           </li>
         </ul>
       </div>
       
       <!-- 右侧登录表单 -->
-      <div class="login-form-container">
-        <div class="form-header">
-          <h2 class="form-title">欢迎回来</h2>
-          <p class="form-subtitle">请登录您的账户继续使用服务</p>
+      <div :style="{ 
+        flex: 1, 
+        padding: '60px 40px', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center' 
+      }">
+        <div :style="{ textAlign: 'center', marginBottom: '40px' }">
+          <h2 :style="{ fontSize: '24px', fontWeight: 'bold', color: '#262626', marginBottom: '8px' }">欢迎回来</h2>
+          <p :style="{ color: '#666', fontSize: '14px' }">请登录您的账户继续使用服务</p>
         </div>
         
         <a-form
           ref="formRef"
           :model="formData"
           :rules="rules"
-          class="login-form"
+          :style="{ maxWidth: '320px', margin: '0 auto', width: '100%' }"
           @finish="handleLogin"
         >
           <!-- 用户名/邮箱输入 -->
@@ -64,7 +86,7 @@
               placeholder="请输入用户名或邮箱"
             >
               <template #prefix>
-                <i class="fas fa-user"></i>
+                <UserOutlined />
               </template>
             </a-input>
           </a-form-item>
@@ -77,43 +99,63 @@
               placeholder="请输入密码"
             >
               <template #prefix>
-                <i class="fas fa-lock"></i>
+                <LockOutlined />
               </template>
             </a-input-password>
           </a-form-item>
           
           <!-- 验证码输入 -->
           <a-form-item name="captcha">
-            <div class="captcha-group">
+            <div :style="{ display: 'flex', gap: '12px', alignItems: 'center' }">
               <a-input
                 v-model:value="formData.captcha"
                 size="large"
                 placeholder="请输入验证码"
                 :maxlength="4"
-                class="captcha-input"
+                :style="{ flex: 1 }"
               >
                 <template #prefix>
-                  <i class="fas fa-shield-alt"></i>
+                  <SafetyOutlined />
                 </template>
               </a-input>
-              <div class="captcha-image" @click="refreshCaptcha">
+              <div 
+                :style="{ 
+                  width: '100px', 
+                  height: '40px', 
+                  border: '2px solid #e8e8e8', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer', 
+                  background: '#f5f5f5', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontSize: '16px', 
+                  fontWeight: 'bold', 
+                  color: '#1890ff', 
+                  userSelect: 'none', 
+                  transition: 'all 0.3s', 
+                  overflow: 'hidden' 
+                }"
+                @click="refreshCaptcha"
+              >
                 <img 
                   v-if="captchaImageUrl" 
                   :src="captchaImageUrl" 
                   alt="验证码"
                   :key="captchaKey"
+                  :style="{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }"
                 />
-                <div v-else class="captcha-loading">
-                  <i class="fas fa-spinner fa-spin"></i>
+                <div v-else>
+                  <LoadingOutlined :spin="true" />
                 </div>
               </div>
             </div>
           </a-form-item>
           
           <!-- 表单选项 -->
-          <div class="form-options">
+          <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }">
             <a-checkbox v-model:checked="formData.rememberMe">记住我</a-checkbox>
-            <router-link to="/forgot-password" class="forgot-password">忘记密码？</router-link>
+            <router-link to="/forgot-password" :style="{ color: '#1890ff', textDecoration: 'none' }">忘记密码？</router-link>
           </div>
           
           <!-- 登录按钮 -->
@@ -124,7 +166,7 @@
               size="large"
               block
               :loading="loading"
-              class="login-btn"
+              :style="{ background: '#1890ff', border: 'none', height: '48px', marginBottom: '16px' }"
             >
               立即登录
             </a-button>
@@ -133,20 +175,26 @@
           <!-- 第三方登录 -->
           <a-divider>或使用第三方账户登录</a-divider>
           
-          <div class="social-login">
-            <a-button class="social-btn github" @click="socialLogin('github')">
-              <i class="fab fa-github"></i>
+          <div :style="{ display: 'flex', gap: '12px', marginBottom: '32px' }">
+            <a-button 
+              :style="{ flex: 1, height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }"
+              @click="socialLogin('github')"
+            >
+              <GithubOutlined />
               GitHub
             </a-button>
-            <a-button class="social-btn gitee" @click="socialLogin('gitee')">
-              <i class="fab fa-git-alt"></i>
+            <a-button 
+              :style="{ flex: 1, height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }"
+              @click="socialLogin('gitee')"
+            >
+              <BranchesOutlined />
               Gitee
             </a-button>
           </div>
           
           <!-- 注册链接 -->
-          <div class="register-link">
-            还没有账户？<router-link to="/register">立即注册</router-link>
+          <div :style="{ textAlign: 'center', color: '#666', fontSize: '14px' }">
+            还没有账户？<router-link to="/register" :style="{ color: '#1890ff', textDecoration: 'none', fontWeight: 500 }">立即注册</router-link>
           </div>
         </a-form>
       </div>
@@ -160,6 +208,17 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
 import { AuthAPI } from '@/api/auth'
+import { 
+  UserOutlined, 
+  LockOutlined, 
+  SafetyOutlined, 
+  LoadingOutlined, 
+  GithubOutlined, 
+  BranchesOutlined,
+  ThunderboltOutlined,
+  BulbOutlined,
+  TeamOutlined
+} from '@ant-design/icons-vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -270,344 +329,3 @@ onMounted(() => {
   }
 })
 </script>
-
-<style scoped lang="scss">
-.login-container {
-  background: #f5f5f5;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-/* 动态背景 */
-.bg-animation {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.floating-shape {
-  position: absolute;
-  opacity: 0.06;
-  animation: float 6s ease-in-out infinite;
-  font-size: 60px;
-  color: #1890ff;
-
-  &:nth-child(1) {
-    top: 10%;
-    left: 10%;
-    animation-delay: 0s;
-  }
-
-  &:nth-child(2) {
-    top: 20%;
-    right: 10%;
-    animation-delay: 2s;
-    font-size: 80px;
-  }
-
-  &:nth-child(3) {
-    bottom: 10%;
-    left: 20%;
-    animation-delay: 4s;
-    font-size: 50px;
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(180deg); }
-}
-
-/* 主容器 */
-.login-box {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid #e8e8e8;
-  width: 900px;
-  max-width: 95vw;
-  min-height: 600px;
-  display: flex;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
-}
-
-/* 左侧信息区域 */
-.login-info {
-  flex: 1;
-  background: #1890ff;
-  padding: 60px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="3" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1" fill="white" opacity="0.1"/></svg>');
-    animation: twinkle 3s ease-in-out infinite;
-  }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.system-logo {
-  font-size: 64px;
-  margin-bottom: 32px;
-  animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.system-title {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  text-align: center;
-}
-
-.system-subtitle {
-  font-size: 16px;
-  opacity: 0.9;
-  text-align: center;
-  line-height: 1.6;
-  max-width: 300px;
-}
-
-.feature-list {
-  margin-top: 40px;
-  list-style: none;
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  font-size: 14px;
-  opacity: 0.9;
-
-  i {
-    margin-right: 12px;
-    font-size: 16px;
-  }
-}
-
-/* 右侧登录表单 */
-.login-form-container {
-  flex: 1;
-  padding: 60px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.form-header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-
-.form-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #262626;
-  margin-bottom: 8px;
-}
-
-.form-subtitle {
-  color: #666;
-  font-size: 14px;
-}
-
-.login-form {
-  max-width: 320px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* 验证码组合 */
-.captcha-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.captcha-input {
-  flex: 1;
-}
-
-.captcha-image {
-  width: 100px;
-  height: 40px;
-  border: 2px solid #e8e8e8;
-  border-radius: 8px;
-  cursor: pointer;
-  background: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-  color: #1890ff;
-  user-select: none;
-  transition: all 0.3s;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
-  }
-
-  &:hover {
-    border-color: #1890ff;
-  }
-}
-
-.captcha-loading {
-  color: #1890ff;
-  font-size: 14px;
-}
-
-/* 表单选项 */
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.forgot-password {
-  color: #1890ff;
-  text-decoration: none;
-
-  &:hover {
-    color: #40a9ff;
-  }
-}
-
-/* 登录按钮 */
-.login-btn {
-  background: #1890ff;
-  border: none;
-  height: 48px;
-  margin-bottom: 16px;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(24, 144, 255, 0.3);
-  }
-}
-
-/* 第三方登录 */
-.social-login {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.social-btn {
-  flex: 1;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  &.github:hover {
-    border-color: #333;
-    color: #333;
-  }
-
-  &.gitee:hover {
-    border-color: #c71d23;
-    color: #c71d23;
-  }
-}
-
-/* 注册链接 */
-.register-link {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-
-  a {
-    color: #1890ff;
-    text-decoration: none;
-    font-weight: 500;
-
-    &:hover {
-      color: #40a9ff;
-    }
-  }
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .login-box {
-    flex-direction: column;
-    width: 95vw;
-    min-height: auto;
-  }
-  
-  .login-info {
-    padding: 40px 20px;
-    order: 2;
-  }
-  
-  .login-form-container {
-    padding: 40px 20px;
-    order: 1;
-  }
-  
-  .system-title {
-    font-size: 24px;
-  }
-  
-  .system-logo {
-    font-size: 48px;
-  }
-  
-  .feature-list {
-    margin-top: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .login-box {
-    margin: 20px;
-    border-radius: 16px;
-  }
-  
-  .login-info,
-  .login-form-container {
-    padding: 30px 20px;
-  }
-  
-  .social-login {
-    flex-direction: column;
-  }
-}
-</style>

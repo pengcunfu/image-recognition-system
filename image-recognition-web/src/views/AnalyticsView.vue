@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <h1 class="page-title">数据分析</h1>
     
@@ -107,57 +107,3 @@
 // 实际项目中会集成 ECharts 或其他图表库
 </script>
 
-<style scoped>
-.page {
-  width: 100%;
-}
-
-.page-title {
-  margin-bottom: 24px;
-  color: #262626;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-/* Stats Grid */
-.stats-grid {
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  /* 移除左边框 */
-}
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 8px;
-  font-size: 12px;
-}
-
-.trend-up {
-  color: #52c41a;
-}
-
-.trend-down {
-  color: #ff4d4f;
-}
-
-/* Charts */
-.chart-card {
-  margin-bottom: 24px;
-}
-
-.chart-placeholder {
-  height: 300px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-  font-size: 16px;
-  gap: 8px;
-}
-</style>

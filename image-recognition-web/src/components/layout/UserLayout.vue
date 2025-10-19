@@ -1,9 +1,22 @@
 <template>
-  <a-layout class="user-layout">
+  <a-layout :style="{ minHeight: '100vh' }">
     <!-- Header -->
-    <a-layout-header class="header">
-      <div class="logo">
-        <!-- <i class="fas fa-eye"></i> -->
+    <a-layout-header :style="{ 
+      background: '#001529', 
+      padding: '0 24px', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+    }">
+      <div :style="{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px', 
+        fontSize: '20px', 
+        fontWeight: 'bold', 
+        color: 'white' 
+      }">
         <span>智能图像识别系统</span>
       </div>
       
@@ -12,36 +25,36 @@
         v-model:selectedKeys="selectedKeys"
         mode="horizontal"
         theme="dark"
-        class="nav-menu"
+        :style="{ flex: 1, margin: '0 40px', borderBottom: 'none' }"
         @click="handleMenuClick"
       >
         <a-menu-item key="/user/dashboard">
           <template #icon>
-            <i class="fas fa-home"></i>
+            <HomeOutlined />
           </template>
           首页
         </a-menu-item>
         <a-menu-item key="/user/recognition">
           <template #icon>
-            <i class="fas fa-camera"></i>
+            <CameraOutlined />
           </template>
           图像识别
         </a-menu-item>
         <a-menu-item key="/user/knowledge">
           <template #icon>
-            <i class="fas fa-book"></i>
+            <BookOutlined />
           </template>
           知识库
         </a-menu-item>
         <a-menu-item key="/user/community">
           <template #icon>
-            <i class="fas fa-users"></i>
+            <TeamOutlined />
           </template>
           社区
         </a-menu-item>
         <a-menu-item key="/user/history">
           <template #icon>
-            <i class="fas fa-history"></i>
+            <HistoryOutlined />
           </template>
           历史记录
         </a-menu-item>
@@ -49,32 +62,32 @@
         <!-- VIP专享功能菜单 -->
         <a-sub-menu v-if="isVipUser" key="vip-features">
           <template #icon>
-            <i class="fas fa-crown" style="color: #ffd700;"></i>
+            <CrownOutlined :style="{ color: '#ffd700' }" />
           </template>
           <template #title>
-            <span style="color: #ffd700;">VIP专享</span>
+            <span :style="{ color: '#ffd700' }">VIP专享</span>
           </template>
           <a-menu-item key="/user/advanced-recognition">
             <template #icon>
-              <i class="fas fa-magic" style="color: #ffd700;"></i>
+              <ThunderboltOutlined :style="{ color: '#ffd700' }" />
             </template>
             高级识别
           </a-menu-item>
           <a-menu-item key="/user/vip-analytics">
             <template #icon>
-              <i class="fas fa-chart-line" style="color: #ffd700;"></i>
+              <LineChartOutlined :style="{ color: '#ffd700' }" />
             </template>
             VIP数据分析
           </a-menu-item>
           <a-menu-item key="/user/ai-training">
             <template #icon>
-              <i class="fas fa-brain" style="color: #ffd700;"></i>
+              <RobotOutlined :style="{ color: '#ffd700' }" />
             </template>
             AI模型训练
           </a-menu-item>
           <a-menu-item key="/user/api-access">
             <template #icon>
-              <i class="fas fa-key" style="color: #ffd700;"></i>
+              <ApiOutlined :style="{ color: '#ffd700' }" />
             </template>
             API访问
           </a-menu-item>
@@ -82,37 +95,37 @@
       </a-menu>
       
       <!-- 用户信息 -->
-      <div class="user-info">
-        <a-tag v-if="isVipUser" color="gold" class="vip-badge">
-          <i class="fas fa-crown"></i>
+      <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
+        <a-tag v-if="isVipUser" color="gold" :style="{ fontSize: '12px', fontWeight: 'bold' }">
+          <CrownOutlined />
           VIP
         </a-tag>
         
         <a-dropdown>
-          <a-button type="text" class="user-btn">
-            <a-avatar :src="userInfo.avatar" class="user-avatar">
+          <a-button type="text" :style="{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }">
+            <a-avatar :src="userInfo.avatar" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
               {{ userInfo.name.charAt(0) }}
             </a-avatar>
-            <span class="user-name">{{ userInfo.name }}</span>
-            <i class="fas fa-chevron-down"></i>
+            <span :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.name }}</span>
+            <DownOutlined />
           </a-button>
           <template #overlay>
             <a-menu @click="handleUserMenuClick">
               <a-menu-item key="profile">
-                <i class="fas fa-user"></i>
+                <UserOutlined />
                 个人中心
               </a-menu-item>
               <a-menu-item key="settings">
-                <i class="fas fa-cog"></i>
+                <SettingOutlined />
                 我的设置
               </a-menu-item>
               <a-menu-item key="favorites">
-                <i class="fas fa-heart"></i>
+                <HeartOutlined />
                 我的收藏
               </a-menu-item>
               <a-menu-divider />
               <a-menu-item key="logout">
-                <i class="fas fa-sign-out-alt"></i>
+                <LogoutOutlined />
                 退出登录
               </a-menu-item>
             </a-menu>
@@ -122,21 +135,21 @@
     </a-layout-header>
     
     <!-- Main Content -->
-    <a-layout-content class="content">
-      <div class="content-wrapper">
+    <a-layout-content :style="{ padding: '24px', minHeight: 'calc(100vh - 64px - 70px)', background: '#f0f2f5' }">
+      <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
         <router-view />
       </div>
     </a-layout-content>
     
     <!-- Footer -->
-    <a-layout-footer class="footer">
-      <div class="footer-content">
-        <p>&copy; 2025 智能图像识别系统. All rights reserved. Designed by 彭存福</p>
-        <div class="footer-links">
-          <router-link to="/about">关于我们</router-link>
-          <router-link to="/contact">联系我们</router-link>
-          <router-link to="/privacy">隐私政策</router-link>
-          <router-link to="/terms">服务条款</router-link>
+    <a-layout-footer :style="{ background: '#001529', color: 'white', textAlign: 'center', padding: '24px 50px' }">
+      <div :style="{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
+        <p :style="{ margin: 0 }">&copy; 2025 智能图像识别系统. All rights reserved. Designed by 彭存福</p>
+        <div :style="{ display: 'flex', gap: '24px' }">
+          <router-link to="/about" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">关于我们</router-link>
+          <router-link to="/contact" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">联系我们</router-link>
+          <router-link to="/privacy" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">隐私政策</router-link>
+          <router-link to="/terms" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">服务条款</router-link>
         </div>
       </div>
     </a-layout-footer>
@@ -147,6 +160,23 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { 
+  HomeOutlined, 
+  CameraOutlined, 
+  BookOutlined, 
+  TeamOutlined, 
+  HistoryOutlined, 
+  CrownOutlined, 
+  ThunderboltOutlined, 
+  LineChartOutlined, 
+  RobotOutlined, 
+  ApiOutlined, 
+  UserOutlined, 
+  SettingOutlined, 
+  HeartOutlined, 
+  LogoutOutlined,
+  DownOutlined
+} from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -219,171 +249,3 @@ function handleLogout() {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.user-layout {
-  min-height: 100vh;
-}
-
-/* Header */
-.header {
-  background: #001529;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-}
-
-.logo i {
-  font-size: 24px;
-  color: #1890ff;
-}
-
-.nav-menu {
-  flex: 1;
-  margin: 0 40px;
-  border-bottom: none;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.vip-badge {
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.user-btn {
-  color: white !important;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-avatar {
-  background: #1890ff;
-  color: white;
-  font-weight: bold;
-}
-
-.user-name {
-  color: white;
-  margin-left: 8px;
-}
-
-/* Content */
-.content {
-  padding: 24px;
-  min-height: calc(100vh - 64px - 70px);
-  background: #f0f2f5;
-}
-
-.content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Footer */
-.footer {
-  background: #001529;
-  color: white;
-  text-align: center;
-  padding: 24px 50px;
-}
-
-.footer-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.footer-links {
-  display: flex;
-  gap: 24px;
-}
-
-.footer-links a {
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.footer-links a:hover {
-  color: white;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .header {
-    padding: 0 16px;
-  }
-  
-  .nav-menu {
-    margin: 0 20px;
-  }
-  
-  .logo span {
-    display: none;
-  }
-  
-  .user-name {
-    display: none;
-  }
-  
-  .footer-content {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 576px) {
-  .content {
-    padding: 16px;
-  }
-  
-  .nav-menu {
-    display: none;
-  }
-  
-  .footer-links {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-}
-
-/* VIP菜单样式 */
-:deep(.ant-menu-dark .ant-menu-submenu-title) {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-:deep(.ant-menu-dark .ant-menu-submenu:hover .ant-menu-submenu-title) {
-  color: #ffd700;
-}
-
-:deep(.ant-menu-dark .ant-menu-submenu-selected .ant-menu-submenu-title) {
-  color: #ffd700;
-}
-
-:deep(.ant-menu-submenu-popup .ant-menu-item) {
-  padding-left: 24px !important;
-}
-
-:deep(.ant-menu-submenu-popup .ant-menu-item:hover) {
-  background-color: rgba(255, 215, 0, 0.1);
-}
-</style>

@@ -4,32 +4,35 @@
     title="发布帖子"
     width="600px"
     :footer="null"
-    class="publish-modal"
     @cancel="handleCancel"
   >
-    <div class="publish-form">
+    <div :style="{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px 0' }">
       <!-- 帖子类型选择 -->
-      <div class="post-type-section">
-        <label class="form-label">帖子类型</label>
-        <a-radio-group v-model:value="formData.type" button-style="solid">
-          <a-radio-button value="share">
-            <i class="fas fa-share-alt"></i>
+      <div>
+        <label :style="{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#262626' }">帖子类型</label>
+        <a-radio-group 
+          v-model:value="formData.type" 
+          button-style="solid"
+          :style="{ width: '100%', display: 'flex' }"
+        >
+          <a-radio-button value="share" :style="{ flex: 1, textAlign: 'center' }">
+            <ShareAltOutlined />
             分享
           </a-radio-button>
-          <a-radio-button value="question">
-            <i class="fas fa-question-circle"></i>
+          <a-radio-button value="question" :style="{ flex: 1, textAlign: 'center' }">
+            <QuestionCircleOutlined />
             问答
           </a-radio-button>
-          <a-radio-button value="discussion">
-            <i class="fas fa-comments"></i>
+          <a-radio-button value="discussion" :style="{ flex: 1, textAlign: 'center' }">
+            <CommentOutlined />
             讨论
           </a-radio-button>
         </a-radio-group>
       </div>
 
       <!-- 标题输入 -->
-      <div class="title-section">
-        <label class="form-label">标题</label>
+      <div>
+        <label :style="{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#262626' }">标题</label>
         <a-input
           v-model:value="formData.title"
           placeholder="请输入帖子标题..."
@@ -39,8 +42,8 @@
       </div>
 
       <!-- 内容输入 -->
-      <div class="content-section">
-        <label class="form-label">内容</label>
+      <div>
+        <label :style="{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#262626' }">内容</label>
         <a-textarea
           v-model:value="formData.content"
           placeholder="详细描述您的想法、经验或问题..."
@@ -51,8 +54,8 @@
       </div>
 
       <!-- 图片上传 -->
-      <div class="images-section">
-        <label class="form-label">图片</label>
+      <div>
+        <label :style="{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#262626' }">图片</label>
         <a-upload
           v-model:file-list="formData.images"
           list-type="picture-card"
@@ -60,17 +63,17 @@
           @preview="handlePreviewImage"
           @remove="handleRemoveImage"
         >
-          <div v-if="formData.images.length < 9">
-            <i class="fas fa-plus"></i>
-            <div class="upload-text">上传图片</div>
+          <div v-if="formData.images.length < 9" :style="{ textAlign: 'center' }">
+            <PlusOutlined />
+            <div :style="{ marginTop: '8px', fontSize: '12px', color: '#666' }">上传图片</div>
           </div>
         </a-upload>
-        <div class="upload-tip">最多可上传9张图片，支持jpg、png格式</div>
+        <div :style="{ marginTop: '8px', fontSize: '12px', color: '#999' }">最多可上传9张图片，支持jpg、png格式</div>
       </div>
 
       <!-- 标签选择 -->
-      <div class="tags-section">
-        <label class="form-label">标签</label>
+      <div>
+        <label :style="{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#262626' }">标签</label>
         <a-select
           v-model:value="formData.tags"
           mode="multiple"
@@ -82,7 +85,7 @@
       </div>
 
       <!-- 发布选项 -->
-      <div class="publish-options">
+      <div :style="{ display: 'flex', gap: '24px' }">
         <a-checkbox v-model:checked="formData.allowComments">
           允许评论
         </a-checkbox>
@@ -92,7 +95,13 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="modal-actions">
+      <div :style="{ 
+        display: 'flex', 
+        justifyContent: 'flex-end', 
+        gap: '12px', 
+        paddingTop: '16px', 
+        borderTop: '1px solid #f0f0f0' 
+      }">
         <a-button @click="handleCancel">取消</a-button>
         <a-button @click="handleSaveDraft" :loading="savingDraft">保存草稿</a-button>
         <a-button 
@@ -111,6 +120,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { message } from 'ant-design-vue'
+import { ShareAltOutlined, QuestionCircleOutlined, CommentOutlined, PlusOutlined } from '@ant-design/icons-vue'
 
 // Props
 interface Props {
@@ -287,61 +297,3 @@ function handlePreviewImage(file: any) {
   message.info(`预览图片: ${file.name}`)
 }
 </script>
-
-<style scoped>
-/* 发布对话框 */
-.publish-modal :deep(.ant-modal-body) {
-  padding: 24px;
-}
-
-.publish-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #262626;
-}
-
-.post-type-section :deep(.ant-radio-group) {
-  width: 100%;
-}
-
-.post-type-section :deep(.ant-radio-button-wrapper) {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  text-align: center;
-  justify-content: center;
-}
-
-.upload-text {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #666;
-}
-
-.upload-tip {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #999;
-}
-
-.publish-options {
-  display: flex;
-  gap: 24px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-}
-</style>

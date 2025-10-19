@@ -1,17 +1,54 @@
 <template>
-  <a-layout class="dashboard-layout">
+  <a-layout :style="{ minHeight: '100vh' }">
     <!-- Header -->
-    <a-layout-header class="header">
-      <div class="logo" @click="toggleSidebar">
-        <!-- <i class="fas fa-eye"></i> -->
+    <a-layout-header :style="{ 
+      background: '#001529', 
+      color: 'white', 
+      padding: '0 24px', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      height: '64px', 
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)', 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      zIndex: 1000 
+    }">
+      <div 
+        :style="{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          fontSize: '20px', 
+          fontWeight: 'bold', 
+          cursor: 'pointer', 
+          padding: '8px 12px', 
+          borderRadius: '6px', 
+          transition: 'background-color 0.3s ease' 
+        }"
+        @click="toggleSidebar"
+        @mouseenter="(e: MouseEvent) => (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255, 255, 255, 0.1)'"
+        @mouseleave="(e: MouseEvent) => (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'"
+      >
         <span>智能图像识别系统</span>
       </div>
-      <div class="user-info">
+      <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
         <span>欢迎，管理员</span>
-        <a-avatar class="user-avatar" @click="goToProfile">A</a-avatar>
+        <a-avatar 
+          :style="{ 
+            background: '#1890ff', 
+            color: 'white', 
+            fontWeight: 'bold', 
+            cursor: 'pointer', 
+            transition: 'all 0.3s ease' 
+          }"
+          @click="goToProfile"
+        >A</a-avatar>
         <a-button type="primary" @click="handleLogout">
           <template #icon>
-            <i class="fas fa-sign-out-alt"></i>
+            <LogoutOutlined />
           </template>
           退出
         </a-button>
@@ -19,25 +56,34 @@
     </a-layout-header>
     
     <!-- Main Content -->
-    <a-layout>
+    <a-layout :style="{ marginTop: '64px' }">
       <!-- Sidebar -->
       <a-layout-sider 
         v-model:collapsed="collapsed" 
         :trigger="null" 
         collapsible
-        class="sidebar"
-        width="256"
+        :width="256"
+        :style="{ 
+          boxShadow: '2px 0 8px rgba(0,0,0,0.1)', 
+          height: 'calc(100vh - 64px)', 
+          background: 'white', 
+          position: 'fixed', 
+          top: '64px', 
+          left: 0, 
+          zIndex: 999, 
+          overflow: 'auto' 
+        }"
       >
         <a-menu
           v-model:selectedKeys="selectedKeys"
           mode="inline"
           theme="light"
-          class="menu"
+          :style="{ borderRight: 'none', padding: '16px 0', width: '100%' }"
           @click="handleMenuClick"
         >
           <a-menu-item key="/dashboard">
             <template #icon>
-              <i class="fas fa-tachometer-alt"></i>
+              <DashboardOutlined />
             </template>
             仪表板
           </a-menu-item>
@@ -47,19 +93,19 @@
           <a-menu-item-group title="内容管理">
             <a-menu-item key="/posts-management">
               <template #icon>
-                <i class="fas fa-clipboard-list"></i>
+                <FileTextOutlined />
               </template>
               帖子管理
             </a-menu-item>
             <a-menu-item key="/knowledge-management">
               <template #icon>
-                <i class="fas fa-book"></i>
+                <BookOutlined />
               </template>
               知识库管理
             </a-menu-item>
             <a-menu-item key="/category-management">
               <template #icon>
-                <i class="fas fa-tags"></i>
+                <TagsOutlined />
               </template>
               知识库分类
             </a-menu-item>
@@ -70,13 +116,13 @@
           <a-menu-item-group title="用户管理">
             <a-menu-item key="/users">
               <template #icon>
-                <i class="fas fa-users"></i>
+                <UserOutlined />
               </template>
               用户管理
             </a-menu-item>
             <a-menu-item key="/vip-management">
               <template #icon>
-                <i class="fas fa-crown"></i>
+                <CrownOutlined />
               </template>
               VIP管理
             </a-menu-item>
@@ -87,13 +133,13 @@
           <a-menu-item-group title="数据管理">
             <a-menu-item key="/recognition-management">
               <template #icon>
-                <i class="fas fa-camera"></i>
+                <CameraOutlined />
               </template>
               识别记录
             </a-menu-item>
             <a-menu-item key="/analytics">
               <template #icon>
-                <i class="fas fa-chart-bar"></i>
+                <BarChartOutlined />
               </template>
               数据分析
             </a-menu-item>
@@ -104,13 +150,13 @@
           <a-menu-item-group title="系统管理">
             <a-menu-item key="/orders">
               <template #icon>
-                <i class="fas fa-shopping-cart"></i>
+                <ShoppingCartOutlined />
               </template>
               订单管理
             </a-menu-item>
             <a-menu-item key="/settings">
               <template #icon>
-                <i class="fas fa-cog"></i>
+                <SettingOutlined />
               </template>
               系统设置
             </a-menu-item>
@@ -119,8 +165,13 @@
       </a-layout-sider>
       
       <!-- Content Area -->
-      <a-layout-content class="content">
-        <div class="content-wrapper">
+      <a-layout-content :style="{ 
+        padding: '24px', 
+        marginLeft: collapsed ? '80px' : '256px', 
+        minHeight: 'calc(100vh - 64px)', 
+        transition: 'margin-left 0.3s ease' 
+      }">
+        <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
           <router-view />
         </div>
       </a-layout-content>
@@ -132,6 +183,19 @@
 import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { 
+  DashboardOutlined, 
+  FileTextOutlined, 
+  BookOutlined, 
+  TagsOutlined, 
+  UserOutlined, 
+  CrownOutlined, 
+  CameraOutlined, 
+  BarChartOutlined, 
+  ShoppingCartOutlined, 
+  SettingOutlined,
+  LogoutOutlined
+} from '@ant-design/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -170,206 +234,3 @@ function handleLogout() {
   router.push('/login')
 }
 </script>
-
-<style scoped>
-.dashboard-layout {
-  min-height: 100vh;
-}
-
-/* Header */
-.header {
-  background: #001529;
-  color: white;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
-}
-
-.logo:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.logo i {
-  font-size: 24px;
-  color: #1890ff;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.user-avatar {
-  background: #1890ff;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-avatar:hover {
-  background: #40a9ff;
-  transform: scale(1.05);
-}
-
-/* Sidebar */
-.sidebar {
-  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-  height: 100vh;
-  background: white;
-  position: fixed;
-  top: 64px;
-  left: 0;
-  z-index: 999;
-  width: 256px !important;
-  min-width: 256px;
-  max-width: 256px;
-}
-
-.sidebar :deep(.ant-layout-sider-children) {
-  background: white;
-}
-
-.menu {
-  border-right: none;
-  padding: 16px 0;
-  width: 100%;
-  overflow-x: hidden;
-}
-
-/* 菜单项样式 */
-.menu :deep(.ant-menu-item) {
-  margin: 2px 8px;
-  border-radius: 8px;
-  height: 44px;
-  line-height: 44px;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  font-weight: 500;
-  color: #595959;
-  width: calc(100% - 16px);
-  overflow: hidden;
-}
-
-.menu :deep(.ant-menu-item:hover) {
-  background-color: rgba(24, 144, 255, 0.08);
-  color: #1890ff;
-  transform: none;
-}
-
-.menu :deep(.ant-menu-item-selected) {
-  background-color: #e6f7ff !important;
-  color: #1890ff !important;
-  border-radius: 8px;
-  font-weight: 600;
-}
-
-.menu :deep(.ant-menu-item-selected::after) {
-  display: none;
-}
-
-.menu :deep(.ant-menu-item .anticon) {
-  font-size: 16px;
-  width: 20px;
-  margin-right: 12px;
-}
-
-.menu :deep(.ant-menu-item-selected .anticon) {
-  color: #1890ff;
-}
-
-.menu :deep(.ant-menu-item:hover .anticon) {
-  color: #1890ff;
-}
-
-/* Content */
-.content {
-  padding: 24px;
-  overflow-y: auto;
-  margin-top: 64px;
-  margin-left: 256px;
-  min-height: calc(100vh - 64px);
-  transition: margin-left 0.3s ease;
-}
-
-/* 侧边栏收缩时的内容区域调整 */
-.dashboard-layout :deep(.ant-layout-sider-collapsed) + .ant-layout .content {
-  margin-left: 80px;
-}
-
-.sidebar:deep(.ant-layout-sider-collapsed) {
-  width: 80px !important;
-  min-width: 80px;
-  max-width: 80px;
-}
-
-.content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px !important;
-  }
-  
-  .content {
-    padding: 16px;
-    margin-left: 200px;
-  }
-  
-  .dashboard-layout :deep(.ant-layout-sider-collapsed) + .ant-layout .content {
-    margin-left: 80px;
-  }
-}
-
-@media (max-width: 576px) {
-  .header {
-    padding: 0 16px;
-  }
-  
-  .logo span {
-    display: none;
-  }
-  
-  .user-info span {
-    display: none;
-  }
-  
-  .sidebar {
-    width: 100% !important;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.mobile-open {
-    transform: translateX(0);
-  }
-  
-  .content {
-    margin-left: 0 !important;
-  }
-}
-</style>

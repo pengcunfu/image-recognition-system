@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="page">
     <h1 class="page-title">订单管理</h1>
     
@@ -125,24 +125,3 @@ function processOrder(record: any) {
 }
 </script>
 
-<style scoped>
-.page {
-  width: 100%;
-}
-
-.page-title {
-  margin-bottom: 24px;
-  color: #262626;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.table-card {
-  margin-bottom: 24px;
-}
-
-.status-tag {
-  font-size: 12px;
-  font-weight: 500;
-}
-</style>

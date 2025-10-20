@@ -7,8 +7,8 @@ RUN apk add --no-cache python3 make g++
 # 设置工作目录
 WORKDIR /app
 
-# 复制npm国内镜像配置
-COPY .npmrc /root/.npmrc
+# 配置 npm 淘宝镜像
+RUN npm config set registry https://registry.npmmirror.com
 
 # 复制前端项目文件
 COPY package*.json ./

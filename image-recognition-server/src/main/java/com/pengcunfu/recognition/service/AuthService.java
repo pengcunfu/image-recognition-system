@@ -1,425 +1,366 @@
-package com.pcf.recognition.service;
+package com.pengcunfu.recognition.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pcf.recognition.dto.AuthDto.*;
-import com.pcf.recognition.entity.User;
-import com.pcf.recognition.repository.UserRepository;
-import com.pcf.recognition.util.RedisClient;
-import com.wf.captcha.SpecCaptcha;
-import com.wf.captcha.base.Captcha;
+import com.pengcunfu.recognition.constant.ErrorCode;
+import com.pengcunfu.recognition.constant.JwtConstants;
+import com.pengcunfu.recognition.entity.User;
+import com.pengcunfu.recognition.enums.UserRole;
+import com.pengcunfu.recognition.enums.UserStatus;
+import com.pengcunfu.recognition.exception.AuthenticationException;
+import com.pengcunfu.recognition.exception.BusinessException;
+import com.pengcunfu.recognition.repository.UserRepository;
+import com.pengcunfu.recognition.request.AuthRequest;
+import com.pengcunfu.recognition.response.UserResponse;
+import com.pengcunfu.recognition.security.UserPrincipal;
+import com.pengcunfu.recognition.service.redis.SessionService;
+import com.pengcunfu.recognition.service.redis.RateLimitService;
+import com.pengcunfu.recognition.service.redis.VerificationCodeService;
+import com.pengcunfu.recognition.util.JwtUtil;
+import com.pengcunfu.recognition.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
+import java.time.format.DateTimeFormatter;
 
 /**
  * 认证服务
- * 处理用户登录、注册、密码管理等业务逻辑
+ * 处理用户登录、注册、登出等认证业务
  */
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final RedisClient redisClient;
-    private final ObjectMapper objectMapper;
-
-    // Redis key前缀
-    private static final String CAPTCHA_KEY_PREFIX = "captcha:";
-    private static final String SMS_CODE_KEY_PREFIX = "sms_code:";
-    private static final String TOKEN_KEY_PREFIX = "token:";
-
-    // 过期时间
-    private static final long CAPTCHA_EXPIRE_TIME = 5; // 5分钟
-    private static final long SMS_CODE_EXPIRE_TIME = 5; // 5分钟
-    private static final long TOKEN_EXPIRE_TIME = 24 * 60; // 24小时（分钟）
+    private final JwtUtil jwtUtil;
+    private final SessionService sessionService;
+    private final RateLimitService rateLimitService;
+    private final VerificationCodeService verificationCodeService;
+    private final PasswordUtil passwordUtil;
+    private final EmailService emailService;
 
     /**
-     * 用户认证
-     * 职责：验证用户凭据并返回用户信息，不包含Token生成等逻辑
+     * 用户登录
      */
-    public UserInfoDto authenticateUser(String username, String password) {
-        log.info("用户认证: username={}", username);
+    @Transactional
+    public UserResponse.LoginResponse login(AuthRequest.LoginRequest request) {
+        String username = request.getUsername();
+        String password = request.getPassword();
 
-        try {
-            // 查找用户
-            User user = userRepository.selectOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getUsername, username)
-                            .or()
-                            .eq(User::getEmail, username)
+        log.info("用户登录: username={}", username);
+
+        // 检查账号是否被锁定
+        if (rateLimitService.isAccountLocked(username)) {
+            Long lockTime = rateLimitService.getAccountLockTTL(username);
+            throw new AuthenticationException(
+                    String.format("账号已被锁定，请在 %d 秒后重试", lockTime)
             );
-
-            if (user == null) {
-                log.warn("用户不存在: username={}", username);
-                return null;
-            }
-
-            if (user.getStatus() != User.UserStatus.ACTIVE) {
-                log.warn("用户账户已被禁用: username={}", username);
-                throw new RuntimeException("用户账户已被禁用");
-            }
-
-            // 简单密码验证（生产环境应使用加密）
-            if (!password.equals(user.getPassword())) {
-                log.warn("密码错误: username={}", username);
-                return null;
-            }
-
-            // 更新最后登录时间
-            user.setLastLoginTime(LocalDateTime.now());
-            userRepository.updateById(user);
-
-            // 构建用户信息DTO
-            UserInfoDto userInfo = UserInfoDto.builder()
-                    .id(user.getId())
-                    .username(user.getUsername())
-                    .name(user.getName() != null ? user.getName() : user.getUsername())
-                    .email(user.getEmail())
-                    .role(user.getRole().name().toLowerCase())
-                    .avatar(user.getAvatar() != null ? user.getAvatar() : "/api/v1/images/default-avatar.png")
-                    .vipLevel(user.getVipLevel())
-                    .lastLoginTime(user.getLastLoginTime())
-                    .createTime(user.getCreateTime())
-                    .build();
-
-            log.info("用户认证成功: username={}, userId={}", username, user.getId());
-            return userInfo;
-
-        } catch (Exception e) {
-            log.error("用户认证失败: username={}", username, e);
-            throw new RuntimeException("认证失败: " + e.getMessage());
         }
-    }
 
-    /**
-     * 检查用户名是否已存在
-     * 职责：提供用户名唯一性检查服务
-     */
-    public boolean isUsernameExists(String username) {
-        User existingUser = userRepository.selectOne(
-                new LambdaQueryWrapper<User>()
-                        .eq(User::getUsername, username)
+        // 检查登录失败次数
+        if (!rateLimitService.checkLoginFailCount(username, 5)) {
+            rateLimitService.lockAccount(username, 1800); // 锁定30分钟
+            throw new AuthenticationException("登录失败次数过多，账号已被锁定30分钟");
+        }
+
+        // 查询用户（支持用户名或邮箱登录）
+        User user = userRepository.findByUsernameOrEmail(username);
+
+        if (user == null) {
+            rateLimitService.recordLoginFail(username, 1800);
+            throw new AuthenticationException("用户名或密码错误");
+        }
+
+        // 检查账号状态
+        if (!user.getStatus().equals(UserStatus.ACTIVE.getValue())) {
+            throw new AuthenticationException("账号已被禁用");
+        }
+
+        // 验证密码
+        if (!passwordUtil.matches(password, user.getPassword())) {
+            rateLimitService.recordLoginFail(username, 1800);
+            log.warn("密码错误: username={}", username);
+            throw new AuthenticationException("用户名或密码错误");
+        }
+
+        // 清除登录失败记录
+        rateLimitService.clearLoginFailCount(username);
+
+        // 更新最后登录时间
+        LocalDateTime now = LocalDateTime.now();
+        String lastLoginTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        userRepository.updateLastLoginTime(user.getId(), lastLoginTime);
+
+        // 生成 Token
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        // 保存 Token 到 Redis
+        sessionService.saveToken(user.getId(), token, JwtConstants.EXPIRATION / 1000);
+
+        // 缓存用户信息
+        UserPrincipal userPrincipal = new UserPrincipal(
+                user.getId(),
+                user.getUsername(),
+                null,
+                user.getRole(),
+                user.getStatus(),
+                true
         );
-        return existingUser != null;
+        sessionService.cacheUserInfo(user.getId(), userPrincipal);
+
+        log.info("用户登录成功: username={}, userId={}", username, user.getId());
+
+        return UserResponse.LoginResponse.builder()
+                .token(token)
+                .user(convertToUserInfo(user))
+                .build();
     }
 
     /**
-     * 检查邮箱是否已存在
-     * 职责：提供邮箱唯一性检查服务
+     * 用户注册
      */
-    public boolean isEmailExists(String email) {
-        User existingUser = userRepository.selectOne(
-                new LambdaQueryWrapper<User>()
-                        .eq(User::getEmail, email)
-        );
-        return existingUser != null;
-    }
+    @Transactional
+    public UserResponse.RegisterResponse register(AuthRequest.RegisterRequest request) {
+        String username = request.getUsername();
+        String email = request.getEmail();
+        String password = request.getPassword();
+        String emailCode = request.getEmailCode();
 
-    /**
-     * 创建新用户
-     * 职责：纯粹的用户创建业务逻辑，不包含验证
-     */
-    public Long createUser(RegisterRequest request) {
-        log.info("创建新用户: username={}, email={}", request.getUsername(), request.getEmail());
+        log.info("用户注册: username={}, email={}", username, email);
 
-        try {
-            // 创建新用户对象
-            User newUser = new User();
-            newUser.setUsername(request.getUsername());
-            newUser.setEmail(request.getEmail());
-            newUser.setPassword(request.getPassword()); // 生产环境应加密
-            newUser.setName(request.getUsername());
-            newUser.setRole(User.UserRole.USER);
-            newUser.setStatus(User.UserStatus.ACTIVE);
-            newUser.setVipLevel(0);
-            newUser.setCreateTime(LocalDateTime.now());
-            newUser.setLastLoginTime(LocalDateTime.now());
-            
-            // 保存用户到数据库
-            userRepository.insert(newUser);
-
-            log.info("用户创建成功: username={}, email={}, userId={}",
-                    request.getUsername(), request.getEmail(), newUser.getId());
-
-            return newUser.getId();
-
-        } catch (Exception e) {
-            log.error("创建用户失败: username={}, email={}", request.getUsername(), request.getEmail(), e);
-            throw new RuntimeException("创建用户失败: " + e.getMessage());
+        // 验证邮箱验证码
+        if (!verificationCodeService.verifyEmailCode(email, emailCode)) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "邮箱验证码错误或已过期");
         }
+
+        // 检查用户名是否已存在
+        if (userRepository.findByUsername(username) != null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "用户名已存在");
+        }
+
+        // 检查邮箱是否已注册
+        if (userRepository.findByEmail(email) != null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "邮箱已被注册");
+        }
+
+        // 创建用户
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(passwordUtil.encode(password));
+        user.setNickname(username); // 默认昵称为用户名
+        user.setRole(UserRole.USER.getValue());
+        user.setStatus(UserStatus.ACTIVE.getValue());
+
+        userRepository.insert(user);
+
+        log.info("用户注册成功: username={}, email={}, userId={}", username, email, user.getId());
+
+        return UserResponse.RegisterResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .build();
     }
 
     /**
-     * 更新用户密码
-     * 职责：纯粹的密码更新业务逻辑，不包含验证
+     * 用户登出
      */
-    public boolean updateUserPassword(String email, String newPassword) {
-        log.info("更新用户密码: email={}", email);
+    public void logout(Long userId) {
+        log.info("用户登出: userId={}", userId);
 
-        try {
-            // 查找用户
-            User user = userRepository.selectOne(
-                    new LambdaQueryWrapper<User>()
-                            .eq(User::getEmail, email)
-            );
+        // 删除 Token
+        sessionService.removeToken(userId);
 
-            if (user == null) {
-                log.error("用户不存在: email={}", email);
-                throw new RuntimeException("用户不存在");
+        // 删除缓存的用户信息
+        sessionService.removeCachedUserInfo(userId);
+
+        log.info("用户登出成功: userId={}", userId);
+    }
+
+    /**
+     * 发送邮箱验证码
+     */
+    public void sendEmailCode(String email) {
+        log.info("发送邮箱验证码: email={}", email);
+
+        // 检查验证码是否已存在（防止频繁发送）
+        if (verificationCodeService.isEmailCodeExists(email)) {
+            Long ttl = verificationCodeService.getEmailCodeTTL(email);
+            if (ttl > 240) { // 如果剩余时间超过4分钟，拒绝发送
+                throw new BusinessException(ErrorCode.INVALID_PARAM,
+                        "验证码已发送，请稍后再试");
             }
+        }
 
-            // 更新密码
-            user.setPassword(newPassword); // 生产环境应加密
-            int updateResult = userRepository.updateById(user);
+        // 生成验证码
+        String code = verificationCodeService.generateCode();
 
-            if (updateResult > 0) {
-                log.info("密码更新成功: email={}, userId={}", email, user.getId());
-                return true;
-            } else {
-                log.error("密码更新失败: email={}, userId={}", email, user.getId());
-                return false;
+        // 保存验证码到 Redis
+        verificationCodeService.saveEmailCode(email, code);
+
+        // TODO: 发送邮件（接入邮件服务）
+        log.info("邮箱验证码: email={}, code={}", email, code);
+    }
+
+    /**
+     * 忘记密码 - 重置密码
+     */
+    @Transactional
+    public void resetPassword(AuthRequest.ResetPasswordRequest request) {
+        String email = request.getEmail();
+        String emailCode = request.getEmailCode();
+        String newPassword = request.getNewPassword();
+
+        log.info("重置密码: email={}", email);
+
+        // 验证邮箱验证码
+        if (!verificationCodeService.verifyEmailCode(email, emailCode)) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "邮箱验证码错误或已过期");
+        }
+
+        // 查询用户
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱未注册");
+        }
+
+        // 更新密码
+        user.setPassword(passwordUtil.encode(newPassword));
+        userRepository.updateById(user);
+
+        // 清除该用户的所有会话
+        sessionService.removeToken(user.getId());
+        sessionService.removeCachedUserInfo(user.getId());
+
+        log.info("密码重置成功: email={}, userId={}", email, user.getId());
+    }
+
+    /**
+     * 刷新 Token
+     */
+    public UserResponse.LoginResponse refreshToken(Long userId) {
+        log.info("刷新Token: userId={}", userId);
+
+        // 查询用户
+        User user = userRepository.selectById(userId);
+
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        if (!user.getStatus().equals(UserStatus.ACTIVE.getValue())) {
+            throw new AuthenticationException("账号已被禁用");
+        }
+
+        // 生成新 Token
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        // 保存新 Token 到 Redis
+        sessionService.saveToken(user.getId(), token, JwtConstants.EXPIRATION / 1000);
+
+        log.info("Token刷新成功: userId={}", userId);
+
+        return UserResponse.LoginResponse.builder()
+                .token(token)
+                .user(convertToUserInfo(user))
+                .build();
+    }
+
+    /**
+     * 发送验证码
+     */
+    public void sendVerificationCode(String email, String type) {
+        log.info("发送验证码: email={}, type={}", email, type);
+
+        // 验证邮箱格式
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "邮箱格式不正确");
+        }
+
+        // 根据类型验证邮箱是否存在
+        if ("register".equals(type)) {
+            // 注册时，邮箱不能已存在
+            User existUser = userRepository.findByEmail(email);
+            if (existUser != null) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "该邮箱已被注册");
             }
-
-        } catch (Exception e) {
-            log.error("更新密码失败: email={}", email, e);
-            throw new RuntimeException("更新密码失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 生成验证码图片
-     */
-    public SpecCaptcha generateCaptcha(String sessionId) {
-        try {
-            // 创建验证码对象，设置宽度、高度、验证码长度、干扰线数量
-            SpecCaptcha specCaptcha = new SpecCaptcha(130, 48, 4);
-
-            // 设置验证码类型为数字和字母混合
-            specCaptcha.setCharType(Captcha.TYPE_DEFAULT);
-
-            // 设置字体
-            specCaptcha.setFont(Captcha.FONT_1);
-
-            // 获取验证码文本
-            String captchaText = specCaptcha.text().toLowerCase();
-
-            // 使用sessionId作为key存储验证码，设置过期时间
-            String redisKey = RedisClient.buildKey(CAPTCHA_KEY_PREFIX, sessionId);
-            redisClient.setWithExpire(redisKey, captchaText, CAPTCHA_EXPIRE_TIME, TimeUnit.MINUTES);
-
-            log.info("验证码生成成功: sessionId={}, text={}", sessionId, captchaText);
-
-            return specCaptcha;
-
-        } catch (Exception e) {
-            log.error("生成验证码失败", e);
-            throw new RuntimeException("验证码生成失败", e);
-        }
-    }
-
-    /**
-     * 验证验证码
-     */
-    public boolean verifyCaptcha(String sessionId, String userInput) {
-        log.info("验证验证码: sessionId={}, userInput={}", sessionId, userInput);
-
-        if (sessionId == null || userInput == null) {
-            return false;
-        }
-
-        try {
-            // 从Redis中获取存储的验证码
-            String redisKey = RedisClient.buildKey(CAPTCHA_KEY_PREFIX, sessionId);
-            String storedCaptcha = redisClient.get(redisKey);
-
-            if (storedCaptcha == null || storedCaptcha.isEmpty()) {
-                log.warn("验证码不存在或已过期: sessionId={}", sessionId);
-                return false;
+        } else if ("reset".equals(type) || "bind".equals(type)) {
+            // 重置密码或绑定时，邮箱必须存在
+            User existUser = userRepository.findByEmail(email);
+            if (existUser == null) {
+                throw new BusinessException(ErrorCode.USER_NOT_FOUND, "该邮箱未注册");
             }
-
-            // 验证成功后删除验证码（防止重复使用）
-            boolean isValid = storedCaptcha.equalsIgnoreCase(userInput.trim());
-            if (isValid) {
-                redisClient.delete(redisKey);
-                log.info("验证码验证成功: sessionId={}", sessionId);
-            } else {
-                log.warn("验证码验证失败: sessionId={}, expected={}, actual={}", sessionId, storedCaptcha, userInput);
-            }
-
-            return isValid;
-        } catch (Exception e) {
-            log.error("验证验证码时发生异常: sessionId={}", sessionId, e);
-            return false;
         }
+
+        // 生成6位验证码
+        String code = emailService.generateVerificationCode();
+
+        // 保存验证码到 Redis（5分钟有效期）
+        verificationCodeService.saveEmailCode(email, code);
+
+        // 发送验证码邮件
+        emailService.sendVerificationCode(email, code, type);
+
+        log.info("验证码发送成功: email={}, type={}", email, type);
     }
 
     /**
-     * 存储短信验证码
+     * 忘记密码 - 验证码验证并重置密码
      */
-    public void storeSmsCode(String phone, String code) {
-        String redisKey = RedisClient.buildKey(SMS_CODE_KEY_PREFIX, phone);
-        redisClient.setWithExpire(redisKey, code, SMS_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-        log.info("短信验证码已存储: phone={}, code={}", phone, code);
+    @Transactional
+    public void forgotPassword(String email, String code, String newPassword) {
+        log.info("忘记密码: email={}", email);
+
+        // 验证邮箱格式
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "邮箱格式不正确");
+        }
+
+        // 验证验证码
+        if (!verificationCodeService.verifyEmailCode(email, code)) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "验证码错误或已过期");
+        }
+
+        // 查询用户
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "该邮箱未注册");
+        }
+
+        // 更新密码
+        user.setPassword(passwordUtil.encode(newPassword));
+        userRepository.updateById(user);
+
+        log.info("密码重置成功: email={}, userId={}", email, user.getId());
     }
 
     /**
-     * 验证短信验证码
+     * 转换为用户信息 DTO
      */
-    public boolean verifySmsCode(String phone, String userInput) {
-        log.info("验证短信验证码: phone={}, userInput={}", phone, userInput);
-
-        if (phone == null || userInput == null) {
-            return false;
+    private UserResponse.UserInfo convertToUserInfo(User user) {
+        // 计算VIP等级
+        Integer vipLevel = 0;
+        if (user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now())) {
+            vipLevel = 1;
         }
 
-        try {
-            String redisKey = RedisClient.buildKey(SMS_CODE_KEY_PREFIX, phone);
-            String storedCode = redisClient.get(redisKey);
-
-            if (storedCode == null) {
-                log.warn("短信验证码不存在或已过期: phone={}", phone);
-                return false;
-            }
-
-            // 验证成功后删除验证码
-            boolean isValid = storedCode.equals(userInput.trim());
-            if (isValid) {
-                redisClient.delete(redisKey);
-                log.info("短信验证码验证成功: phone={}", phone);
-            } else {
-                log.warn("短信验证码验证失败: phone={}, expected={}, actual={}", phone, storedCode, userInput);
-            }
-
-            return isValid;
-        } catch (Exception e) {
-            log.error("验证短信验证码时发生异常: phone={}", phone, e);
-            return false;
-        }
-    }
-
-
-    /**
-     * 将Token存储到Redis
-     */
-    public void storeTokenToRedis(String token, UserInfoDto userInfo) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            // 将用户信息转换为JSON格式存储
-            String userInfoJson = objectMapper.writeValueAsString(userInfo);
-            redisClient.setWithExpire(redisKey, userInfoJson, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
-            log.info("Token已存储到Redis: token={}, userId={}", token, userInfo.getId());
-        } catch (Exception e) {
-            log.error("存储Token到Redis失败: token={}", token, e);
-        }
-    }
-
-    /**
-     * 将Token存储到Redis（兼容旧版本）
-     */
-    @Deprecated
-    public void storeTokenToRedis(String token, Long userId, String username, String role) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            // 存储token相关信息
-            String tokenInfo = String.format("%d:%s:%s", userId, username, role);
-            redisClient.setWithExpire(redisKey, tokenInfo, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
-            log.info("Token已存储到Redis: token={}, userId={}", token, userId);
-        } catch (Exception e) {
-            log.error("存储Token到Redis失败: token={}", token, e);
-        }
-    }
-
-    /**
-     * 从Redis中删除Token
-     */
-    public void deleteTokenFromRedis(String token) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            redisClient.delete(redisKey);
-            log.info("Token已从Redis删除: token={}", token);
-        } catch (Exception e) {
-            log.error("从Redis删除Token失败: token={}", token, e);
-        }
-    }
-
-    /**
-     * 验证Token是否在Redis中存在
-     */
-    public boolean isTokenValidInRedis(String token) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            String tokenInfo = redisClient.get(redisKey);
-            boolean isValid = tokenInfo != null && !tokenInfo.isEmpty();
-            log.debug("Token验证结果: token={}, valid={}", token, isValid);
-            return isValid;
-        } catch (Exception e) {
-            log.error("验证Token时发生异常: token={}", token, e);
-            return false;
-        }
-    }
-
-    /**
-     * 从Redis中获取Token信息
-     */
-    public String getTokenInfoFromRedis(String token) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            return redisClient.get(redisKey);
-        } catch (Exception e) {
-            log.error("获取Token信息失败: token={}", token, e);
-            return null;
-        }
-    }
-
-    /**
-     * 刷新Token过期时间
-     */
-    public void refreshTokenExpiry(String token) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            redisClient.expire(redisKey, TOKEN_EXPIRE_TIME, TimeUnit.MINUTES);
-            log.debug("Token过期时间已刷新: token={}", token);
-        } catch (Exception e) {
-            log.error("刷新Token过期时间失败: token={}", token, e);
-        }
-    }
-
-    /**
-     * 从Redis中获取用户信息
-     */
-    public UserInfoDto getUserInfoFromRedis(String token) {
-        try {
-            String redisKey = RedisClient.buildKey(TOKEN_KEY_PREFIX, token);
-            String userInfoJson = redisClient.get(redisKey);
-            
-            if (userInfoJson != null && !userInfoJson.isEmpty()) {
-                // 尝试解析JSON格式的用户信息
-                try {
-                    return objectMapper.readValue(userInfoJson, UserInfoDto.class);
-                } catch (Exception jsonException) {
-                    // 如果JSON解析失败，可能是旧格式的数据，尝试解析旧格式
-                    log.warn("JSON解析失败，尝试解析旧格式数据: token={}", token);
-                    String[] parts = userInfoJson.split(":");
-                    if (parts.length >= 3) {
-                        return UserInfoDto.builder()
-                                .id(Long.parseLong(parts[0]))
-                                .username(parts[1])
-                                .role(parts[2])
-                                .name(parts[1]) // 使用用户名作为显示名称
-                                .build();
-                    }
-                }
-            }
-            
-            return null;
-        } catch (Exception e) {
-            log.error("从Redis获取用户信息失败: token={}", token, e);
-            return null;
-        }
+        return UserResponse.UserInfo.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .phone(user.getPhone())
+                .avatar(user.getAvatar())
+                .role(user.getRole())
+                .status(user.getStatus())
+                .vipLevel(vipLevel)
+                .vipExpireTime(user.getVipExpireTime())
+                .lastLoginTime(user.getLastLoginTime())
+                .createdAt(user.getCreatedAt())
+                .build();
     }
 }

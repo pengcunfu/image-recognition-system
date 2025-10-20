@@ -1,4 +1,4 @@
-package com.pcf.recognition.config;
+package com.pengcunfu.recognition.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

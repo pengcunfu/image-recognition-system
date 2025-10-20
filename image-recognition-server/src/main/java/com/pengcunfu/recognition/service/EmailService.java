@@ -1,178 +1,302 @@
-package com.pcf.recognition.service;
+package com.pengcunfu.recognition.service;
 
-import com.pcf.recognition.util.RedisClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 
-import java.util.concurrent.TimeUnit;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 /**
  * 邮件服务
+ * 处理邮件发送相关业务逻辑
  */
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private final RedisClient redisClient;
 
-    private static final String EMAIL_CODE_KEY_PREFIX = "email_code:";
-    private static final int EMAIL_CODE_EXPIRE_TIME = 5; // 5分钟过期
+    @Value("${spring.mail.username:}")
+    private String from;
+
+    @Value("${spring.application.name:图像识别系统}")
+    private String appName;
 
     /**
-     * 发送邮箱验证码
-     *
-     * @param email 邮箱地址
-     * @param type  验证码类型
-     * @return 是否发送成功
+     * 检查邮件服务是否已配置
      */
-    public boolean sendEmailCode(String email, String type) {
+    private boolean isMailConfigured() {
+        return from != null && !from.trim().isEmpty();
+    }
+
+    /**
+     * 发送简单文本邮件
+     */
+    @Async
+    public void sendSimpleEmail(String to, String subject, String content) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送邮件: to={}, subject={}", to, subject);
+            return;
+        }
+
         try {
-            // 生成6位数字验证码
-            String code = generateEmailCode();
+            log.info("发送简单邮件: to={}, subject={}", to, subject);
 
-            // 构建邮件内容
-            String subject = getEmailSubject(type);
-            String content = getEmailContent(code, type);
-
-            // 发送邮件
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("图像识别系统 <huaqiwill@qq.com>");
-            message.setTo(email);
+            message.setFrom(from);
+            message.setTo(to);
             message.setSubject(subject);
             message.setText(content);
 
             mailSender.send(message);
 
-            // 将验证码存储到Redis
-            String redisKey = RedisClient.buildKey(EMAIL_CODE_KEY_PREFIX, type, email);
-            redisClient.setWithExpire(redisKey, code, EMAIL_CODE_EXPIRE_TIME, TimeUnit.MINUTES);
-
-            log.info("邮箱验证码发送成功: email={}, type={}, code={}", email, type, code);
-            return true;
-
+            log.info("邮件发送成功: to={}", to);
         } catch (Exception e) {
-            log.error("发送邮箱验证码失败: email={}, type={}", email, type, e);
-            return false;
+            log.error("邮件发送失败: to={}, error={}", to, e.getMessage());
         }
     }
 
     /**
-     * 验证邮箱验证码
-     *
-     * @param email 邮箱地址
-     * @param code  验证码
-     * @param type  验证码类型
-     * @return 是否验证成功
+     * 发送HTML邮件
      */
-    public boolean verifyEmailCode(String email, String code, String type) {
-        log.info("验证邮箱验证码: email={}, type={}, code={}", email, type, code);
-
-        if (email == null || code == null || type == null) {
-            return false;
+    @Async
+    public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送HTML邮件: to={}, subject={}", to, subject);
+            return;
         }
 
         try {
-            String redisKey = RedisClient.buildKey(EMAIL_CODE_KEY_PREFIX, type, email);
-            String storedCode = redisClient.get(redisKey);
+            log.info("发送HTML邮件: to={}, subject={}", to, subject);
 
-            if (storedCode == null || storedCode.isEmpty()) {
-                log.warn("邮箱验证码不存在或已过期: email={}, type={}", email, type);
-                return false;
-            }
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            boolean isValid = storedCode.equals(code.trim());
-            if (isValid) {
-                // 验证成功后删除验证码
-                redisClient.delete(redisKey);
-                log.info("邮箱验证码验证成功: email={}, type={}", email, type);
-            } else {
-                log.warn("邮箱验证码验证失败: email={}, type={}, expected={}, actual={}",
-                        email, type, storedCode, code);
-            }
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
 
-            return isValid;
+            mailSender.send(message);
 
+            log.info("HTML邮件发送成功: to={}", to);
+        } catch (MessagingException e) {
+            log.error("HTML邮件发送失败: to={}, error={}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * 发送验证码邮件
+     */
+    @Async
+    public void sendVerificationCode(String to, String code, String type) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送验证码邮件: to={}, type={}", to, type);
+            return;
+        }
+
+        try {
+            log.info("发送验证码邮件: to={}, type={}", to, type);
+
+            String subject = getVerificationSubject(type);
+            String htmlContent = buildVerificationCodeHtml(code, type);
+
+            sendHtmlEmail(to, subject, htmlContent);
         } catch (Exception e) {
-            log.error("验证邮箱验证码时发生异常: email={}, type={}", email, type, e);
-            return false;
+            log.error("验证码邮件发送失败: to={}, error={}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * 发送欢迎邮件
+     */
+    @Async
+    public void sendWelcomeEmail(String to, String username) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送欢迎邮件: to={}, username={}", to, username);
+            return;
+        }
+
+        try {
+            log.info("发送欢迎邮件: to={}, username={}", to, username);
+
+            String subject = "欢迎加入" + appName;
+            String htmlContent = buildWelcomeEmailHtml(username);
+
+            sendHtmlEmail(to, subject, htmlContent);
+        } catch (Exception e) {
+            log.error("欢迎邮件发送失败: to={}, error={}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * 发送密码重置邮件
+     */
+    @Async
+    public void sendPasswordResetEmail(String to, String username, String code) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送密码重置邮件: to={}, username={}", to, username);
+            return;
+        }
+
+        try {
+            log.info("发送密码重置邮件: to={}, username={}", to, username);
+
+            String subject = appName + " - 密码重置";
+            String htmlContent = buildPasswordResetHtml(username, code);
+
+            sendHtmlEmail(to, subject, htmlContent);
+        } catch (Exception e) {
+            log.error("密码重置邮件发送失败: to={}, error={}", to, e.getMessage());
+        }
+    }
+
+    /**
+     * 发送系统通知邮件
+     */
+    @Async
+    public void sendNotificationEmail(String to, String title, String content) {
+        if (!isMailConfigured()) {
+            log.warn("邮件服务未配置，跳过发送系统通知邮件: to={}, title={}", to, title);
+            return;
+        }
+
+        try {
+            log.info("发送系统通知邮件: to={}, title={}", to, title);
+
+            String subject = appName + " - " + title;
+            String htmlContent = buildNotificationEmailHtml(title, content);
+
+            sendHtmlEmail(to, subject, htmlContent);
+        } catch (Exception e) {
+            log.error("系统通知邮件发送失败: to={}, error={}", to, e.getMessage());
         }
     }
 
     /**
      * 生成6位数字验证码
      */
-    private String generateEmailCode() {
-        return String.format("%06d", (int) (Math.random() * 1000000));
+    public String generateVerificationCode() {
+        Random random = new Random();
+        int code = 100000 + random.nextInt(900000);
+        return String.valueOf(code);
     }
 
     /**
-     * 获取邮件主题
+     * 获取验证码邮件主题
      */
-    private String getEmailSubject(String type) {
+    private String getVerificationSubject(String type) {
         switch (type) {
             case "register":
-                return "【图像识别系统】注册验证码";
-            case "forgot_password":
-                return "【图像识别系统】找回密码验证码";
-            case "change_email":
-                return "【图像识别系统】更换邮箱验证码";
+                return appName + " - 注册验证码";
+            case "reset":
+                return appName + " - 密码重置验证码";
+            case "bind":
+                return appName + " - 邮箱绑定验证码";
             default:
-                return "【图像识别系统】验证码";
+                return appName + " - 验证码";
         }
     }
 
     /**
-     * 获取邮件内容
+     * 构建验证码邮件HTML内容
      */
-    private String getEmailContent(String code, String type) {
-        String action;
+    private String buildVerificationCodeHtml(String code, String type) {
+        try {
+            String template = loadTemplate("email_template/verification-code.html");
+            String purpose = getVerificationPurpose(type);
+            
+            return template
+                    .replace("{{appName}}", appName)
+                    .replace("{{code}}", code)
+                    .replace("{{purpose}}", purpose);
+        } catch (IOException e) {
+            log.error("加载验证码邮件模板失败", e);
+            throw new RuntimeException("邮件模板加载失败", e);
+        }
+    }
+
+    /**
+     * 构建欢迎邮件HTML内容
+     */
+    private String buildWelcomeEmailHtml(String username) {
+        try {
+            String template = loadTemplate("email_template/welcome.html");
+            return template
+                    .replace("{{appName}}", appName)
+                    .replace("{{username}}", username);
+        } catch (IOException e) {
+            log.error("加载欢迎邮件模板失败", e);
+            throw new RuntimeException("邮件模板加载失败", e);
+        }
+    }
+
+    /**
+     * 构建密码重置邮件HTML内容
+     */
+    private String buildPasswordResetHtml(String username, String code) {
+        try {
+            String template = loadTemplate("email_template/password-reset.html");
+            return template
+                    .replace("{{appName}}", appName)
+                    .replace("{{username}}", username)
+                    .replace("{{code}}", code);
+        } catch (IOException e) {
+            log.error("加载密码重置邮件模板失败", e);
+            throw new RuntimeException("邮件模板加载失败", e);
+        }
+    }
+
+    /**
+     * 构建通知邮件HTML内容
+     */
+    private String buildNotificationEmailHtml(String title, String content) {
+        try {
+            String template = loadTemplate("email_template/notification.html");
+            return template
+                    .replace("{{appName}}", appName)
+                    .replace("{{title}}", title)
+                    .replace("{{content}}", content);
+        } catch (IOException e) {
+            log.error("加载通知邮件模板失败", e);
+            throw new RuntimeException("邮件模板加载失败", e);
+        }
+    }
+
+    /**
+     * 加载邮件模板
+     */
+    private String loadTemplate(String templatePath) throws IOException {
+        ClassPathResource resource = new ClassPathResource(templatePath);
+        return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 获取验证码用途描述
+     */
+    private String getVerificationPurpose(String type) {
         switch (type) {
             case "register":
-                action = "注册账号";
-                break;
-            case "forgot_password":
-                action = "找回密码";
-                break;
-            case "change_email":
-                action = "更换邮箱";
-                break;
+                return "注册账号";
+            case "reset":
+                return "重置密码";
+            case "bind":
+                return "绑定邮箱";
             default:
-                action = "验证操作";
+                return "验证身份";
         }
-
-        return String.format(
-                "您好！\n\n" +
-                        "您正在进行%s操作，验证码为：%s\n\n" +
-                        "验证码有效期为5分钟，请及时使用。\n" +
-                        "如果这不是您的操作，请忽略此邮件。\n\n" +
-                        "图像识别系统\n" +
-                        "%s",
-                action, code, java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-        );
-    }
-
-    /**
-     * 邮箱地址脱敏
-     */
-    public String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            return email;
-        }
-
-        String[] parts = email.split("@");
-        String localPart = parts[0];
-        String domain = parts[1];
-
-        if (localPart.length() <= 2) {
-            return email;
-        }
-
-        String maskedLocal = localPart.charAt(0) + "***" + localPart.charAt(localPart.length() - 1);
-        return maskedLocal + "@" + domain;
     }
 }
+

@@ -1,6 +1,6 @@
-package com.pcf.recognition.util;
+package com.pengcunfu.recognition.util;
 
-import com.pcf.recognition.config.VolcengineConfig;
+import com.pengcunfu.recognition.config.VolcengineConfig;
 import com.volcengine.tos.TOSV2;
 import com.volcengine.tos.TOSV2ClientBuilder;
 import com.volcengine.tos.TosException;

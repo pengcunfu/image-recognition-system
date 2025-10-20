@@ -1,569 +1,71 @@
-package com.pcf.recognition.controller;
+package com.pengcunfu.recognition.controller;
 
-import com.pcf.recognition.dto.*;
-import com.pcf.recognition.dto.AuthDto.*;
-import com.pcf.recognition.dto.UserDto.*;
-import com.pcf.recognition.service.UserService;
-import com.pcf.recognition.util.SecurityUtil;
-
-
+import com.pengcunfu.recognition.request.UserRequest;
+import com.pengcunfu.recognition.response.ApiResponse;
+import com.pengcunfu.recognition.response.UserResponse;
+import com.pengcunfu.recognition.security.SecurityContextHolder;
+import com.pengcunfu.recognition.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
-
-import java.util.*;
+import javax.validation.Valid;
 
 /**
- * 用户信息管理控制器
- * 提供用户资料、统计数据、收藏等功能
+ * 用户控制器
  */
-
-@RestController
-@RequestMapping("/api/v1/user")
 @Slf4j
+@RestController
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-
+    /**
+     * 获取当前用户信息
+     */
     @GetMapping("/profile")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserInfoDto> getUserProfile() {
-
-        log.info("获取用户信息请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        UserInfoDto userInfo = userService.getUserInfo(userId);
-
-        if (userInfo != null) {
-            return ApiResponse.success(userInfo, "获取用户信息成功");
-        } else {
-            return ApiResponse.error("用户不存在");
-        }
+    public ApiResponse<UserResponse.UserInfo> getProfile() {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取用户信息: userId={}", userId);
+        UserResponse.UserInfo userInfo = userService.getUserInfo(userId);
+        return ApiResponse.success(userInfo);
     }
 
-
+    /**
+     * 更新用户信息
+     */
     @PutMapping("/profile")
-    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> updateUserProfile(@Valid @RequestBody UserUpdateRequest request) {
-
-        log.info("更新用户信息请求: name={}", request.getName());
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        boolean success = userService.updateUserInfo(userId, request);
-
-        if (success) {
-            return ApiResponse.success(null, "用户信息更新成功");
-        } else {
-            return ApiResponse.error("用户不存在或更新失败");
-        }
+    public ApiResponse<Void> updateProfile(
+            @Valid @RequestBody UserRequest.UpdateProfileRequest request) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("更新用户信息: userId={}", userId);
+        userService.updateUserInfo(userId, request);
+        return ApiResponse.success();
     }
 
+    /**
+     * 修改密码
+     */
+    @PostMapping("/change-password")
+    public ApiResponse<Void> changePassword(
+            @Valid @RequestBody UserRequest.ChangePasswordRequest request) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("修改密码: userId={}", userId);
+        userService.changePassword(userId, request);
+        return ApiResponse.success();
+    }
 
+    /**
+     * 获取用户统计信息
+     */
     @GetMapping("/stats")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserStatsDto> getUserStats() {
-
-        log.info("获取用户统计数据请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        UserStatsDto stats = userService.getUserStats(userId);
-
-        return ApiResponse.success(stats, "获取统计数据成功");
+    public ApiResponse<UserResponse.UserStats> getUserStats() {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取用户统计: userId={}", userId);
+        UserResponse.UserStats stats = userService.getUserStats(userId);
+        return ApiResponse.success(stats);
     }
-
-
-    @PutMapping("/password")
-    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> changePassword(@Valid @RequestBody UserDto.ChangePasswordRequest request) {
-
-        log.info("用户修改密码请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        try {
-            boolean success = userService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
-
-            if (success) {
-                return ApiResponse.success(null, "密码修改成功");
-            } else {
-                return ApiResponse.error("用户不存在");
-            }
-        } catch (IllegalArgumentException e) {
-            return ApiResponse.error(e.getMessage());
-        }
-    }
-
-
-    @GetMapping("/settings")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserSettingsDto> getUserSettings() {
-
-        log.info("获取用户设置请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        UserSettingsDto settings = userService.getUserSettings(userId);
-
-        return ApiResponse.success(settings, "获取设置成功");
-    }
-
-
-    @PutMapping("/settings")
-    @PreAuthorize("hasAnyRole('USER', 'VIP', 'ADMIN')")
-    public ApiResponse<String> updateUserSettings(@Valid @RequestBody UserSettingsDto settings) {
-
-        log.info("更新用户设置请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        boolean success = userService.updateUserSettings(userId, settings);
-
-        if (success) {
-            return ApiResponse.success(null, "设置保存成功");
-        } else {
-            return ApiResponse.error("保存设置失败");
-        }
-    }
-
-
-    @GetMapping("/statistics")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<UserStatsDto> getUserStatistics() {
-        log.info("获取用户统计数据请求");
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        UserStatsDto stats = userService.getUserStats(userId); // 使用统一的方法
-
-        if (stats != null) {
-            return ApiResponse.success(stats, "获取统计数据成功");
-        } else {
-            return ApiResponse.error("用户不存在");
-        }
-    }
-
-
-    @GetMapping("/activities")
-    @PreAuthorize("isAuthenticated()")
-    public ApiResponse<List<UserActivityDto>> getUserActivities(@RequestParam(defaultValue = "10") Integer limit) {
-        log.info("获取用户活动记录请求: limit={}", limit);
-
-        // 从Spring Security上下文中获取当前用户ID
-        Long userId = SecurityUtil.getCurrentUserId();
-        if (userId == null) {
-            return ApiResponse.error("用户未登录");
-        }
-
-        List<UserActivityDto> activities = userService.getUserActivities(userId, limit);
-
-        return ApiResponse.success(activities, "获取活动记录成功");
-    }
-
-    // ==================== 管理员用户管理接口 ====================
-
-    @GetMapping("/list")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserListResponse> getUsers(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Integer role,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "createTime") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortOrder) {
-        
-        log.info("管理员获取用户列表: page={}, size={}, keyword={}, role={}, status={}", 
-                page, size, keyword, role, status);
-
-        try {
-            UserListResponse result = userService.getUserList(page, size, keyword, role, status, sortBy, sortOrder);
-            return ApiResponse.success(result, "获取用户列表成功");
-        } catch (Exception e) {
-            log.error("获取用户列表失败", e);
-            return ApiResponse.error("获取用户列表失败");
-        }
-    }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserInfoDto> getUserDetail(@PathVariable Long id) {
-        log.info("管理员获取用户详情: id={}", id);
-
-        try {
-            UserInfoDto userInfo = userService.getUserInfo(id);
-            if (userInfo != null) {
-                return ApiResponse.success(userInfo, "获取用户详情成功");
-            } else {
-                return ApiResponse.error("用户不存在");
-            }
-        } catch (Exception e) {
-            log.error("获取用户详情失败", e);
-            return ApiResponse.error("获取用户详情失败");
-        }
-    }
-
-    @PostMapping("/create")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<CreateUserResponseDto> createUser(@Valid @RequestBody AdminUserCreateRequest request) {
-        log.info("管理员创建用户: username={}, email={}, role={}", 
-                request.getUsername(), request.getEmail(), request.getRole());
-
-        try {
-            CreateUserResponseDto result = userService.createUser(request);
-            if (result.getSuccess()) {
-                return ApiResponse.success(result, "用户创建成功");
-            } else {
-                return ApiResponse.error(result.getMessage());
-            }
-        } catch (Exception e) {
-            log.error("创建用户失败", e);
-            return ApiResponse.error("创建用户失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> updateUser(@PathVariable Long id, @Valid @RequestBody AdminUserUpdateRequest request) {
-        log.info("管理员更新用户: id={}", id);
-
-        try {
-            boolean success = userService.updateUser(id, request);
-            if (success) {
-                return ApiResponse.success(null, "用户更新成功");
-            } else {
-                return ApiResponse.error("用户不存在或更新失败");
-            }
-        } catch (Exception e) {
-            log.error("更新用户失败", e);
-            return ApiResponse.error("更新用户失败: " + e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
-        log.info("管理员删除用户: id={}", id);
-
-        try {
-            boolean success = userService.deleteUser(id);
-            if (success) {
-                return ApiResponse.success(null, "用户删除成功");
-            } else {
-                return ApiResponse.error("用户不存在或删除失败");
-            }
-        } catch (Exception e) {
-            log.error("删除用户失败", e);
-            return ApiResponse.error("删除用户失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> toggleUserStatus(@PathVariable Long id, @RequestBody Map<String, String> request) {
-        String status = request.get("status");
-        log.info("管理员切换用户状态: id={}, status={}", id, status);
-
-        try {
-            boolean success = userService.updateUserStatus(id, status);
-            if (success) {
-                return ApiResponse.success(null, "用户状态更新成功");
-            } else {
-                return ApiResponse.error("用户不存在或状态更新失败");
-            }
-        } catch (Exception e) {
-            log.error("更新用户状态失败", e);
-            return ApiResponse.error("更新用户状态失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{id}/password")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> request) {
-        String newPassword = request.get("newPassword");
-        log.info("管理员重置用户密码: id={}", id);
-
-        try {
-            boolean success = userService.resetUserPassword(id, newPassword);
-            if (success) {
-                return ApiResponse.success(null, "密码重置成功");
-            } else {
-                return ApiResponse.error("用户不存在或密码重置失败");
-            }
-        } catch (Exception e) {
-            log.error("重置用户密码失败", e);
-            return ApiResponse.error("重置密码失败: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/batch")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<BatchOperationResultDto> batchUpdateUsers(@RequestBody BatchUserOperationRequest request) {
-        log.info("管理员批量操作用户: action={}, userIds={}", request.getAction(), request.getUserIds());
-
-        try {
-            BatchOperationResultDto result = userService.batchUpdateUsers(request.getUserIds(), request.getAction());
-            return ApiResponse.success(result, "批量操作完成");
-        } catch (Exception e) {
-            log.error("批量操作用户失败", e);
-            return ApiResponse.error("批量操作失败: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/overview")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserOverviewDto> getUsersOverview() {
-        log.info("管理员获取用户概览");
-
-        try {
-            UserOverviewDto overview = userService.getUsersOverview();
-            return ApiResponse.success(overview, "获取用户概览成功");
-        } catch (Exception e) {
-            log.error("获取用户概览失败", e);
-            return ApiResponse.error("获取用户概览失败");
-        }
-    }
-
-    @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserListResponse> searchUsers(
-            @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size,
-            @RequestParam(required = false) Integer role,
-            @RequestParam(required = false) Integer status) {
-        
-        log.info("管理员搜索用户: keyword={}, page={}, size={}", keyword, page, size);
-
-        try {
-            UserListResponse result = userService.searchUsers(keyword, page, size, role, status);
-            return ApiResponse.success(result, "搜索用户成功");
-        } catch (Exception e) {
-            log.error("搜索用户失败", e);
-            return ApiResponse.error("搜索用户失败");
-        }
-    }
-
-    @GetMapping("/{id}/login-history")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserLoginHistoryDto> getUserLoginHistory(
-            @PathVariable Long id,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size) {
-        
-        log.info("管理员获取用户登录历史: id={}, page={}, size={}", id, page, size);
-
-        try {
-            UserLoginHistoryDto history = userService.getUserLoginHistory(id, page, size);
-            return ApiResponse.success(history, "获取登录历史成功");
-        } catch (Exception e) {
-            log.error("获取用户登录历史失败", e);
-            return ApiResponse.error("获取登录历史失败");
-        }
-    }
-
-    // ==================== VIP管理接口 ====================
-
-    @GetMapping("/vip/list")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserListResponse> getVipUsers(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "20") Integer size,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String level,
-            @RequestParam(required = false) String status) {
-        
-        log.info("管理员获取VIP用户列表: page={}, size={}, keyword={}, level={}, status={}", 
-                page, size, keyword, level, status);
-
-        try {
-            UserListResponse result = userService.getVipUserList(page, size, keyword, level, status);
-            return ApiResponse.success(result, "获取VIP用户列表成功");
-        } catch (Exception e) {
-            log.error("获取VIP用户列表失败", e);
-            return ApiResponse.error("获取VIP用户列表失败");
-        }
-    }
-
-    @GetMapping("/vip/stats")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<VipStatsDto> getVipStats() {
-        log.info("管理员获取VIP统计数据");
-
-        try {
-            VipStatsDto stats = userService.getVipStats();
-            return ApiResponse.success(stats, "获取VIP统计数据成功");
-        } catch (Exception e) {
-            log.error("获取VIP统计数据失败", e);
-            return ApiResponse.error("获取VIP统计数据失败");
-        }
-    }
-
-    @GetMapping("/admin/dashboard/stats")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<AdminDashboardStatsDto> getAdminDashboardStats() {
-        log.info("管理员获取仪表盘统计数据");
-
-        try {
-            AdminDashboardStatsDto stats = userService.getAdminDashboardStats();
-            return ApiResponse.success(stats, "获取仪表盘统计数据成功");
-        } catch (Exception e) {
-            log.error("获取仪表盘统计数据失败", e);
-            return ApiResponse.error("获取仪表盘统计数据失败");
-        }
-    }
-
-    @PutMapping("/vip/{id}/extend")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> extendVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        Integer days = (Integer) request.get("days");
-        String reason = (String) request.get("reason");
-        log.info("管理员延期VIP: id={}, days={}", id, days);
-
-        try {
-            boolean success = userService.extendVip(id, days, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP延期成功");
-            } else {
-                return ApiResponse.error("VIP延期失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP延期失败", e);
-            return ApiResponse.error("VIP延期失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/vip/{id}/upgrade")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> upgradeVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        Integer level = (Integer) request.get("level");
-        String reason = (String) request.get("reason");
-        log.info("管理员升级VIP: id={}, level={}", id, level);
-
-        try {
-            boolean success = userService.upgradeVip(id, level, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP升级成功");
-            } else {
-                return ApiResponse.error("VIP升级失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP升级失败", e);
-            return ApiResponse.error("VIP升级失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/vip/{id}/downgrade")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> downgradeVip(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        Integer level = (Integer) request.get("level");
-        String reason = (String) request.get("reason");
-        log.info("管理员降级VIP: id={}, level={}", id, level);
-
-        try {
-            boolean success = userService.downgradeVip(id, level, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP降级成功");
-            } else {
-                return ApiResponse.error("VIP降级失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP降级失败", e);
-            return ApiResponse.error("VIP降级失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/vip/{id}/toggle")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> toggleVipStatus(@PathVariable Long id, @RequestBody Map<String, Object> request) {
-        String action = (String) request.get("action");
-        String reason = (String) request.get("reason");
-        log.info("管理员切换VIP状态: id={}, action={}", id, action);
-
-        try {
-            boolean success = userService.toggleVipStatus(id, action, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP状态切换成功");
-            } else {
-                return ApiResponse.error("VIP状态切换失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP状态切换失败", e);
-            return ApiResponse.error("VIP状态切换失败: " + e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/vip/{id}/revoke")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> revokeVip(@PathVariable Long id, @RequestBody(required = false) Map<String, String> request) {
-        String reason = request != null ? request.get("reason") : null;
-        log.info("管理员撤销VIP: id={}", id);
-
-        try {
-            boolean success = userService.revokeVip(id, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP撤销成功");
-            } else {
-                return ApiResponse.error("VIP撤销失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP撤销失败", e);
-            return ApiResponse.error("VIP撤销失败: " + e.getMessage());
-        }
-    }
-
-    @PutMapping("/vip/{id}/reset-usage")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<Void> resetVipUsage(@PathVariable Long id, @RequestBody(required = false) Map<String, String> request) {
-        String reason = request != null ? request.get("reason") : null;
-        log.info("管理员重置VIP用量: id={}", id);
-
-        try {
-            boolean success = userService.resetVipUsage(id, reason);
-            if (success) {
-                return ApiResponse.success(null, "VIP用量重置成功");
-            } else {
-                return ApiResponse.error("VIP用量重置失败");
-            }
-        } catch (Exception e) {
-            log.error("VIP用量重置失败", e);
-            return ApiResponse.error("VIP用量重置失败: " + e.getMessage());
-        }
-    }
-
 }
+

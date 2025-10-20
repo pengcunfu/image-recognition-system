@@ -1,177 +1,152 @@
-package com.pcf.recognition.exception;
+package com.pengcunfu.recognition.exception;
 
-import com.pcf.recognition.dto.ApiResponse;
+import com.pengcunfu.recognition.constant.ErrorCode;
+import com.pengcunfu.recognition.constant.MessageConstants;
+import com.pengcunfu.recognition.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
-import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.stream.Collectors;
 
 /**
  * 全局异常处理器
+ * 统一处理系统中的各种异常
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * 处理访问拒绝异常（403）
-     * 将 Spring Security 的 403 错误转换为 200 状态码 + ApiResponse 错误格式
+     * 处理业务异常
      */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException e) {
-        log.warn("访问被拒绝: {}", e.getMessage());
-        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
-        return ResponseEntity.ok(ApiResponse.error(403, "访问被拒绝，请先登录"));
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleBusinessException(BusinessException e, HttpServletRequest request) {
+        log.warn("业务异常: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
      * 处理认证异常
      */
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthenticationException(AuthenticationException e) {
-        log.warn("认证失败: {}", e.getMessage());
-        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
-        return ResponseEntity.ok(ApiResponse.error(401, "认证失败，请重新登录"));
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleAuthenticationException(AuthenticationException e, HttpServletRequest request) {
+        log.warn("认证异常: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
-     * 处理认证凭据不足异常
+     * 处理授权异常
      */
-    @ExceptionHandler(InsufficientAuthenticationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInsufficientAuthenticationException(InsufficientAuthenticationException e) {
-        log.warn("认证凭据不足: {}", e.getMessage());
-        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
-        return ResponseEntity.ok(ApiResponse.error(401, "认证凭据不足，请重新登录"));
+    @ExceptionHandler(AuthorizationException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleAuthorizationException(AuthorizationException e, HttpServletRequest request) {
+        log.warn("授权异常: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
-     * 处理认证凭据未找到异常
+     * 处理资源不存在异常
      */
-    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthenticationCredentialsNotFoundException(AuthenticationCredentialsNotFoundException e) {
-        log.warn("认证凭据未找到: {}", e.getMessage());
-        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
-        return ResponseEntity.ok(ApiResponse.error(401, "未找到认证凭据，请先登录"));
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleResourceNotFoundException(ResourceNotFoundException e, HttpServletRequest request) {
+        log.warn("资源不存在: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
-     * 处理错误的认证凭据异常
+     * 处理限流异常
      */
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBadCredentialsException(BadCredentialsException e) {
-        log.warn("认证凭据错误: {}", e.getMessage());
-        // 返回 200 状态码，但在 ApiResponse 中标识为认证失败
-        return ResponseEntity.ok(ApiResponse.error(401, "认证凭据错误，请重新登录"));
+    @ExceptionHandler(RateLimitException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleRateLimitException(RateLimitException e, HttpServletRequest request) {
+        log.warn("限流异常: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
-     * 处理HTTP请求方法不支持异常
+     * 处理文件异常
      */
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ApiResponse<Object>> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
-        String supportedMethods = String.join(", ", e.getSupportedMethods());
-        String message = String.format("请求方法 '%s' 不被支持，支持的方法: %s", e.getMethod(), supportedMethods);
-
-        log.warn("HTTP请求方法不支持: 请求方法={}, 支持的方法={}", e.getMethod(), supportedMethods);
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(ApiResponse.error(405, message));
+    @ExceptionHandler(FileException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleFileException(FileException e, HttpServletRequest request) {
+        log.warn("文件异常: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
     /**
-     * 处理参数验证异常
+     * 处理参数校验异常（@Valid）
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleValidationException(MethodArgumentNotValidException e) {
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException e, HttpServletRequest request) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
-
-        log.warn("参数验证失败: {}", message);
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(400, "参数验证失败: " + message));
+                .collect(Collectors.joining("; "));
+        log.warn("参数校验异常: {} - {}", request.getRequestURI(), message);
+        return ApiResponse.error(ErrorCode.PARAM_ERROR, message);
     }
 
     /**
      * 处理绑定异常
      */
     @ExceptionHandler(BindException.class)
-    public ResponseEntity<ApiResponse<Object>> handleBindException(BindException e) {
-        String message = e.getFieldErrors().stream()
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleBindException(BindException e, HttpServletRequest request) {
+        String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
-
-        log.warn("参数绑定失败: {}", message);
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(400, "参数绑定失败: " + message));
+                .collect(Collectors.joining("; "));
+        log.warn("绑定异常: {} - {}", request.getRequestURI(), message);
+        return ApiResponse.error(ErrorCode.PARAM_ERROR, message);
     }
 
     /**
-     * 处理约束违反异常
-     */
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleConstraintViolationException(ConstraintViolationException e) {
-        String message = e.getConstraintViolations().stream()
-                .map(ConstraintViolation::getMessage)
-                .collect(Collectors.joining(", "));
-
-        log.warn("约束验证失败: {}", message);
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(400, "约束验证失败: " + message));
-    }
-
-    /**
-     * 处理文件上传大小超限异常
+     * 处理文件大小超限异常
      */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiResponse<Object>> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        log.warn("文件上传大小超限: {}", e.getMessage());
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(400, "文件大小超出限制"));
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e, HttpServletRequest request) {
+        log.warn("文件大小超限: {}", request.getRequestURI());
+        return ApiResponse.error(ErrorCode.FILE_SIZE_ERROR, MessageConstants.FILE_SIZE_ERROR);
     }
 
     /**
      * 处理非法参数异常
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<Object>> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.warn("非法参数异常: {}", e.getMessage());
-        return ResponseEntity.badRequest()
-                .body(ApiResponse.error(400, e.getMessage()));
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
+        log.warn("非法参数: {} - {}", request.getRequestURI(), e.getMessage());
+        return ApiResponse.error(ErrorCode.PARAM_ERROR, e.getMessage());
     }
 
     /**
-     * 处理运行时异常
+     * 处理空指针异常
      */
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException e) {
-        log.error("运行时异常: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(500, "服务内部错误: " + e.getMessage()));
+    @ExceptionHandler(NullPointerException.class)
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleNullPointerException(NullPointerException e, HttpServletRequest request) {
+        log.error("空指针异常: {}", request.getRequestURI(), e);
+        return ApiResponse.error(ErrorCode.SYSTEM_ERROR, MessageConstants.SYSTEM_ERROR);
     }
 
     /**
-     * 处理其他异常
+     * 处理其他未捕获的异常
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleException(Exception e) {
-        log.error("未处理的异常: {}", e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(500, "系统错误，请稍后重试"));
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Void> handleException(Exception e, HttpServletRequest request) {
+        log.error("系统异常: {}", request.getRequestURI(), e);
+        return ApiResponse.error(ErrorCode.SYSTEM_ERROR, MessageConstants.SYSTEM_ERROR);
     }
 }

@@ -2,10 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { message } from 'ant-design-vue'
 
-// 路由组件
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
+// 公共页面组件
+import LoginView from '@/views/common/LoginView.vue'
+import RegisterView from '@/views/common/RegisterView.vue'
+import ForgotPasswordView from '@/views/common/ForgotPasswordView.vue'
+import AboutView from '@/views/common/AboutView.vue'
+import ContactView from '@/views/common/ContactView.vue'
+import PrivacyView from '@/views/common/PrivacyView.vue'
+import TermsView from '@/views/common/TermsView.vue'
 
 // 管理员组件
 import DashboardLayout from '@/layout/DashboardLayout.vue'
@@ -34,17 +38,11 @@ import PostDetailView from '@/views/user/PostDetailView.vue'
 import KnowledgeDetailView from '@/views/user/KnowledgeDetailView.vue'
 import RecognitionDetailView from '@/views/user/RecognitionDetailView.vue'
 
-// VIP用户组件
-import AdvancedRecognitionView from '@/views/vip/AdvancedRecognitionView.vue'
-import VipAnalyticsView from '@/views/vip/VipAnalyticsView.vue'
-import AiTrainingView from '@/views/vip/AiTrainingView.vue'
-import ApiAccessView from '@/views/vip/ApiAccessView.vue'
-
-// 公共页面组件
-import AboutView from '@/views/AboutView.vue'
-import ContactView from '@/views/ContactView.vue'
-import PrivacyView from '@/views/PrivacyView.vue'
-import TermsView from '@/views/TermsView.vue'
+// VIP功能组件（已合并到 user 目录）
+import AdvancedRecognitionView from '@/views/user/AdvancedRecognitionView.vue'
+import VipAnalyticsView from '@/views/user/VipAnalyticsView.vue'
+import AiTrainingView from '@/views/user/AiTrainingView.vue'
+import ApiAccessView from '@/views/user/ApiAccessView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {

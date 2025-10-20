@@ -1,4 +1,4 @@
-package com.pcf.recognition;
+package com.pengcunfu.recognition;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

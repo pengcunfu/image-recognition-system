@@ -1,4 +1,4 @@
-import request, { baseURL } from '@/utils/request'
+import { get, post, put, del, upload, download, baseURL } from '@/utils/request'
 import { ImageUtils } from '@/utils/image'
 import { formatFileSize, getFileTypeIcon } from '@/utils/helpers'
 import type {
@@ -37,7 +37,7 @@ export class FileAPI {
       }
     }
 
-    return request.upload<FileUploadResult>('/api/v1/files/upload', file)
+    return upload<FileUploadResult>('/api/v1/files/upload', file)
   }
 
   /**
@@ -61,7 +61,7 @@ export class FileAPI {
         })
         
         if (!isAllowed) {
-          return Promise.reject(new Error(`文件 ${file.name} 类型不支持，仅支持: ${config.allowedTypes.join(', ')}`))
+          return Promise.reject(new Error(`文件 ${file.name} 类型不支持，仅支） ${config.allowedTypes.join(', ')}`))
         }
       }
     }
@@ -71,12 +71,12 @@ export class FileAPI {
       formData.append('files', file)
     })
 
-    return request.upload<FileUploadResult[]>('/api/v1/files/upload/batch', formData)
+    return upload<FileUploadResult[]>('/api/v1/files/upload/batch', formData)
   }
 
   /**
    * 获取完整的图片URL（支持相对路径和完整URL）
-   * @deprecated 请使用 ImageUtils.getImageUrl
+   * @deprecated 请使）ImageUtils.getImageUrl
    */
   static getImageUrl(url: string | undefined | null): string {
     return ImageUtils.getImageUrl(url)
@@ -84,7 +84,7 @@ export class FileAPI {
 
   /**
    * 检查是否为有效的图片URL
-   * @deprecated 请使用 ImageUtils.isValidImageUrl
+   * @deprecated 请使）ImageUtils.isValidImageUrl
    */
   static isValidImageUrl(url: string | undefined | null): boolean {
     return ImageUtils.isValidImageUrl(url)
@@ -92,7 +92,7 @@ export class FileAPI {
 
   /**
    * 从JSON数组中获取第一张图片URL
-   * @deprecated 请使用 ImageUtils.getFirstImage
+   * @deprecated 请使）ImageUtils.getFirstImage
    */
   static getFirstImage(imagesJson: string | null | undefined): string {
     return ImageUtils.getFirstImage(imagesJson)
@@ -107,7 +107,7 @@ export class FileAPI {
 
   /**
    * 获取文件预览URL
-   * @deprecated 请使用 ImageUtils.getPreviewUrl
+   * @deprecated 请使）ImageUtils.getPreviewUrl
    */
   static getPreviewUrl(fileId: string): string {
     return ImageUtils.getPreviewUrl(fileId)
@@ -121,7 +121,7 @@ export class FileAPI {
       return ''
     }
 
-    // 如果已经是完整的URL，直接返回
+    // 如果已经是完整的URL，直接返）
     if (fileId.startsWith('http://') || fileId.startsWith('https://')) {
       return fileId
     }
@@ -135,26 +135,26 @@ export class FileAPI {
    */
   static downloadFile(fileId: string, filename?: string) {
     const url = this.getDownloadUrl(fileId)
-    return request.download(url, filename)
+    return download(url, filename)
   }
 
   /**
    * 删除文件
    */
   static deleteFile(fileId: string) {
-    return request.delete<OperationResult>(`/api/v1/files/${fileId}`)
+    return del<OperationResult>(`/api/v1/files/${fileId}`)
   }
 
   /**
    * 获取文件信息
    */
   static getFileInfo(fileId: string) {
-    return request.get<FileInfo>(`/api/v1/files/${fileId}/info`)
+    return get<FileInfo>(`/api/v1/files/${fileId}/info`)
   }
 
   /**
-   * 预加载图片
-   * @deprecated 请使用 ImageUtils.preloadImage
+   * 预加载图）
+   * @deprecated 请使）ImageUtils.preloadImage
    */
   static preloadImage(fileId: string): Promise<HTMLImageElement> {
     return ImageUtils.preloadImage(fileId)
@@ -162,15 +162,15 @@ export class FileAPI {
 
   /**
    * 获取文件类型图标
-   * @deprecated 请使用 getFileTypeIcon
+   * @deprecated 请使）getFileTypeIcon
    */
   static getFileTypeIcon(contentType: string): string {
     return getFileTypeIcon(contentType)
   }
 
   /**
-   * 格式化文件大小
-   * @deprecated 请使用 formatFileSize
+   * 格式化文件大）
+   * @deprecated 请使）formatFileSize
    */
   static formatFileSize(bytes: number): string {
     return formatFileSize(bytes)
@@ -178,7 +178,7 @@ export class FileAPI {
 
   /**
    * 验证图片文件
-   * @deprecated 请使用 ImageUtils.validateImageFile
+   * @deprecated 请使）ImageUtils.validateImageFile
    */
   static validateImageFile(file: File): Promise<{
     width: number
@@ -190,7 +190,7 @@ export class FileAPI {
 
   /**
    * 压缩图片
-   * @deprecated 请使用 ImageUtils.compressImage
+   * @deprecated 请使）ImageUtils.compressImage
    */
   static compressImage(
     file: File,
@@ -204,8 +204,8 @@ export class FileAPI {
   }
 
   /**
-   * 创建文件预览缩略图
-   * @deprecated 请使用 ImageUtils.createThumbnail
+   * 创建文件预览缩略）
+   * @deprecated 请使）ImageUtils.createThumbnail
    */
   static createThumbnail(
     file: File,

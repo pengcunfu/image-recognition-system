@@ -1,4 +1,4 @@
-package com.pcf.recognition.config;
+package com.pengcunfu.recognition.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;

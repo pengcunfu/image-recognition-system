@@ -1,0 +1,26 @@
+# MySQL数据库配置
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DATABASE=image_recognition
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=123456
+
+# Redis配置
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_DATABASE=0
+
+# JWT密钥
+JWT_SECRET=
+
+# 邮件配置
+MAIL_USERNAME=
+MAIL_PASSWORD=
+
+# 豆包AI配置
+DOUBAO_API_KEY=your_doubao_api_key
+
+# 火山引擎配置
+VOLCENGINE_ACCESS_KEY_ID=your_access_key_id
+VOLCENGINE_SECRET_ACCESS_KEY=your_secret_access_key

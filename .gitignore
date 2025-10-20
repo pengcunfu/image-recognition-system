@@ -1,6 +1,2 @@
-.vscode/
-.idea/
 docs/
-.env
-target/
-uploads/
+.cursor/

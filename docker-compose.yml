@@ -1,4 +1,39 @@
 services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: image-recognition-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: image_recognition
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - ~/image-recognition-data/mysql/data:/var/lib/mysql
+      - ~/image-recognition-data/mysql/logs:/var/log/mysql
+      - ./image-recognition-server/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./image-recognition-server/image_recognition.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - image-recognition-network
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: image-recognition-redis
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "6379:6379"
+    volumes:
+      - ~/image-recognition-data/redis/data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - image-recognition-network
+
   # Spring Boot 后端
   backend:
     build:
@@ -8,28 +43,25 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: docker-remote
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      DOUBAO_API_KEY: ${DOUBAO_API_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-      VOLCENGINE_ACCESS_KEY_ID: ${VOLCENGINE_ACCESS_KEY_ID}
-      VOLCENGINE_SECRET_ACCESS_KEY: ${VOLCENGINE_SECRET_ACCESS_KEY}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123456
+      REDIS_PASSWORD: 
+      DOUBAO_API_KEY: your_doubao_api_key
+      JWT_SECRET: your_jwt_secret_key
+      VOLCENGINE_ACCESS_KEY_ID: your_volcengine_access_key
+      VOLCENGINE_SECRET_ACCESS_KEY: your_volcengine_secret_key
       TZ: Asia/Shanghai
     ports:
       - "8080:8080"
     volumes:
-      - backend_logs:/app/logs
-      - backend_uploads:/app/uploads
+      - ~/image-recognition-data/backend/logs:/app/logs
+      - ~/image-recognition-data/backend/uploads:/app/uploads
     networks:
       - image-recognition-network
-    # 移除数据库依赖，使用远程数据库
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
-      timeout: 10s
-      retries: 5
-      interval: 30s
-      start_period: 60s
+    depends_on:
+      - mysql
+      - redis
+
 
   # Vue.js 前端
   frontend:
@@ -43,17 +75,12 @@ services:
     ports:
       - "80:80"
     volumes:
-      - frontend_logs:/var/log/nginx
+      - ~/image-recognition-data/frontend/logs:/var/log/nginx
     networks:
       - image-recognition-network
     depends_on:
       - backend
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      timeout: 10s
-      retries: 3
-      interval: 30s
-      start_period: 30s
+
 
 networks:
   image-recognition-network:
@@ -61,11 +88,3 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-
-volumes:
-  backend_logs:
-    driver: local
-  backend_uploads:
-    driver: local
-  frontend_logs:
-    driver: local

@@ -1,845 +1,266 @@
-package com.pcf.recognition.service;
+package com.pengcunfu.recognition.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.pcf.recognition.dto.AuthDto.*;
-import com.pcf.recognition.dto.KnowledgeDto.*;
-import com.pcf.recognition.entity.KnowledgeCategory;
-import com.pcf.recognition.entity.KnowledgeItem;
-import com.pcf.recognition.repository.KnowledgeCategoryRepository;
-import com.pcf.recognition.repository.KnowledgeItemRepository;
+import com.pengcunfu.recognition.constant.ErrorCode;
+import com.pengcunfu.recognition.entity.Knowledge;
+import com.pengcunfu.recognition.entity.UserLike;
+import com.pengcunfu.recognition.entity.UserCollect;
+import com.pengcunfu.recognition.enums.KnowledgeStatus;
+import com.pengcunfu.recognition.enums.TargetType;
+import com.pengcunfu.recognition.exception.BusinessException;
+import com.pengcunfu.recognition.repository.KnowledgeRepository;
+import com.pengcunfu.recognition.repository.UserLikeRepository;
+import com.pengcunfu.recognition.repository.UserCollectRepository;
+import com.pengcunfu.recognition.response.KnowledgeResponse;
+import com.pengcunfu.recognition.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 知识库服务
- * 处理知识库浏览、搜索等业务逻辑
+ * 处理知识条目相关业务逻辑
  */
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class KnowledgeService {
 
-    private final KnowledgeCategoryRepository knowledgeCategoryRepository;
-    private final KnowledgeItemRepository knowledgeItemRepository;
+    private final KnowledgeRepository knowledgeRepository;
+    private final UserLikeRepository userLikeRepository;
+    private final UserCollectRepository userCollectRepository;
 
     /**
-     * 获取知识分类
+     * 获取知识列表
      */
-    public List<KnowledgeCategoryDto> getKnowledgeCategories(Integer status, String keyword) {
-        log.info("获取知识分类: status={}, keyword={}", status, keyword);
+    public PageResponse<KnowledgeResponse.KnowledgeInfo> getKnowledgeList(
+            Integer page, Integer size, String category, String keyword) {
+        log.info("获取知识列表: page={}, size={}, category={}, keyword={}", page, size, category, keyword);
 
-        LambdaQueryWrapper<KnowledgeCategory> queryWrapper = new LambdaQueryWrapper<>();
-        
-        // 状态筛选
-        if (status != null) {
-            try {
-                KnowledgeCategory.CategoryStatus categoryStatus = KnowledgeCategory.CategoryStatus.fromValue(status);
-                queryWrapper.eq(KnowledgeCategory::getStatus, categoryStatus);
-            } catch (IllegalArgumentException e) {
-                log.warn("无效的状态值: {}", status);
-            }
-        }
-        
-        // 关键词搜索（搜索名称、键值和描述）
-        if (keyword != null && !keyword.isEmpty()) {
-            queryWrapper.and(wrapper -> 
-                wrapper.like(KnowledgeCategory::getName, keyword)
-                       .or()
-                       .like(KnowledgeCategory::getKey, keyword)
-                       .or()
-                       .like(KnowledgeCategory::getDescription, keyword)
-            );
-        }
-        
-        queryWrapper.orderByAsc(KnowledgeCategory::getSortOrder, KnowledgeCategory::getId);
+        Page<Knowledge> pageRequest = new Page<>(page, size);
 
-        List<KnowledgeCategory> categories = knowledgeCategoryRepository.selectList(queryWrapper);
+        LambdaQueryWrapper<Knowledge> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Knowledge::getStatus, KnowledgeStatus.PUBLISHED.getValue());
 
-        return categories.stream()
-                .map(this::convertToCategoryDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 获取知识条目列表
-     */
-    public KnowledgePageDto getKnowledgeItems(String category, Integer page, Integer size, String keyword) {
-        log.info("获取知识条目列表: category={}, page={}, size={}, keyword={}", category, page, size, keyword);
-
-        Page<KnowledgeItem> pageRequest = new Page<>(page, size);
-
-        LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED);
-
-        // 按分类筛选
         if (category != null && !category.isEmpty()) {
-            // 先查找分类ID
-            KnowledgeCategory categoryEntity = knowledgeCategoryRepository.selectOne(
-                    new LambdaQueryWrapper<KnowledgeCategory>()
-                            .eq(KnowledgeCategory::getKey, category)
-            );
-            if (categoryEntity != null) {
-                queryWrapper.eq(KnowledgeItem::getCategoryId, categoryEntity.getId());
-            }
+            queryWrapper.eq(Knowledge::getCategory, category);
         }
 
-        // 按关键词搜索
         if (keyword != null && !keyword.isEmpty()) {
             queryWrapper.and(wrapper -> wrapper
-                    .like(KnowledgeItem::getName, keyword)
+                    .like(Knowledge::getTitle, keyword)
                     .or()
-                    .like(KnowledgeItem::getDescription, keyword)
+                    .like(Knowledge::getContent, keyword)
                     .or()
-                    .like(KnowledgeItem::getTags, keyword)
-            );
+                    .like(Knowledge::getTags, keyword));
         }
 
-        queryWrapper.orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getId);
+        queryWrapper.orderByDesc(Knowledge::getCreatedAt);
 
-        Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
+        Page<Knowledge> pageResult = knowledgeRepository.selectPage(pageRequest, queryWrapper);
 
-        List<KnowledgeItemDto> itemDtos = result.getRecords().stream()
-                .map(this::convertToItemDto)
-                .collect(Collectors.toList());
-
-        return KnowledgePageDto.builder()
-                .items(itemDtos)
-                .total(result.getTotal())
-                .pages(result.getPages())
-                .current(result.getCurrent())
-                .size(result.getSize())
-                .keyword(keyword)
-                .category(category)
+        return PageResponse.<KnowledgeResponse.KnowledgeInfo>builder()
+                .data(pageResult.getRecords().stream()
+                        .map(this::convertToKnowledgeInfo)
+                        .collect(Collectors.toList()))
+                .total(pageResult.getTotal())
+                .page((int) pageResult.getCurrent())
+                .size((int) pageResult.getSize())
+                .pages((int) pageResult.getPages())
                 .build();
     }
 
     /**
-     * 获取知识条目详情
+     * 获取知识详情
      */
-    public KnowledgeItemDto getKnowledgeDetail(String id) {
-        log.info("获取知识条目详情: id={}", id);
+    @Transactional
+    public KnowledgeResponse.KnowledgeInfo getKnowledgeDetail(Long knowledgeId) {
+        log.info("获取知识详情: knowledgeId={}", knowledgeId);
 
-        KnowledgeItem item = knowledgeItemRepository.selectById(Long.parseLong(id));
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
 
-        if (item == null || item.getStatus() != KnowledgeItem.ItemStatus.PUBLISHED) {
-            return null;
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
         }
 
         // 增加浏览量
-        knowledgeItemRepository.update(null,
-                new LambdaUpdateWrapper<KnowledgeItem>()
-                        .eq(KnowledgeItem::getId, id)
-                        .setSql("view_count = view_count + 1")
+        knowledge.setViewCount(knowledge.getViewCount() + 1);
+        knowledgeRepository.updateById(knowledge);
+
+        return convertToKnowledgeInfo(knowledge);
+    }
+
+    /**
+     * 点赞知识
+     */
+    @Transactional
+    public void likeKnowledge(Long userId, Long knowledgeId) {
+        log.info("点赞知识: userId={}, knowledgeId={}", userId, knowledgeId);
+
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        // 检查是否已点赞
+        UserLike existingLike = userLikeRepository.selectOne(
+                new LambdaQueryWrapper<UserLike>()
+                        .eq(UserLike::getUserId, userId)
+                        .eq(UserLike::getTargetId, knowledgeId)
+                        .eq(UserLike::getTargetType, TargetType.KNOWLEDGE.getValue())
         );
 
-        return convertToItemDto(item);
+        if (existingLike != null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "已点赞过该知识");
+        }
+
+        // 创建点赞记录
+        UserLike like = new UserLike();
+        like.setUserId(userId);
+        like.setTargetId(knowledgeId);
+        like.setTargetType(TargetType.KNOWLEDGE.getValue());
+
+        userLikeRepository.insert(like);
+
+        // 更新知识点赞数
+        knowledge.setLikeCount(knowledge.getLikeCount() + 1);
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("点赞成功: userId={}, knowledgeId={}", userId, knowledgeId);
     }
 
     /**
-     * 搜索知识条目
+     * 取消点赞
      */
-    public KnowledgePageDto searchKnowledge(String keyword, Integer page, Integer size) {
-        log.info("搜索知识条目: keyword={}, page={}, size={}", keyword, page, size);
+    @Transactional
+    public void unlikeKnowledge(Long userId, Long knowledgeId) {
+        log.info("取消点赞: userId={}, knowledgeId={}", userId, knowledgeId);
 
-        Page<KnowledgeItem> pageRequest = new Page<>(page, size);
-
-        LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                .and(wrapper -> wrapper
-                        .like(KnowledgeItem::getName, keyword)
-                        .or()
-                        .like(KnowledgeItem::getDescription, keyword)
-                        .or()
-                        .like(KnowledgeItem::getContent, keyword)
-                        .or()
-                        .like(KnowledgeItem::getTags, keyword)
-                        .or()
-                        .like(KnowledgeItem::getScientificName, keyword)
-                )
-                .orderByDesc(KnowledgeItem::getViewCount);
-
-        Page<KnowledgeItem> result = knowledgeItemRepository.selectPage(pageRequest, queryWrapper);
-
-        List<KnowledgeItemDto> itemDtos = result.getRecords().stream()
-                .map(this::convertToItemDto)
-                .collect(Collectors.toList());
-
-        return KnowledgePageDto.builder()
-                .items(itemDtos)
-                .total(result.getTotal())
-                .pages(result.getPages())
-                .current(result.getCurrent())
-                .size(result.getSize())
-                .keyword(keyword)
-                .build();
-    }
-
-    /**
-     * 获取热门知识条目
-     */
-    public List<KnowledgeItemDto> getPopularKnowledge(Integer limit) {
-        log.info("获取热门知识条目: limit={}", limit);
-
-        List<KnowledgeItem> popularItems = knowledgeItemRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                        .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                        .orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount)
-                        .last("LIMIT " + limit)
+        UserLike like = userLikeRepository.selectOne(
+                new LambdaQueryWrapper<UserLike>()
+                        .eq(UserLike::getUserId, userId)
+                        .eq(UserLike::getTargetId, knowledgeId)
+                        .eq(UserLike::getTargetType, TargetType.KNOWLEDGE.getValue())
         );
 
-        return popularItems.stream()
-                .map(this::convertToItemDto)
-                .collect(Collectors.toList());
+        if (like == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "未点赞该知识");
+        }
+
+        userLikeRepository.deleteById(like.getId());
+
+        // 更新知识点赞数
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+        if (knowledge != null && knowledge.getLikeCount() > 0) {
+            knowledge.setLikeCount(knowledge.getLikeCount() - 1);
+            knowledgeRepository.updateById(knowledge);
+        }
+
+        log.info("取消点赞成功: userId={}, knowledgeId={}", userId, knowledgeId);
     }
 
     /**
-     * 获取知识统计信息
+     * 收藏知识
      */
-    public KnowledgeStatsDto getKnowledgeStats() {
-        log.info("获取知识统计信息");
+    @Transactional
+    public void collectKnowledge(Long userId, Long knowledgeId) {
+        log.info("收藏知识: userId={}, knowledgeId={}", userId, knowledgeId);
 
-        // 总分类数
-        Long totalCategories = knowledgeCategoryRepository.selectCount(
-                new LambdaQueryWrapper<KnowledgeCategory>()
-                        .eq(KnowledgeCategory::getStatus, KnowledgeCategory.CategoryStatus.ACTIVE)
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        // 检查是否已收藏
+        UserCollect existingCollect = userCollectRepository.selectOne(
+                new LambdaQueryWrapper<UserCollect>()
+                        .eq(UserCollect::getUserId, userId)
+                        .eq(UserCollect::getTargetId, knowledgeId)
+                        .eq(UserCollect::getTargetType, TargetType.KNOWLEDGE.getValue())
         );
 
-        // 总条目数
-        Long totalItems = knowledgeItemRepository.selectCount(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                        .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
+        if (existingCollect != null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "已收藏过该知识");
+        }
+
+        // 创建收藏记录
+        UserCollect collect = new UserCollect();
+        collect.setUserId(userId);
+        collect.setTargetId(knowledgeId);
+        collect.setTargetType(TargetType.KNOWLEDGE.getValue());
+
+        userCollectRepository.insert(collect);
+
+        // 更新知识收藏数
+        knowledge.setCollectCount(knowledge.getCollectCount() + 1);
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("收藏成功: userId={}, knowledgeId={}", userId, knowledgeId);
+    }
+
+    /**
+     * 取消收藏
+     */
+    @Transactional
+    public void uncollectKnowledge(Long userId, Long knowledgeId) {
+        log.info("取消收藏: userId={}, knowledgeId={}", userId, knowledgeId);
+
+        UserCollect collect = userCollectRepository.selectOne(
+                new LambdaQueryWrapper<UserCollect>()
+                        .eq(UserCollect::getUserId, userId)
+                        .eq(UserCollect::getTargetId, knowledgeId)
+                        .eq(UserCollect::getTargetType, TargetType.KNOWLEDGE.getValue())
         );
 
-        // 总浏览量
-        List<KnowledgeItem> allItems = knowledgeItemRepository.selectList(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                        .select(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount, KnowledgeItem::getFavoriteCount)
-                        .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-        );
+        if (collect == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "未收藏该知识");
+        }
 
-        long totalViews = allItems.stream()
-                .mapToLong(item -> item.getViewCount() != null ? item.getViewCount() : 0)
-                .sum();
+        userCollectRepository.deleteById(collect.getId());
 
-        long totalLikes = allItems.stream()
-                .mapToLong(item -> item.getLikeCount() != null ? item.getLikeCount() : 0)
-                .sum();
+        // 更新知识收藏数
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+        if (knowledge != null && knowledge.getCollectCount() > 0) {
+            knowledge.setCollectCount(knowledge.getCollectCount() - 1);
+            knowledgeRepository.updateById(knowledge);
+        }
 
-        long totalFavorites = allItems.stream()
-                .mapToLong(item -> item.getFavoriteCount() != null ? item.getFavoriteCount() : 0)
-                .sum();
-
-        return KnowledgeStatsDto.builder()
-                .totalCategories(totalCategories)
-                .totalItems(totalItems)
-                .totalViews(totalViews)
-                .totalLikes(totalLikes)
-                .totalFavorites(totalFavorites)
-                .monthlyGrowth(8.5) // 模拟数据，实际应该计算
-                .averageDifficulty(3.2) // 模拟数据
-                .build();
+        log.info("取消收藏成功: userId={}, knowledgeId={}", userId, knowledgeId);
     }
 
     /**
-     * 创建知识分类
+     * 转换为知识信息 DTO
      */
-    public KnowledgeCreateResponseDto createCategory(String name, String key, String description, String image) {
-        log.info("创建知识分类: name={}, key={}", name, key);
-
-        try {
-            // 检查key是否已存在
-            KnowledgeCategory existing = knowledgeCategoryRepository.selectOne(
-                    new LambdaQueryWrapper<KnowledgeCategory>()
-                            .eq(KnowledgeCategory::getKey, key)
-            );
-
-            if (existing != null) {
-                return KnowledgeCreateResponseDto.builder()
-                        .success(false)
-                        .message("分类键值已存在")
-                        .build();
-            }
-
-            KnowledgeCategory category = new KnowledgeCategory();
-            category.setName(name);
-            category.setKey(key);
-            category.setDescription(description);
-            category.setImage(image);
-            category.setStatus(KnowledgeCategory.CategoryStatus.ACTIVE);
-
-            knowledgeCategoryRepository.insert(category);
-
-            return KnowledgeCreateResponseDto.builder()
-                    .success(true)
-                    .message("分类创建成功")
-                    .id(category.getId())
-                    .build();
-
-        } catch (Exception e) {
-            log.error("创建知识分类失败", e);
-            return KnowledgeCreateResponseDto.builder()
-                    .success(false)
-                    .message("创建分类失败")
+    private KnowledgeResponse.KnowledgeInfo convertToKnowledgeInfo(Knowledge knowledge) {
+        return KnowledgeResponse.KnowledgeInfo.builder()
+                .id(knowledge.getId())
+                .title(knowledge.getTitle())
+                .name(knowledge.getTitle())
+                .category(knowledge.getCategory())
+                .content(knowledge.getContent())
+                .description(knowledge.getContent())
+                .detail(knowledge.getContent())
+                .coverImage(knowledge.getCoverImage())
+                .imageUrl(knowledge.getCoverImage())
+                .images(knowledge.getImages())
+                .tags(knowledge.getTags())
+                .authorId(knowledge.getAuthorId())
+                .viewCount(knowledge.getViewCount())
+                .likeCount(knowledge.getLikeCount())
+                .collectCount(knowledge.getCollectCount())
+                .commentCount(knowledge.getCommentCount())
+                .status(knowledge.getStatus())
+                .createdAt(knowledge.getCreatedAt())
+                .updatedAt(knowledge.getUpdatedAt())
+                .createTime(knowledge.getCreatedAt())
+                .updateTime(knowledge.getUpdatedAt())
                     .build();
         }
     }
 
-    /**
-     * 创建知识条目
-     */
-    public KnowledgeCreateResponseDto createKnowledgeItem(Long categoryId, String name, String key, String description,
-                                                          String content, Long authorId) {
-        log.info("创建知识条目: name={}, key={}, categoryId={}", name, key, categoryId);
-
-        try {
-            // 检查分类是否存在
-            KnowledgeCategory category = knowledgeCategoryRepository.selectById(categoryId);
-            if (category == null) {
-                return KnowledgeCreateResponseDto.builder()
-                        .success(false)
-                        .message("分类不存在")
-                        .build();
-            }
-
-            // 检查key是否已存在
-            KnowledgeItem existing = knowledgeItemRepository.selectOne(
-                    new LambdaQueryWrapper<KnowledgeItem>()
-                            .eq(KnowledgeItem::getKey, key)
-            );
-
-            if (existing != null) {
-                return KnowledgeCreateResponseDto.builder()
-                        .success(false)
-                        .message("知识条目键值已存在")
-                        .build();
-            }
-
-            KnowledgeItem item = new KnowledgeItem();
-            item.setCategoryId(categoryId);
-            item.setName(name);
-            item.setKey(key);
-            item.setDescription(description);
-            item.setContent(content);
-            item.setAuthorId(authorId);
-            item.setStatus(KnowledgeItem.ItemStatus.PUBLISHED);
-
-            knowledgeItemRepository.insert(item);
-
-            // 更新分类的条目数量
-            knowledgeCategoryRepository.update(null,
-                    new LambdaUpdateWrapper<KnowledgeCategory>()
-                            .eq(KnowledgeCategory::getId, categoryId)
-                            .setSql("item_count = item_count + 1")
-            );
-
-            return KnowledgeCreateResponseDto.builder()
-                    .success(true)
-                    .message("知识条目创建成功")
-                    .id(item.getId())
-                    .build();
-
-        } catch (Exception e) {
-            log.error("创建知识条目失败", e);
-            return KnowledgeCreateResponseDto.builder()
-                    .success(false)
-                    .message("创建知识条目失败")
-                    .build();
-        }
-    }
-
-    /**
-     * 创建知识条目（使用请求DTO）
-     */
-    public boolean createKnowledgeItem(KnowledgeItemCreateRequest request) {
-        log.info("创建知识条目: name={}, categoryId={}", request.getName(), request.getCategoryId());
-
-        try {
-            // 检查分类是否存在
-            KnowledgeCategory category = knowledgeCategoryRepository.selectById(request.getCategoryId());
-            if (category == null) {
-                throw new RuntimeException("分类不存在");
-            }
-
-            // 生成key（如果没有提供）
-            String key = request.getKey();
-            if (key == null || key.isEmpty()) {
-                key = generateKey(request.getName());
-            }
-
-            // 检查key是否已存在
-            KnowledgeItem existing = knowledgeItemRepository.selectOne(
-                    new LambdaQueryWrapper<KnowledgeItem>()
-                            .eq(KnowledgeItem::getKey, key)
-            );
-
-            if (existing != null) {
-                throw new RuntimeException("知识条目键值已存在");
-            }
-
-            KnowledgeItem item = new KnowledgeItem();
-            item.setCategoryId(request.getCategoryId());
-            item.setName(request.getName());
-            item.setKey(key);
-            item.setScientificName(request.getScientificName());
-            item.setDescription(request.getDescription());
-            item.setContent(request.getContent());
-            item.setImages(request.getImages());
-            item.setCharacteristics(request.getCharacteristics());
-            item.setHabitat(request.getHabitat());
-            item.setLifespan(request.getLifespan());
-            item.setRelatedItems(request.getRelatedItems());
-            item.setTags(request.getTags());
-            item.setDifficulty(request.getDifficulty() != null ? request.getDifficulty() : 1);
-            item.setSortOrder(request.getSortOrder() != null ? request.getSortOrder() : 0);
-            
-            // 设置状态
-            if (request.getStatus() != null && !request.getStatus().isEmpty()) {
-                item.setStatus(KnowledgeItem.ItemStatus.valueOf(request.getStatus().toUpperCase()));
-            } else {
-                item.setStatus(KnowledgeItem.ItemStatus.DRAFT);
-            }
-            
-            // 设置作者ID为当前登录用户（暂时设为1）
-            item.setAuthorId(1L);
-
-            knowledgeItemRepository.insert(item);
-
-            // 更新分类的条目数量
-            knowledgeCategoryRepository.update(null,
-                    new LambdaUpdateWrapper<KnowledgeCategory>()
-                            .eq(KnowledgeCategory::getId, request.getCategoryId())
-                            .setSql("item_count = item_count + 1")
-            );
-
-            return true;
-
-        } catch (Exception e) {
-            log.error("创建知识条目失败", e);
-            throw new RuntimeException("创建知识条目失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 更新知识条目
-     */
-    public boolean updateKnowledgeItem(Long id, KnowledgeItemUpdateRequest request) {
-        log.info("更新知识条目: id={}", id);
-
-        try {
-            KnowledgeItem item = knowledgeItemRepository.selectById(id);
-            if (item == null) {
-                return false;
-            }
-
-            // 更新字段
-            if (request.getName() != null) {
-                item.setName(request.getName());
-            }
-            if (request.getCategoryId() != null) {
-                item.setCategoryId(request.getCategoryId());
-            }
-            if (request.getScientificName() != null) {
-                item.setScientificName(request.getScientificName());
-            }
-            if (request.getDescription() != null) {
-                item.setDescription(request.getDescription());
-            }
-            if (request.getContent() != null) {
-                item.setContent(request.getContent());
-            }
-            if (request.getImages() != null) {
-                item.setImages(request.getImages());
-            }
-            if (request.getCharacteristics() != null) {
-                item.setCharacteristics(request.getCharacteristics());
-            }
-            if (request.getHabitat() != null) {
-                item.setHabitat(request.getHabitat());
-            }
-            if (request.getLifespan() != null) {
-                item.setLifespan(request.getLifespan());
-            }
-            if (request.getRelatedItems() != null) {
-                item.setRelatedItems(request.getRelatedItems());
-            }
-            if (request.getTags() != null) {
-                item.setTags(request.getTags());
-            }
-            if (request.getDifficulty() != null) {
-                item.setDifficulty(request.getDifficulty());
-            }
-            if (request.getSortOrder() != null) {
-                item.setSortOrder(request.getSortOrder());
-            }
-            if (request.getStatus() != null) {
-                item.setStatus(KnowledgeItem.ItemStatus.valueOf(request.getStatus().toUpperCase()));
-            }
-
-            item.setUpdateTime(LocalDateTime.now());
-
-            int result = knowledgeItemRepository.updateById(item);
-            return result > 0;
-
-        } catch (Exception e) {
-            log.error("更新知识条目失败", e);
-            throw new RuntimeException("更新知识条目失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 删除知识条目
-     */
-    public boolean deleteKnowledgeItem(Long id) {
-        log.info("删除知识条目: id={}", id);
-
-        try {
-            KnowledgeItem item = knowledgeItemRepository.selectById(id);
-            if (item == null) {
-                return false;
-            }
-
-            Long categoryId = item.getCategoryId();
-
-            // 删除知识条目
-            int result = knowledgeItemRepository.deleteById(id);
-
-            if (result > 0) {
-                // 更新分类的条目数量
-                knowledgeCategoryRepository.update(null,
-                        new LambdaUpdateWrapper<KnowledgeCategory>()
-                                .eq(KnowledgeCategory::getId, categoryId)
-                                .setSql("item_count = item_count - 1")
-                );
-            }
-
-            return result > 0;
-
-        } catch (Exception e) {
-            log.error("删除知识条目失败", e);
-            throw new RuntimeException("删除知识条目失败: " + e.getMessage());
-        }
-    }
-
-    /**
-     * 生成知识条目的key
-     */
-    private String generateKey(String name) {
-        // 简单实现：使用名称的拼音或转换为小写英文
-        // 这里暂时使用简化的实现
-        return name.toLowerCase().replace(" ", "_") + "_" + System.currentTimeMillis();
-    }
-
-    /**
-     * 搜索知识库
-     */
-    public KnowledgeSearchResultDto searchKnowledge(String keyword, Integer page, Integer size, String category) {
-        log.info("搜索知识库: keyword={}, page={}, size={}, category={}", keyword, page, size, category);
-
-        try {
-            // 构建查询条件
-            LambdaQueryWrapper<KnowledgeItem> queryWrapper = new LambdaQueryWrapper<KnowledgeItem>()
-                    .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                    .and(wrapper -> wrapper
-                            .like(KnowledgeItem::getName, keyword)
-                            .or()
-                            .like(KnowledgeItem::getDescription, keyword)
-                            .or()
-                            .like(KnowledgeItem::getContent, keyword)
-                    );
-
-            // 如果指定了分类，添加分类过滤
-            if (category != null && !category.isEmpty()) {
-                KnowledgeCategory cat = knowledgeCategoryRepository.selectOne(
-                        new LambdaQueryWrapper<KnowledgeCategory>()
-                                .eq(KnowledgeCategory::getKey, category)
-                );
-                if (cat != null) {
-                    queryWrapper.eq(KnowledgeItem::getCategoryId, cat.getId());
-                }
-            }
-
-            // 计算总数
-            Long total = knowledgeItemRepository.selectCount(queryWrapper);
-
-            // 分页查询
-            queryWrapper.orderByDesc(KnowledgeItem::getViewCount, KnowledgeItem::getLikeCount)
-                    .last("LIMIT " + ((page - 1) * size) + ", " + size);
-
-            List<KnowledgeItem> items = knowledgeItemRepository.selectList(queryWrapper);
-
-            // 转换为DTO格式
-            List<KnowledgeItemDto> itemDtos = items.stream()
-                    .map(this::convertToItemDto)
-                    .toList();
-
-            return KnowledgeSearchResultDto.builder()
-                    .items(itemDtos)
-                    .total(total.intValue())
-                    .page(page)
-                    .size(size)
-                    .pages((int) Math.ceil((double) total / size))
-                    .keyword(keyword)
-                    .category(category)
-                    .build();
-
-        } catch (Exception e) {
-            log.error("搜索知识库失败", e);
-            return KnowledgeSearchResultDto.builder()
-                    .items(Collections.emptyList())
-                    .total(0)
-                    .page(page)
-                    .size(size)
-                    .pages(0)
-                    .keyword(keyword)
-                    .category(category)
-                    .build();
-        }
-    }
-
-    /**
-     * 获取最新知识
-     */
-    public List<KnowledgeItemDto> getLatestKnowledge(Integer limit) {
-        log.info("获取最新知识: limit={}", limit);
-
-        try {
-            List<KnowledgeItem> latestItems = knowledgeItemRepository.selectList(
-                    new LambdaQueryWrapper<KnowledgeItem>()
-                            .eq(KnowledgeItem::getStatus, KnowledgeItem.ItemStatus.PUBLISHED)
-                            .orderByDesc(KnowledgeItem::getCreateTime)
-                            .last("LIMIT " + limit)
-            );
-
-            return latestItems.stream()
-                    .map(this::convertToItemDto)
-                    .toList();
-
-        } catch (Exception e) {
-            log.error("获取最新知识失败", e);
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * 点赞知识条目
-     */
-    public OperationResultDto likeKnowledgeItem(Long itemId) {
-        log.info("点赞知识条目: itemId={}", itemId);
-
-        try {
-            KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
-            if (item == null) {
-                return OperationResultDto.builder()
-                        .success(false)
-                        .message("知识条目不存在")
-                        .build();
-            }
-
-            // 增加点赞数
-            knowledgeItemRepository.update(null,
-                    new LambdaUpdateWrapper<KnowledgeItem>()
-                            .eq(KnowledgeItem::getId, itemId)
-                            .setSql("like_count = like_count + 1")
-            );
-
-            return OperationResultDto.builder()
-                    .success(true)
-                    .message("点赞成功")
-                    .build();
-
-        } catch (Exception e) {
-            log.error("点赞知识条目失败", e);
-            return OperationResultDto.builder()
-                    .success(false)
-                    .message("点赞失败")
-                    .build();
-        }
-    }
-
-    /**
-     * 取消点赞知识条目
-     */
-    public OperationResultDto unlikeKnowledgeItem(Long itemId) {
-        log.info("取消点赞知识条目: itemId={}", itemId);
-
-        try {
-            KnowledgeItem item = knowledgeItemRepository.selectById(itemId);
-            if (item == null) {
-                return OperationResultDto.builder()
-                        .success(false)
-                        .message("知识条目不存在")
-                        .build();
-            }
-
-            // 减少点赞数
-            knowledgeItemRepository.update(null,
-                    new LambdaUpdateWrapper<KnowledgeItem>()
-                            .eq(KnowledgeItem::getId, itemId)
-                            .setSql("like_count = GREATEST(like_count - 1, 0)")
-            );
-
-            return OperationResultDto.builder()
-                    .success(true)
-                    .message("取消点赞成功")
-                    .build();
-
-        } catch (Exception e) {
-            log.error("取消点赞知识条目失败", e);
-            return OperationResultDto.builder()
-                    .success(false)
-                    .message("取消点赞失败")
-                    .build();
-        }
-    }
-
-    /**
-     * 更新知识分类
-     */
-    public boolean updateCategory(Long id, String name, String description, String image, Integer sortOrder, Integer status) {
-        log.info("更新知识分类: id={}, name={}, status={}", id, name, status);
-        
-        try {
-            KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
-            if (category == null) {
-                log.warn("分类不存在: id={}", id);
-                return false;
-            }
-            
-            // 更新字段
-            if (name != null) {
-                category.setName(name);
-            }
-            if (description != null) {
-                category.setDescription(description);
-            }
-            if (image != null) {
-                category.setImage(image);
-            }
-            if (sortOrder != null) {
-                category.setSortOrder(sortOrder);
-            }
-            if (status != null) {
-                KnowledgeCategory.CategoryStatus categoryStatus = KnowledgeCategory.CategoryStatus.fromValue(status);
-                category.setStatus(categoryStatus);
-            }
-            
-            category.setUpdateTime(LocalDateTime.now());
-            
-            int result = knowledgeCategoryRepository.updateById(category);
-            log.info("更新分类结果: {}", result);
-            
-            return result > 0;
-        } catch (Exception e) {
-            log.error("更新分类失败", e);
-            return false;
-        }
-    }
-
-    /**
-     * 删除知识分类
-     */
-    public boolean deleteCategory(Long id) {
-        log.info("删除知识分类: id={}", id);
-        
-        try {
-            KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
-            if (category == null) {
-                log.warn("分类不存在: id={}", id);
-                return false;
-            }
-            
-            // 检查该分类下是否有知识条目
-            long itemCount = knowledgeItemRepository.selectCount(
-                new LambdaQueryWrapper<KnowledgeItem>()
-                    .eq(KnowledgeItem::getCategoryId, id)
-            );
-            
-            if (itemCount > 0) {
-                log.warn("分类下还有 {} 个知识条目，不能删除", itemCount);
-                throw new RuntimeException("该分类下还有 " + itemCount + " 个知识条目，请先删除或转移这些条目");
-            }
-            
-            int result = knowledgeCategoryRepository.deleteById(id);
-            log.info("删除分类结果: {}", result);
-            
-            return result > 0;
-        } catch (Exception e) {
-            log.error("删除分类失败", e);
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
-    /**
-     * 获取知识分类详情
-     */
-    public KnowledgeCategoryDto getCategoryDetail(Long id) {
-        log.info("获取知识分类详情: id={}", id);
-        
-        KnowledgeCategory category = knowledgeCategoryRepository.selectById(id);
-        if (category == null) {
-            log.warn("分类不存在: id={}", id);
-            return null;
-        }
-        
-        return convertToCategoryDto(category);
-    }
-
-
-    /**
-     * 转换KnowledgeCategory为DTO
-     */
-    private KnowledgeCategoryDto convertToCategoryDto(KnowledgeCategory category) {
-        return KnowledgeCategoryDto.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .key(category.getKey())
-                .description(category.getDescription())
-                .image(category.getImage())
-                .itemCount(category.getItemCount())
-                .sortOrder(category.getSortOrder())
-                .status(category.getStatus() != null ? category.getStatus().getValue() : null)
-                .createTime(category.getCreateTime())
-                .updateTime(category.getUpdateTime())
-                .build();
-    }
-
-    /**
-     * 转换KnowledgeItem为DTO
-     */
-    private KnowledgeItemDto convertToItemDto(KnowledgeItem item) {
-        return KnowledgeItemDto.builder()
-                .id(item.getId())
-                .categoryId(item.getCategoryId())
-                .name(item.getName())
-                .key(item.getKey())
-                .scientificName(item.getScientificName())
-                .description(item.getDescription())
-                .content(item.getContent())
-                .images(item.getImages())
-                .characteristics(item.getCharacteristics())
-                .habitat(item.getHabitat())
-                .lifespan(item.getLifespan())
-                .relatedItems(item.getRelatedItems())
-                .tags(item.getTags())
-                .viewCount(item.getViewCount())
-                .likeCount(item.getLikeCount())
-                .favoriteCount(item.getFavoriteCount())
-                .shareCount(item.getShareCount())
-                .difficulty(item.getDifficulty())
-                .sortOrder(item.getSortOrder())
-                .status(item.getStatus() != null ? item.getStatus().name() : null)
-                .authorId(item.getAuthorId())
-                .reviewerId(item.getReviewerId())
-                .reviewTime(item.getReviewTime())
-                .createTime(item.getCreateTime())
-                .updateTime(item.getUpdateTime())
-                .build();
-    }
-}

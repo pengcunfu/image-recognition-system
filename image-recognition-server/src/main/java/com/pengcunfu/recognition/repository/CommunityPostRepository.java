@@ -1,13 +1,150 @@
-package com.pcf.recognition.repository;
+package com.pengcunfu.recognition.repository;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.pcf.recognition.entity.CommunityPost;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.pengcunfu.recognition.entity.CommunityPost;
 import org.apache.ibatis.annotations.Mapper;
-
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
+import java.time.LocalDateTime;
 /**
- * 社区帖子Repository接口 - 基于MyBatis Plus
+ * 社区帖子Repository
  */
 @Mapper
 public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
-    // BaseMapper提供所有基础CRUD操作
+
+    /**
+     * 分页查询帖子（按热度排序）
+     */
+    @Select("""
+            SELECT * FROM community_posts
+            WHERE status = #{status}
+            ${categoryCondition}
+            ORDER BY like_count DESC, view_count DESC
+            """)
+    Page<CommunityPost> findPostsByHot(
+            Page<CommunityPost> page,
+            @Param("status") Integer status,
+            @Param("categoryCondition") String categoryCondition
+    );
+
+    /**
+     * 分页查询帖子（按最新排序）
+     */
+    @Select("""
+            SELECT * FROM community_posts
+            WHERE status = #{status}
+            ${categoryCondition}
+            ORDER BY is_top DESC, created_at DESC
+            """)
+    Page<CommunityPost> findPostsByLatest(
+            Page<CommunityPost> page,
+            @Param("status") Integer status,
+            @Param("categoryCondition") String categoryCondition
+    );
+
+    /**
+     * 增加浏览数
+     */
+    @Update("""
+            UPDATE community_posts SET view_count = view_count + 1
+            WHERE id = #{postId}
+            """)
+    int incrementViewCount(@Param("postId") Long postId);
+
+    /**
+     * 增加点赞数
+     */
+    @Update("""
+            UPDATE community_posts SET like_count = like_count + 1
+            WHERE id = #{postId}
+            """)
+    int incrementLikeCount(@Param("postId") Long postId);
+
+    /**
+     * 减少点赞数
+     */
+    @Update("""
+            UPDATE community_posts SET like_count = like_count - 1
+            WHERE id = #{postId} AND like_count > 0
+            """)
+    int decrementLikeCount(@Param("postId") Long postId);
+
+    /**
+     * 增加评论数
+     */
+    @Update("""
+            UPDATE community_posts SET comment_count = comment_count + 1
+            WHERE id = #{postId}
+            """)
+    int incrementCommentCount(@Param("postId") Long postId);
+
+    /**
+     * 减少评论数
+     */
+    @Update("""
+            UPDATE community_posts SET comment_count = comment_count - 1
+            WHERE id = #{postId} AND comment_count > 0
+            """)
+    int decrementCommentCount(@Param("postId") Long postId);
+
+    /**
+     * 统计总帖子数
+     */
+    @Select("SELECT COUNT(*) FROM community_posts")
+    long countTotal();
+
+    /**
+     * 统计今日帖子数
+     */
+    @Select("""
+            SELECT COUNT(*) FROM community_posts
+            WHERE created_at >= #{startTime}
+            """)
+    long countByCreatedAtAfter(@Param("startTime") LocalDateTime startTime);
+
+    /**
+     * 统计用户发布的帖子数
+     */
+    @Select("""
+            SELECT COUNT(*) FROM community_posts
+            WHERE user_id = #{userId}
+            """)
+    long countByUserId(@Param("userId") Long userId);
+
+    /**
+     * 管理员分页查询帖子（带状态和关键词过滤）
+     */
+    @Select("""
+            <script>
+            SELECT * FROM community_posts
+            WHERE 1=1
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            ORDER BY created_at DESC
+            </script>
+            """)
+    Page<CommunityPost> findPostsForAdmin(
+            Page<CommunityPost> page,
+            @Param("status") Integer status,
+            @Param("keyword") String keyword
+    );
+
+    /**
+     * 按日期统计帖子发布趋势
+     */
+    @Select("""
+            SELECT DATE(created_at) as date, COUNT(*) as count
+            FROM community_posts
+            WHERE created_at >= #{startDate}
+            GROUP BY DATE(created_at)
+            ORDER BY date
+            """)
+    java.util.List<java.util.Map<String, Object>> countPostTrendByDate(@Param("startDate") LocalDateTime startDate);
 }
+

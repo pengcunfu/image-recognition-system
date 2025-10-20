@@ -1,121 +1,107 @@
-package com.pcf.recognition.entity;
+package com.pengcunfu.recognition.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 社区帖子实体
+ * 社区帖子表
+ * 存储用户发布的社区帖子
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @TableName("community_posts")
 public class CommunityPost {
 
+    /**
+     * 帖子ID(主键)
+     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 用户ID(关联users表)
+     */
+    private Long userId;
+
+    /**
+     * 关联识别结果ID(关联recognition_results表)
+     */
+    private Long recognitionId;
+
+    /**
+     * 帖子标题
+     */
     private String title;
 
+    /**
+     * 帖子内容
+     */
     private String content;
 
-    private Long authorId;
+    /**
+     * 图片URL列表(JSON格式)
+     */
+    private String images;
 
+    /**
+     * 帖子分类(如"动物识别"、"植物识别")
+     */
     private String category;
 
-    private String tags; // JSON格式存储标签数组
+    /**
+     * 标签(逗号分隔)
+     */
+    private String tags;
 
-    private String images; // JSON格式存储图片URL数组
+    /**
+     * 浏览次数
+     */
+    private Integer viewCount;
 
-    private Integer viewCount = 0;
+    /**
+     * 点赞数
+     */
+    private Integer likeCount;
 
-    private Integer likeCount = 0;
+    /**
+     * 评论数
+     */
+    private Integer commentCount;
 
-    private Integer commentCount = 0;
+    /**
+     * 收藏数
+     */
+    private Integer collectCount;
 
-    private Integer shareCount = 0;
+    /**
+     * 是否置顶: 0-否, 1-是
+     */
+    private Integer isTop;
 
-    private Boolean isTop = false;
+    /**
+     * 是否精选: 0-否, 1-是
+     */
+    private Integer isFeatured;
 
-    private Boolean isFeatured = false;
+    /**
+     * 帖子状态: 0-PENDING待审核, 1-PUBLISHED已发布, 2-REJECTED已拒绝, 3-DELETED已删除
+     */
+    private Integer status;
 
-    private PostStatus status = PostStatus.PUBLISHED;
-
+    /**
+     * 创建时间
+     */
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 
+    /**
+     * 更新时间
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    @TableLogic
-    private Integer deleted;
-
-    // 帖子状态枚举（与MySQL ENUM对应：1-DRAFT, 2-PENDING, 3-PUBLISHED, 4-REJECTED, 5-HIDDEN, 6-DELETED）
-    public enum PostStatus {
-        DRAFT(1, "草稿"),
-        PENDING(2, "待审核"),
-        PUBLISHED(3, "已发布"),
-        REJECTED(4, "已拒绝"),
-        HIDDEN(5, "已隐藏"),
-        DELETED(6, "已删除");
-
-        private final int value;
-        private final String description;
-
-        PostStatus(int value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public static PostStatus fromValue(int value) {
-            for (PostStatus status : values()) {
-                if (status.value == value) {
-                    return status;
-                }
-            }
-            throw new IllegalArgumentException("Invalid status value: " + value);
-        }
-    }
-
-    // 排序方式枚举
-    public enum SortType {
-        LATEST(0, "最新"),
-        HOT(1, "最热"),
-        TOP_FIRST(2, "置顶优先");
-
-        private final int value;
-        private final String description;
-
-        SortType(int value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public static SortType fromValue(int value) {
-            for (SortType type : values()) {
-                if (type.value == value) {
-                    return type;
-                }
-            }
-            return LATEST; // 默认返回最新
-        }
-    }
+    private LocalDateTime updatedAt;
 }

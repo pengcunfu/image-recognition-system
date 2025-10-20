@@ -1,19 +1,23 @@
-package com.pcf.recognition.util;
+package com.pengcunfu.recognition.util;
 
-import io.jsonwebtoken.*;
+import com.pengcunfu.recognition.constant.JwtConstants;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * JWT工具类
- * 用于生成、解析和验证JWT Token
+ * 用于生成和解析JWT Token
  */
 @Slf4j
 @Component
@@ -25,31 +29,18 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private Long expiration;
 
-    private SecretKey getSigningKey() {
-        // 确保密钥长度至少256位（32字节）
-        byte[] keyBytes = secret.getBytes();
-        if (keyBytes.length < 32) {
-            log.warn("JWT密钥长度不足32字节，当前长度: {} 字节", keyBytes.length);
-            // 如果密钥不够长，使用安全的密钥生成器
-            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
-        }
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
+    @Value("${jwt.issuer:image-recognition-system}")
+    private String issuer;
 
     /**
-     * 生成JWT Token
-     *
-     * @param userId   用户ID
-     * @param username 用户名
-     * @param role     用户角色
-     * @return JWT Token
+     * 生成Token
      */
-    public String generateToken(Long userId, String username, String role) {
+    public String generateToken(Long userId, String username, Integer role) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("username", username);
-        claims.put("role", role);
-
+        claims.put(JwtConstants.CLAIM_USER_ID, userId);
+        claims.put(JwtConstants.CLAIM_USERNAME, username);
+        claims.put(JwtConstants.CLAIM_ROLE, role);
+        
         return createToken(claims, username);
     }
 
@@ -58,155 +49,111 @@ public class JwtUtil {
      */
     private String createToken(Map<String, Object> claims, String subject) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration * 1000);
+        Date expirationDate = new Date(now.getTime() + expiration * 1000);
 
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
+                .setIssuer(issuer)
                 .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(expirationDate)
+                .signWith(getSecretKey(), SignatureAlgorithm.HS256)
                 .compact();
-    }
-
-    /**
-     * 从Token中获取用户ID
-     *
-     * @param token JWT Token
-     * @return 用户ID
-     */
-    public Long getUserIdFromToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            Object userId = claims.get("userId");
-            if (userId instanceof Integer) {
-                return ((Integer) userId).longValue();
-            } else if (userId instanceof Long) {
-                return (Long) userId;
-            }
-            return null;
-        } catch (Exception e) {
-            log.error("从Token中获取用户ID失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 从Token中获取用户名
-     *
-     * @param token JWT Token
-     * @return 用户名
-     */
-    public String getUsernameFromToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            return claims.getSubject();
-        } catch (Exception e) {
-            log.error("从Token中获取用户名失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 从Token中获取用户角色
-     *
-     * @param token JWT Token
-     * @return 用户角色
-     */
-    public String getRoleFromToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            return (String) claims.get("role");
-        } catch (Exception e) {
-            log.error("从Token中获取用户角色失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 从Token中获取过期时间
-     *
-     * @param token JWT Token
-     * @return 过期时间
-     */
-    public Date getExpirationDateFromToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            return claims.getExpiration();
-        } catch (Exception e) {
-            log.error("从Token中获取过期时间失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 验证Token是否有效
-     *
-     * @param token JWT Token
-     * @return 是否有效
-     */
-    public boolean validateToken(String token) {
-        try {
-            getClaimsFromToken(token);
-            return !isTokenExpired(token);
-        } catch (JwtException | IllegalArgumentException e) {
-            log.error("Token验证失败", e);
-            return false;
-        }
-    }
-
-    /**
-     * 检查Token是否过期
-     *
-     * @param token JWT Token
-     * @return 是否过期
-     */
-    public boolean isTokenExpired(String token) {
-        try {
-            Date expiration = getExpirationDateFromToken(token);
-            return expiration != null && expiration.before(new Date());
-        } catch (Exception e) {
-            log.error("检查Token过期状态失败", e);
-            return true;
-        }
     }
 
     /**
      * 从Token中获取Claims
      */
-    private Claims getClaimsFromToken(String token) {
-        // 移除Bearer前缀
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
+    public Claims getClaimsFromToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSecretKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            log.error("解析Token失败: {}", e.getMessage());
+            return null;
         }
+    }
 
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    /**
+     * 从Token中获取用户ID
+     */
+    public Long getUserIdFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        if (claims == null) {
+            return null;
+        }
+        Object userId = claims.get(JwtConstants.CLAIM_USER_ID);
+        if (userId instanceof Integer) {
+            return ((Integer) userId).longValue();
+        }
+        return (Long) userId;
+    }
+
+    /**
+     * 从Token中获取用户名
+     */
+    public String getUsernameFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims != null ? claims.getSubject() : null;
+    }
+
+    /**
+     * 从Token中获取用户角色
+     */
+    public Integer getRoleFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims != null ? (Integer) claims.get(JwtConstants.CLAIM_ROLE) : null;
+    }
+
+    /**
+     * 从Token中获取过期时间
+     */
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        return claims != null ? claims.getExpiration() : null;
+    }
+
+    /**
+     * 验证Token是否过期
+     */
+    public boolean isTokenExpired(String token) {
+        Date expirationDate = getExpirationDateFromToken(token);
+        return expirationDate != null && expirationDate.before(new Date());
+    }
+
+    /**
+     * 验证Token是否有效
+     */
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = getClaimsFromToken(token);
+            return claims != null && !isTokenExpired(token);
+        } catch (Exception e) {
+            log.error("Token验证失败: {}", e.getMessage());
+            return false;
+        }
     }
 
     /**
      * 刷新Token
-     *
-     * @param token 原Token
-     * @return 新Token
      */
     public String refreshToken(String token) {
-        try {
-            Claims claims = getClaimsFromToken(token);
-            Long userId = getUserIdFromToken(token);
-            String username = getUsernameFromToken(token);
-            String role = getRoleFromToken(token);
-
-            if (userId != null && username != null && role != null) {
-                return generateToken(userId, username, role);
-            }
-            return null;
-        } catch (Exception e) {
-            log.error("刷新Token失败", e);
+        Claims claims = getClaimsFromToken(token);
+        if (claims == null) {
             return null;
         }
+
+        Map<String, Object> newClaims = new HashMap<>(claims);
+        return createToken(newClaims, claims.getSubject());
+    }
+
+    /**
+     * 获取密钥
+     */
+    private SecretKey getSecretKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 }

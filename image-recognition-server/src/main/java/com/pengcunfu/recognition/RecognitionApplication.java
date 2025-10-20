@@ -1,4 +1,4 @@
-package com.pcf.recognition;
+package com.pengcunfu.recognition;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
@@ -21,8 +21,8 @@ public class RecognitionApplication {
             protocol = "https";
         }
 
-        String serverPort = env.getProperty("server.port", "8080");
-        String contextPath = env.getProperty("server.servlet.context-path", "");
+        String serverPort = env.getProperty("server.port");
+        String contextPath = env.getProperty("server.servlet.context-path");
         String hostAddress = InetAddress.getLocalHost().getHostAddress();
 
         log.info("\n----------------------------------------------------------\n" +

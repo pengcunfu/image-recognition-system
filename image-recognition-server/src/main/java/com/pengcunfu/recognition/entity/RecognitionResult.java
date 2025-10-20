@@ -1,89 +1,103 @@
-package com.pcf.recognition.entity;
+package com.pengcunfu.recognition.entity;
 
-import lombok.Data;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
- * 图像识别结果实体类
+ * 识别结果表
+ * 存储图像识别的结果数据
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@TableName("recognition_results")
 public class RecognitionResult {
 
     /**
-     * 识别ID
+     * 识别ID(主键)
      */
-    private String recognitionId;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
     /**
-     * 用户ID
+     * 用户ID(关联users表)
      */
     private Long userId;
 
     /**
-     * 图像URL
+     * 图片URL
      */
     private String imageUrl;
 
     /**
-     * 原始文件名
+     * 图片名称
      */
-    private String originalFileName;
+    private String imageName;
 
     /**
-     * 识别模式
+     * 图片大小(字节)
      */
-    private String mode;
+    private Integer imageSize;
 
     /**
-     * 置信度阈值
+     * 识别类型: 0-QUICK快速识别, 1-DETAILED详细识别
      */
-    private Double confidence;
+    private Integer recognitionType;
 
     /**
-     * 最大结果数量
+     * 识别结果JSON
      */
-    private Integer maxResults;
+    private String resultJson;
 
     /**
-     * 识别结果列表
+     * 主要分类
      */
-    private List<RecognitionItem> results;
+    private String mainCategory;
 
     /**
-     * 元数据信息
+     * 置信度(0-100)
      */
-    private ImageMetadata metadata;
+    private BigDecimal confidence;
 
     /**
-     * 处理状态
+     * 标签(逗号分隔)
      */
-    private String status;
+    private String tags;
 
     /**
-     * 是否收藏
+     * 识别描述
      */
-    private Boolean isFavorite;
+    private String description;
 
     /**
-     * 标签列表
+     * 处理耗时(毫秒)
      */
-    private List<String> tags;
+    private Integer processingTime;
+
+    /**
+     * 识别状态: 0-PENDING待处理, 1-SUCCESS成功, 2-FAILED失败
+     */
+    private Integer status;
+
+    /**
+     * 错误信息
+     */
+    private String errorMessage;
 
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

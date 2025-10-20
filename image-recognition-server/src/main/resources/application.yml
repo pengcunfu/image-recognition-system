@@ -2,10 +2,8 @@ spring:
   application:
     name: image-recognition-system
   
-  # MVC配置
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
+  profiles:
+    active: dev
   
   # Jackson配置
   jackson:
@@ -13,13 +11,14 @@ spring:
     time-zone: GMT+8
     serialization:
       write-dates-as-timestamps: false
+    default-property-inclusion: non_null
   
   # 邮件配置
   mail:
     host: smtp.qq.com
     port: 587
-    username: huaqiwill@qq.com  # 请替换为你的邮箱用户名
-    password: anbdmjgjzdnrdced  # 请替换为你的邮箱密码或授权码
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -38,88 +37,81 @@ spring:
   
   # 数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3306/image_recognition?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8
-    username: root
-    password: 123456
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   
   # 文件上传配置
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 50MB
+      enabled: true
   
   # Redis 配置
-  redis:
-    host: localhost
-    port: 6379
-    password: # 如果Redis设置了密码，请在此填写
-    database: 0
-    timeout: 5000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-        max-wait: -1ms
-      shutdown-timeout: 100ms
-  
-  # Spring Boot DevTools 配置
-  devtools:
-    restart:
-      enabled: true
-      additional-paths: src/main/java,src/main/resources
-      exclude: static/**,public/**
-    livereload:
-      enabled: true
-      port: 35729
-  freemarker:
-    cache: false
-  thymeleaf:
-    cache: false
-  
-  # JPA配置
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DATABASE}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+
 # MyBatis Plus配置
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    cache-enabled: true
+    lazy-loading-enabled: true
   global-config:
     db-config:
       id-type: auto
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+    banner: false
   mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.pengcunfu.recognition.entity
 
 # 服务器配置
 server:
-  port: 8080
+  port: 9094
   servlet:
     context-path: /
-
-# MyBatis配置
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.pcf.recognition.entity
-  configuration:
-    map-underscore-to-camel-case: true
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 200
+      min-spare: 10
 
 # 火山引擎配置
 volcengine:
-  access-key-id: YOUR_VOLCENGINE_ACCESS_KEY_ID  # 请替换为你的火山引擎Access Key ID
-  secret-access-key: YOUR_VOLCENGINE_SECRET_ACCESS_KEY  # 请替换为你的火山引擎Secret Access Key
+  access-key-id: ${VOLCENGINE_ACCESS_KEY_ID}
+  secret-access-key: ${VOLCENGINE_SECRET_ACCESS_KEY}
   region: cn-beijing
-  visual-recognition:
-    endpoint: https://visual.volcengineapi.com
-    service-name: ImageX
-    version: 2018-08-01
   # 对象存储TOS配置
   tos:
     endpoint: https://tos-cn-beijing.volces.com
     region: cn-beijing
     bucket: image-recognition
-    # 对象URL过期时间（秒）
     url-expiration: 3600
 
 # 图像识别服务配置
@@ -135,23 +127,72 @@ image:
 
 # JWT配置
 jwt:
-  secret: 8ZkP3xQ7vT2bN9mK4sF6jH1dG5fR8aL0cB3eY7uI2oP5qS8tD  # 请替换为你的JWT密钥（建议使用64位以上的随机字符串）
-  expiration: 86400
+  secret: ${JWT_SECRET}
+  expiration: 604800 # 7天，单位：秒
+  issuer: image-recognition-system
+  header: Authorization
+  prefix: Bearer 
 
 # Doubao AI配置
 doubao:
   api:
-    key: YOUR_DOUBAO_API_KEY  # 请替换为你的豆包API密钥
+    key: ${DOUBAO_API_KEY}
     base-url: https://ark.cn-beijing.volces.com/api/v3
     model: doubao-1-5-thinking-vision-pro-250428
     timeout: 30000
     max-retries: 3
 
+# 应用配置
+app:
+  # 文件存储配置
+  storage:
+    type: local # local, tos
+    local:
+      path: ./uploads
+      url-prefix: http://localhost:9094/files
+  
+  # 上传文件配置
+  upload:
+    max-size: 10485760 # 10MB
+    allowed-types: jpg,jpeg,png,gif,bmp,webp
+    path: uploads
+  
+  # VIP配置
+  vip:
+    monthly-price: 30
+    quarterly-price: 80
+    yearly-price: 300
+  
+  # 限流配置
+  rate-limit:
+    enabled: true
+    default-limit: 100 # 默认限流：100次/分钟
+    recognition-limit: 20 # 识别限流：20次/分钟
+    vip-recognition-limit: 100 # VIP识别限流：100次/分钟
+
 # 日志配置
 logging:
   level:
-    com.pcf.recognition: DEBUG
-    com.pcf.recognition.service.RecognitionService: INFO
+    root: INFO
+    com.pengcunfu.recognition: INFO
+    org.springframework.web: INFO
+    org.springframework.security: WARN
+    com.baomidou.mybatisplus: INFO
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 30
+    total-size-cap: 1GB
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized

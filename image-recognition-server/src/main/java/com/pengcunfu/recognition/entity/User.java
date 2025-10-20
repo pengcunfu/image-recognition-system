@@ -1,128 +1,98 @@
-package com.pcf.recognition.entity;
+package com.pengcunfu.recognition.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 /**
- * 用户实体
+ * 用户表
+ * 存储用户基本信息和账号数据
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @TableName("users")
 public class User {
 
+    /**
+     * 用户ID(主键)
+     */
     @TableId(type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 用户名
+     */
     private String username;
 
+    /**
+     * 邮箱
+     */
     private String email;
 
+    /**
+     * 密码(BCrypt加密存储)
+     */
     private String password;
 
-    private String name;
+    /**
+     * 昵称
+     */
+    private String nickname;
 
-    private String phone;
-
+    /**
+     * 头像URL
+     */
     private String avatar;
 
-    private String bio;
+    /**
+     * 手机号
+     */
+    private String phone;
 
-    private UserRole role = UserRole.USER;
+    /**
+     * 用户角色: 0-USER普通用户, 1-VIP会员, 2-ADMIN管理员
+     */
+    private Integer role;
 
-    private UserStatus status = UserStatus.ACTIVE;
+    /**
+     * 账号状态: 0-ACTIVE激活, 1-BANNED封禁, 2-INACTIVE未激活
+     */
+    private Integer status;
 
-    private Integer vipLevel = 0;
-
+    /**
+     * VIP到期时间
+     */
     private LocalDateTime vipExpireTime;
 
+    /**
+     * 最后登录时间
+     */
     private LocalDateTime lastLoginTime;
 
+    /**
+     * 登录IP地址
+     */
+    private String loginIp;
+
+    /**
+     * 创建时间
+     */
     @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 
+    /**
+     * 更新时间
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
 
-    @TableLogic(value = "'NOT_DELETED'", delval = "'DELETED'")
-    private DeleteStatus deleted = DeleteStatus.NOT_DELETED;
-
-    // 删除状态枚举
-    @Getter
-    public enum DeleteStatus {
-        NOT_DELETED("NOT_DELETED", "未删除"),
-        DELETED("DELETED", "已删除");
-
-        private final String value;
-        private final String description;
-
-        DeleteStatus(String value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        public static DeleteStatus fromValue(String value) {
-            for (DeleteStatus status : values()) {
-                if (status.value.equals(value)) {
-                    return status;
-                }
-            }
-            throw new IllegalArgumentException("Invalid delete status value: " + value);
-        }
-    }
-
-    // 用户角色枚举
-    @Getter
-    public enum UserRole {
-        USER(1, "普通用户"),
-        VIP(2, "VIP用户"),
-        ADMIN(3, "管理员");
-
-        private final int value;
-        private final String description;
-
-        UserRole(int value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        public static UserRole fromValue(int value) {
-            for (UserRole role : values()) {
-                if (role.value == value) {
-                    return role;
-                }
-            }
-            throw new IllegalArgumentException("Invalid role value: " + value);
-        }
-    }
-
-    // 用户状态枚举
-    @Getter
-    public enum UserStatus {
-        ACTIVE(1, "激活"),
-        INACTIVE(2, "未激活"),
-        BANNED(3, "封禁"),
-        DELETED(4, "已删除");
-
-        private final int value;
-        private final String description;
-
-        UserStatus(int value, String description) {
-            this.value = value;
-            this.description = description;
-        }
-
-        public static UserStatus fromValue(int value) {
-            for (UserStatus status : values()) {
-                if (status.value == value) {
-                    return status;
-                }
-            }
-            throw new IllegalArgumentException("Invalid status value: " + value);
-        }
-    }
+    /**
+     * 逻辑删除: 0-未删除, 1-已删除
+     */
+    @TableLogic
+    private Integer deleted;
 }

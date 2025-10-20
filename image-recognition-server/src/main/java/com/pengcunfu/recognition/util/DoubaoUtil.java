@@ -1,6 +1,6 @@
-package com.pcf.recognition.util;
+package com.pengcunfu.recognition.util;
 
-import com.pcf.recognition.config.DoubaoConfig;
+import com.pengcunfu.recognition.config.DoubaoConfig;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionContentPart;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;

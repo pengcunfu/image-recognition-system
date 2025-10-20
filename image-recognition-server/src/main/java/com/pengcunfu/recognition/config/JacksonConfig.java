@@ -1,4 +1,4 @@
-package com.pcf.recognition.config;
+package com.pengcunfu.recognition.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;

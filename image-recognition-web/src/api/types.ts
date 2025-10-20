@@ -188,6 +188,89 @@ export interface AdminDashboardStats {
   systemActivity: number
 }
 
+// 用户概览响应
+export interface UsersOverviewResponse {
+  totalUsers: number
+  activeUsers: number
+  newUsersToday: number
+  newUsersThisMonth: number
+  usersByRole: Record<string, number>
+  usersByStatus: Record<string, number>
+  recentRegistrations: User[]
+}
+
+// 用户登录历史参数
+export interface UserLoginHistoryParams {
+  page?: number
+  size?: number
+}
+
+// 用户登录历史响应
+export interface UserLoginHistoryResponse {
+  records: Array<{
+    id: number
+    loginTime: string
+    loginIp: string
+    userAgent: string
+    location?: string
+    success: boolean
+  }>
+  total: number
+  page: number
+  size: number
+}
+
+// VIP用户列表参数
+export interface VipUsersParams {
+  page?: number
+  size?: number
+  keyword?: string
+  level?: string
+  status?: string
+}
+
+// VIP统计响应
+export interface VipStatsResponse {
+  total: number
+  active: number
+  expiring: number
+  monthlyRevenue: number
+}
+
+// 延期VIP请求
+export interface ExtendVipRequest {
+  days: number
+  reason?: string
+}
+
+// 升级VIP请求
+export interface UpgradeVipRequest {
+  level: number
+  reason?: string
+}
+
+// 降级VIP请求
+export interface DowngradeVipRequest {
+  level: number
+  reason?: string
+}
+
+// 切换VIP状态请求
+export interface ToggleVipStatusRequest {
+  action: 'suspend' | 'resume'
+  reason?: string
+}
+
+// 撤销VIP请求
+export interface RevokeVipRequest {
+  reason?: string
+}
+
+// 重置VIP用量请求
+export interface ResetVipUsageRequest {
+  reason?: string
+}
+
 // ==================== 认证相关类型 ====================
 
 // 登录请求
@@ -262,6 +345,44 @@ export interface SmsCodeResponse {
 export interface SmsCodeVerifyRequest {
   phone: string
   code: string
+}
+
+// 发送邮箱验证码请求
+export interface SendEmailCodeRequest {
+  email: string
+  type: string
+}
+
+// 修改密码请求（认证模块）
+export interface AuthChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+// 绑定手机号请求
+export interface BindPhoneRequest {
+  phone: string
+  smsCode: string
+}
+
+// 绑定邮箱请求
+export interface BindEmailRequest {
+  email: string
+  verifyCode: string
+}
+
+// OAuth URL响应
+export interface OAuthUrlResponse {
+  url: string
+}
+
+// OAuth绑定信息
+export interface OAuthBinding {
+  provider: string
+  username: string
+  email: string
+  bindTime: string
+  status: 'active' | 'inactive'
 }
 
 // ==================== 知识库相关类型 ====================
@@ -371,6 +492,138 @@ export interface KnowledgeOperationResult {
   success: boolean
   message: string
   operation?: string
+}
+
+// 创建知识分类请求
+export interface CreateKnowledgeCategoryRequest {
+  name: string
+  key: string
+  description?: string
+  image?: string
+  sortOrder?: number
+}
+
+// 更新知识分类请求
+export interface UpdateKnowledgeCategoryRequest {
+  name?: string
+  description?: string
+  image?: string
+  sortOrder?: number
+  status?: number
+}
+
+// 获取知识条目列表参数
+export interface GetKnowledgeItemsParams {
+  category?: string
+  page?: number
+  size?: number
+  keyword?: string
+}
+
+// 创建知识条目请求
+export interface CreateKnowledgeItemRequest {
+  name: string
+  categoryId: number
+  scientificName?: string
+  description: string
+  content: string
+  images?: string
+  characteristics?: string
+  habitat?: string
+  lifespan?: string
+  relatedItems?: string
+  tags?: string
+  difficulty?: number
+  sortOrder?: number
+  status?: string
+}
+
+// 更新知识条目请求
+export interface UpdateKnowledgeItemRequest {
+  name?: string
+  categoryId?: number
+  scientificName?: string
+  description?: string
+  content?: string
+  images?: string
+  characteristics?: string
+  habitat?: string
+  lifespan?: string
+  relatedItems?: string
+  tags?: string
+  difficulty?: number
+  sortOrder?: number
+  status?: string
+}
+
+// 搜索知识条目参数
+export interface SearchKnowledgeItemsParams {
+  keyword: string
+  page?: number
+  size?: number
+}
+
+// 高级搜索知识条目参数
+export interface AdvancedSearchKnowledgeParams {
+  keyword: string
+  page?: number
+  size?: number
+  category?: string
+}
+
+// 提交知识条目反馈请求
+export interface SubmitKnowledgeFeedbackRequest {
+  rating: number
+  comment?: string
+  helpful: boolean
+}
+
+// 知识条目评论响应
+export interface KnowledgeItemCommentsResponse {
+  comments: Array<{
+    id: number
+    content: string
+    author: {
+      id: number
+      username: string
+      avatar?: string
+    }
+    createTime: string
+    likes: number
+    isLiked: boolean
+  }>
+  total: number
+  page: number
+  size: number
+}
+
+// 学习进度响应
+export interface LearningProgressResponse {
+  totalItems: number
+  learnedItems: number
+  progress: number
+  categories: Array<{
+    category: string
+    total: number
+    learned: number
+    progress: number
+  }>
+}
+
+// 学习统计响应
+export interface LearningStatsResponse {
+  totalTime: number // 总学习时间（分钟）
+  todayTime: number // 今日学习时间
+  weekTime: number // 本周学习时间
+  monthTime: number // 本月学习时间
+  streak: number // 连续学习天数
+  achievements: Array<{
+    id: string
+    name: string
+    description: string
+    icon: string
+    unlockedAt?: string
+  }>
 }
 
 // ==================== 社区相关类型 ====================
@@ -490,6 +743,123 @@ export interface CommentCreateResponse {
   message: string
   commentId?: number
   comment?: Comment
+}
+
+// 获取帖子列表参数
+export interface GetPostsParams {
+  page?: number
+  size?: number
+  category?: string
+  sort?: 'latest' | 'hot' | 'top'
+}
+
+// 获取帖子评论参数
+export interface GetPostCommentsParams {
+  page?: number
+  size?: number
+}
+
+// 搜索帖子参数
+export interface SearchPostsParams {
+  keyword: string
+  page?: number
+  size?: number
+  category?: string
+  author?: string
+  dateRange?: [string, string]
+}
+
+// 热门话题项
+export interface HotTopic {
+  tag: string
+  count: number
+  trend: 'up' | 'down' | 'stable'
+}
+
+// 社区统计响应
+export interface CommunityStatsResponse {
+  totalPosts: number
+  totalComments: number
+  totalUsers: number
+  activeUsers: number
+  todayPosts: number
+  todayComments: number
+  hotCategories: Array<{
+    category: string
+    count: number
+    percentage: number
+  }>
+}
+
+// 用户社区统计响应
+export interface UserCommunityStatsResponse {
+  postsCount: number
+  commentsCount: number
+  likesReceived: number
+  followersCount: number
+  followingCount: number
+  reputation: number
+  level: number
+  badges: Array<{
+    id: string
+    name: string
+    description: string
+    icon: string
+    earnedAt: string
+  }>
+}
+
+// 社区分类
+export interface CommunityCategory {
+  id: string
+  name: string
+  description: string
+  icon?: string
+  postCount: number
+  color?: string
+}
+
+// 通知查询参数
+export interface NotificationQueryParams {
+  page?: number
+  size?: number
+  type?: 'like' | 'comment' | 'follow' | 'mention' | 'system'
+  unreadOnly?: boolean
+}
+
+// 通知响应
+export interface NotificationResponse {
+  notifications: Array<{
+    id: number
+    type: string
+    title: string
+    content: string
+    data?: any
+    read: boolean
+    createTime: string
+  }>
+  total: number
+  unreadCount: number
+  page: number
+  size: number
+}
+
+// @提及建议
+export interface MentionSuggestion {
+  id: number
+  username: string
+  name?: string
+  avatar?: string
+}
+
+// 图片上传响应
+export interface ImageUploadResponse {
+  url: string
+}
+
+// 多图片上传响应
+export interface MultiImageUploadResponse {
+  urls: string[]
 }
 
 // ==================== 图像识别相关类型 ====================

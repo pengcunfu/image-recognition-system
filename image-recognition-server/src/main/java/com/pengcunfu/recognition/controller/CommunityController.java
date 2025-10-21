@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.CommunityRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.CommunityResponse;
@@ -54,6 +55,7 @@ public class CommunityController {
     /**
      * 创建帖子
      */
+    @Role("USER")
     @PostMapping("/posts")
     public ApiResponse<CommunityResponse.PostInfo> createPost(@Valid @RequestBody CommunityRequest.CreatePostRequest request) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -65,6 +67,7 @@ public class CommunityController {
     /**
      * 更新帖子
      */
+    @Role("USER")
     @PutMapping("/posts/{id}")
     public ApiResponse<Void> updatePost(
             @PathVariable Long id,
@@ -78,6 +81,7 @@ public class CommunityController {
     /**
      * 删除帖子
      */
+    @Role("USER")
     @DeleteMapping("/posts/{id}")
     public ApiResponse<Void> deletePost(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -89,6 +93,7 @@ public class CommunityController {
     /**
      * 点赞帖子
      */
+    @Role("USER")
     @PostMapping("/posts/{id}/like")
     public ApiResponse<Void> likePost(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -100,6 +105,7 @@ public class CommunityController {
     /**
      * 取消点赞帖子
      */
+    @Role("USER")
     @DeleteMapping("/posts/{id}/like")
     public ApiResponse<Void> unlikePost(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -111,6 +117,7 @@ public class CommunityController {
     /**
      * 收藏帖子
      */
+    @Role("USER")
     @PostMapping("/posts/{id}/collect")
     public ApiResponse<Void> collectPost(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -122,6 +129,7 @@ public class CommunityController {
     /**
      * 取消收藏帖子
      */
+    @Role("USER")
     @DeleteMapping("/posts/{id}/collect")
     public ApiResponse<Void> uncollectPost(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();

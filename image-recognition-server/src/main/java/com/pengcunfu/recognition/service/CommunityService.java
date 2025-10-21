@@ -108,6 +108,29 @@ public class CommunityService {
     }
 
     /**
+     * 获取帖子列表（管理员，使用 SQL 查询）
+     */
+    public PageResponse<CommunityResponse.PostInfo> getPostsAdmin(
+            Integer page, Integer size, Integer status, String keyword) {
+        log.info("管理员获取帖子列表: page={}, size={}, status={}, keyword={}", 
+                page, size, status, keyword);
+
+        Page<CommunityPost> pageRequest = new Page<>(page, size);
+        Page<CommunityPost> pageResult = communityPostRepository.findPostsForAdmin(
+                pageRequest, status, keyword);
+
+        return PageResponse.<CommunityResponse.PostInfo>builder()
+                .data(pageResult.getRecords().stream()
+                        .map(this::convertToPostInfo)
+                        .collect(Collectors.toList()))
+                .total(pageResult.getTotal())
+                .page((int) pageResult.getCurrent())
+                .size((int) pageResult.getSize())
+                .pages((int) pageResult.getPages())
+                .build();
+    }
+
+    /**
      * 获取帖子详情
      */
     @Transactional
@@ -185,6 +208,136 @@ public class CommunityService {
         communityPostRepository.deleteById(postId);
 
         log.info("帖子删除成功: userId={}, postId={}", userId, postId);
+    }
+
+    /**
+     * 创建帖子（管理员）
+     */
+    @Transactional
+    public Long createPostAdmin(CommunityRequest.CreatePostRequest request) {
+        log.info("管理员创建帖子: title={}", request.getTitle());
+
+        // 从自定义SecurityContextHolder获取当前用户ID
+        Long userId = com.pengcunfu.recognition.security.SecurityContextHolder.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "未登录或登录已过期");
+        }
+
+        // 创建帖子
+        CommunityPost post = CommunityPost.builder()
+                .userId(userId)
+                .title(request.getTitle())
+                .content(request.getContent())
+                .category(request.getCategory())
+                .tags(request.getTags())
+                .images(request.getImages())
+                .status(request.getStatus() != null ? request.getStatus() : 1) // 默认已发布
+                .isTop(0)
+                .isFeatured(0)
+                .viewCount(0)
+                .likeCount(0)
+                .commentCount(0)
+                .collectCount(0)
+                .build();
+
+        communityPostRepository.insert(post);
+
+        log.info("帖子创建成功: postId={}, userId={}", post.getId(), userId);
+        return post.getId();
+    }
+
+    /**
+     * 更新帖子（管理员）
+     */
+    @Transactional
+    public void updatePostAdmin(Long postId, CommunityRequest.UpdatePostRequest request) {
+        log.info("管理员更新帖子: postId={}", postId);
+
+        CommunityPost post = communityPostRepository.selectById(postId);
+
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+
+        // 更新字段
+        if (request.getTitle() != null) {
+            post.setTitle(request.getTitle());
+        }
+        if (request.getContent() != null) {
+            post.setContent(request.getContent());
+        }
+        if (request.getCategory() != null) {
+            post.setCategory(request.getCategory());
+        }
+        if (request.getTags() != null) {
+            post.setTags(request.getTags());
+        }
+        if (request.getImages() != null) {
+            post.setImages(request.getImages());
+        }
+        if (request.getStatus() != null) {
+            post.setStatus(request.getStatus());
+        }
+
+        communityPostRepository.updateById(post);
+
+        log.info("帖子更新成功: postId={}", postId);
+    }
+
+    /**
+     * 删除帖子（管理员）
+     */
+    @Transactional
+    public void deletePostAdmin(Long postId) {
+        log.info("管理员删除帖子: postId={}", postId);
+
+        CommunityPost post = communityPostRepository.selectById(postId);
+
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+
+        communityPostRepository.deleteById(postId);
+
+        log.info("帖子删除成功: postId={}", postId);
+    }
+
+    /**
+     * 更新帖子状态
+     */
+    @Transactional
+    public void updatePostStatus(Long postId, Integer status) {
+        log.info("更新帖子状态: postId={}, status={}", postId, status);
+
+        CommunityPost post = communityPostRepository.selectById(postId);
+
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+
+        post.setStatus(status);
+        communityPostRepository.updateById(post);
+
+        log.info("帖子状态更新成功: postId={}, status={}", postId, status);
+    }
+
+    /**
+     * 置顶帖子
+     */
+    @Transactional
+    public void togglePostTop(Long postId, Integer isTop) {
+        log.info("置顶帖子: postId={}, isTop={}", postId, isTop);
+
+        CommunityPost post = communityPostRepository.selectById(postId);
+
+        if (post == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+
+        post.setIsTop(isTop);
+        communityPostRepository.updateById(post);
+
+        log.info("帖子置顶更新成功: postId={}, isTop={}", postId, isTop);
     }
 
     /**
@@ -334,7 +487,6 @@ public class CommunityService {
                 .commentCount(post.getCommentCount())
                 .isTop(post.getIsTop())
                 .createdAt(post.getCreatedAt())
-                .createTime(post.getCreatedAt())
                 .build();
     }
 }

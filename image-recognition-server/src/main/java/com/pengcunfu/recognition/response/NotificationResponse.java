@@ -32,7 +32,6 @@ public class NotificationResponse {
         private Integer isRead;
         private Long relatedId; // 兼容字段
         private LocalDateTime readTime;
-        private LocalDateTime createTime;
         private LocalDateTime createdAt;
     }
 }

@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.NotificationRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.NotificationResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@Role("USER")
 public class NotificationController {
 
     private final NotificationService notificationService;

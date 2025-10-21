@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.KnowledgeRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.KnowledgeResponse;
@@ -52,6 +53,7 @@ public class KnowledgeController {
     /**
      * 点赞知识
      */
+    @Role("USER")
     @PostMapping("/{id}/like")
     public ApiResponse<Void> likeKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -63,6 +65,7 @@ public class KnowledgeController {
     /**
      * 取消点赞知识
      */
+    @Role("USER")
     @DeleteMapping("/{id}/like")
     public ApiResponse<Void> unlikeKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -74,6 +77,7 @@ public class KnowledgeController {
     /**
      * 收藏知识
      */
+    @Role("USER")
     @PostMapping("/{id}/collect")
     public ApiResponse<Void> collectKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -85,12 +89,33 @@ public class KnowledgeController {
     /**
      * 取消收藏知识
      */
+    @Role("USER")
     @DeleteMapping("/{id}/collect")
     public ApiResponse<Void> uncollectKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
         log.info("取消收藏知识: userId={}, knowledgeId={}", userId, id);
         knowledgeService.uncollectKnowledge(userId, id);
         return ApiResponse.success();
+    }
+
+    /**
+     * 获取所有分类
+     */
+    @GetMapping("/categories")
+    public ApiResponse<java.util.List<String>> getAllCategories() {
+        log.info("获取所有分类");
+        java.util.List<String> categories = knowledgeService.getAllCategories();
+        return ApiResponse.success(categories);
+    }
+
+    /**
+     * 获取所有标签
+     */
+    @GetMapping("/tags")
+    public ApiResponse<java.util.List<String>> getAllTags() {
+        log.info("获取所有标签");
+        java.util.List<String> tags = knowledgeService.getAllTags();
+        return ApiResponse.success(tags);
     }
 }
 

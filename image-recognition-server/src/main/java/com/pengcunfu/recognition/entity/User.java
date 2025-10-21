@@ -54,6 +54,11 @@ public class User {
     private String phone;
 
     /**
+     * 个人简介
+     */
+    private String bio;
+
+    /**
      * 用户角色: 0-USER普通用户, 1-VIP会员, 2-ADMIN管理员
      */
     private Integer role;

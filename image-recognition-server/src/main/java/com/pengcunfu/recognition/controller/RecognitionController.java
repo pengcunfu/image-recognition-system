@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.constant.ErrorCode;
 import com.pengcunfu.recognition.exception.BusinessException;
 import com.pengcunfu.recognition.request.RecognitionRequest;
@@ -23,6 +24,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/recognition")
 @RequiredArgsConstructor
+@Role("USER")
 public class RecognitionController {
 
     private final RecognitionService recognitionService;
@@ -112,6 +114,73 @@ public class RecognitionController {
         log.info("删除识别记录: userId={}, id={}", userId, id);
         recognitionService.deleteRecognitionResult(userId, id);
         return ApiResponse.success();
+    }
+
+    /**
+     * 批量图像识别（上传多个文件）
+     */
+    @PostMapping("/batch-recognize")
+    public ApiResponse<java.util.List<RecognitionResponse.RecognitionInfo>> batchRecognize(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam(value = "recognitionType", required = false, defaultValue = "0") Integer recognitionType) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("批量图像识别: userId={}, fileCount={}, recognitionType={}", userId, files.length, recognitionType);
+        
+        try {
+            // 验证文件数量
+            if (files == null || files.length == 0) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "上传文件不能为空");
+            }
+            
+            if (files.length > 10) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "批量识别最多支持10张图片");
+            }
+            
+            // 上传所有文件到TOS
+            String[] imageUrls = new String[files.length];
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                
+                // 验证文件
+                if (file.isEmpty()) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 为空");
+                }
+                
+                // 验证文件类型
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 不是图片文件");
+                }
+                
+                // 验证文件大小（10MB）
+                if (file.getSize() > 10 * 1024 * 1024) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 大小不能超过 10MB");
+                }
+                
+                // 上传到TOS
+                imageUrls[i] = tosUtil.uploadFile(file, "recognition");
+                log.info("文件 {} 上传成功: userId={}, imageUrl={}", i + 1, userId, imageUrls[i]);
+            }
+            
+            // 构建批量识别请求
+            RecognitionRequest.BatchRecognitionRequest request = new RecognitionRequest.BatchRecognitionRequest();
+            request.setRecognitionType(recognitionType);
+            request.setImageUrls(imageUrls);
+            
+            // 执行批量识别
+            java.util.List<RecognitionResponse.RecognitionInfo> results = 
+                recognitionService.batchRecognizeImages(userId, request);
+            
+            return ApiResponse.success(results);
+        } catch (IOException e) {
+            log.error("批量文件上传失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "文件上传失败: " + e.getMessage());
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("批量图像识别失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "批量图像识别失败: " + e.getMessage());
+        }
     }
 }
 

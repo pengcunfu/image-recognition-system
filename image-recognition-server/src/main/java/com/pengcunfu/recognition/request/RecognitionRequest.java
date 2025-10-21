@@ -46,4 +46,26 @@ public class RecognitionRequest {
         private String startTime;
         private String endTime;
     }
+
+    /**
+     * 识别记录查询请求（管理员功能）
+     */
+    @Data
+    public static class QueryRecognitionRequest {
+        private Integer page = 1;
+        private Integer size = 10;
+        private Long userId;
+        private String category;
+        private Integer status;
+        private String startTime;
+        private String endTime;
+    }
+
+    /**
+     * 删除识别记录请求（管理员功能）
+     */
+    @Data
+    public static class DeleteRecognitionRequest {
+        private String reason;
+    }
 }

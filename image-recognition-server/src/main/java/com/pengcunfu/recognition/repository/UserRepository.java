@@ -102,7 +102,7 @@ public interface UserRepository extends BaseMapper<User> {
     java.util.List<java.util.Map<String, Object>> countUserTrendByDate(@Param("startDate") LocalDateTime startDate);
 
     /**
-     * 管理员分页查询用户（带状态和关键词过滤）
+     * 管理员分页查询用户（带状态、角色、关键词过滤和排序）
      */
     @Select("""
             <script>
@@ -111,15 +111,64 @@ public interface UserRepository extends BaseMapper<User> {
             <if test="status != null">
                 AND status = #{status}
             </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
             <if test="keyword != null and keyword != ''">
                 AND (username LIKE CONCAT('%', #{keyword}, '%') 
                 OR email LIKE CONCAT('%', #{keyword}, '%') 
-                OR nickname LIKE CONCAT('%', #{keyword}, '%'))
+                OR nickname LIKE CONCAT('%', #{keyword}, '%')
+                OR phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <choose>
+                <when test="sortBy == 'createTime' or sortBy == 'createdAt' or sortBy == null">
+                    ORDER BY created_at 
+                    <if test="sortOrder == 'asc'">ASC</if>
+                    <if test="sortOrder != 'asc'">DESC</if>
+                </when>
+                <when test="sortBy == 'lastLoginTime'">
+                    ORDER BY last_login_time 
+                    <if test="sortOrder == 'asc'">ASC</if>
+                    <if test="sortOrder != 'asc'">DESC</if>
+                </when>
+                <when test="sortBy == 'username'">
+                    ORDER BY username 
+                    <if test="sortOrder == 'asc'">ASC</if>
+                    <if test="sortOrder != 'asc'">DESC</if>
+                </when>
+                <otherwise>
+                    ORDER BY created_at DESC
+                </otherwise>
+            </choose>
+            </script>
+            """)
+    com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> findUsersForAdmin(
+            com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> page,
+            @Param("status") Integer status,
+            @Param("role") Integer role,
+            @Param("keyword") String keyword,
+            @Param("sortBy") String sortBy,
+            @Param("sortOrder") String sortOrder
+    );
+
+    /**
+     * 管理员分页查询VIP用户（带等级、状态和关键词过滤）
+     */
+    @Select("""
+            <script>
+            SELECT * FROM users
+            WHERE role = 1
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (username LIKE CONCAT('%', #{keyword}, '%') 
+                OR email LIKE CONCAT('%', #{keyword}, '%'))
             </if>
             ORDER BY created_at DESC
             </script>
             """)
-    com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> findUsersForAdmin(
+    com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> findVipUsersForAdmin(
             com.baomidou.mybatisplus.extension.plugins.pagination.Page<User> page,
             @Param("status") Integer status,
             @Param("keyword") String keyword

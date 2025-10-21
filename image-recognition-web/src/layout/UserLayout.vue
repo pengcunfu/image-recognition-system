@@ -1,5 +1,5 @@
 <template>
-  <a-layout :style="{ minHeight: '100vh' }">
+  <a-layout :style="{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }">
     <!-- Header -->
     <a-layout-header :style="{ 
       background: '#001529', 
@@ -7,7 +7,13 @@
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'space-between', 
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
+      height: '64px'
     }">
       <div :style="{ 
         display: 'flex', 
@@ -59,39 +65,27 @@
           历史记录
         </a-menu-item>
         
-        <!-- VIP专享功能菜单 -->
-        <a-sub-menu v-if="isVipUser" key="vip-features">
-          <template #icon>
-            <CrownOutlined :style="{ color: '#ffd700' }" />
-          </template>
-          <template #title>
-            <span :style="{ color: '#ffd700' }">VIP专享</span>
-          </template>
+        <!-- VIP专享功能菜单（一级菜单） -->
+        <template v-if="isVipUser">
           <a-menu-item key="/user/advanced-recognition">
             <template #icon>
               <ThunderboltOutlined :style="{ color: '#ffd700' }" />
             </template>
-            高级识别
+            <span :style="{ color: '#ffd700' }">高级识别</span>
           </a-menu-item>
           <a-menu-item key="/user/vip-analytics">
             <template #icon>
               <LineChartOutlined :style="{ color: '#ffd700' }" />
             </template>
-            VIP数据分析
+            <span :style="{ color: '#ffd700' }">VIP数据分析</span>
           </a-menu-item>
           <a-menu-item key="/user/ai-training">
             <template #icon>
               <RobotOutlined :style="{ color: '#ffd700' }" />
             </template>
-            AI模型训练
+            <span :style="{ color: '#ffd700' }">AI模型训练</span>
           </a-menu-item>
-          <a-menu-item key="/user/api-access">
-            <template #icon>
-              <ApiOutlined :style="{ color: '#ffd700' }" />
-            </template>
-            API访问
-          </a-menu-item>
-        </a-sub-menu>
+        </template>
       </a-menu>
       
       <!-- 用户信息 -->
@@ -104,10 +98,9 @@
         <a-dropdown>
           <a-button type="text" :style="{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }">
             <a-avatar :src="userInfo.avatar" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
-              {{ userInfo.name.charAt(0) }}
+              {{ getAvatarText() }}
             </a-avatar>
-            <span :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.name }}</span>
-            <DownOutlined />
+            <span :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.nickname || userInfo.username || '用户' }}</span>
           </a-button>
           <template #overlay>
             <a-menu @click="handleUserMenuClick">
@@ -135,29 +128,36 @@
     </a-layout-header>
     
     <!-- Main Content -->
-    <a-layout-content :style="{ padding: '24px', minHeight: 'calc(100vh - 64px - 70px)', background: '#f0f2f5' }">
-      <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
-        <router-view />
-      </div>
+    <a-layout-content :style="{ 
+      padding: '0', 
+      minHeight: 'calc(100vh - 64px - 70px)', 
+      background: '#f0f2f5',
+      marginTop: '64px',
+      marginBottom: '70px',
+      flex: 1
+    }">
+      <router-view />
     </a-layout-content>
     
     <!-- Footer -->
-    <a-layout-footer :style="{ background: '#001529', color: 'white', textAlign: 'center', padding: '24px 50px' }">
-      <div :style="{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
-        <p :style="{ margin: 0 }">&copy; 2025 智能图像识别系统. All rights reserved. Designed by 彭存福</p>
-        <div :style="{ display: 'flex', gap: '24px' }">
-          <router-link to="/about" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">关于我们</router-link>
-          <router-link to="/contact" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">联系我们</router-link>
-          <router-link to="/privacy" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">隐私政策</router-link>
-          <router-link to="/terms" :style="{ color: 'rgba(255, 255, 255, 0.7)', textDecoration: 'none', transition: 'color 0.3s' }">服务条款</router-link>
-        </div>
-      </div>
+    <a-layout-footer :style="{ 
+      background: '#001529', 
+      color: 'white', 
+      textAlign: 'center', 
+      padding: '24px 50px',
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      zIndex: 999
+    }">
+      <p :style="{ margin: 0 }">&copy; 2025 智能图像识别系统. All rights reserved. Designed by 彭存福</p>
     </a-layout-footer>
   </a-layout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { 
@@ -174,9 +174,9 @@ import {
   UserOutlined, 
   SettingOutlined, 
   HeartOutlined, 
-  LogoutOutlined,
-  DownOutlined
+  LogoutOutlined
 } from '@ant-design/icons-vue'
+import { UserAPI } from '@/api/user'
 
 const router = useRouter()
 const route = useRoute()
@@ -184,22 +184,52 @@ const selectedKeys = ref(['/user/dashboard'])
 
 // 用户信息
 const userInfo = reactive({
-  name: '张三',
+  id: 0,
+  username: '',
+  nickname: '',
   avatar: '',
-  email: 'zhangsan@example.com'
+  email: '',
+  role: 0
 })
 
 // 检查是否为VIP用户
 const isVipUser = computed(() => {
-  const userRole = localStorage.getItem('userRole')
-  return userRole === 'vip'
+  // 1 = VIP, 根据后端的 UserRole 枚举
+  return userInfo.role === 1
 })
+
+// 获取头像显示文本
+function getAvatarText() {
+  if (userInfo.nickname) {
+    return userInfo.nickname.charAt(0).toUpperCase()
+  }
+  if (userInfo.username) {
+    return userInfo.username.charAt(0).toUpperCase()
+  }
+  return 'U'
+}
+
+// 加载用户信息
+async function loadUserInfo() {
+  try {
+    const profile = await UserAPI.getProfile()
+    userInfo.id = profile.id
+    userInfo.username = profile.username
+    userInfo.nickname = profile.nickname || ''
+    userInfo.avatar = profile.avatar || ''
+    userInfo.email = profile.email || ''
+    userInfo.role = profile.role
+  } catch (error) {
+    console.error('加载用户信息失败:', error)
+    // 不显示错误提示，使用默认值
+  }
+}
 
 // 监听路由变化，更新选中的菜单项
 watch(() => route.path, (newPath) => {
   // 匹配用户相关路由
   const userPaths = ['/user/dashboard', '/user/recognition', '/user/knowledge', '/user/community', '/user/history']
-  const vipPaths = ['/user/advanced-recognition', '/user/vip-analytics', '/user/ai-training', '/user/api-access']
+  const vipPaths = ['/user/advanced-recognition', '/user/vip-analytics', '/user/ai-training']
   
   // 优先匹配VIP路径
   const matchedVipPath = vipPaths.find(path => newPath.startsWith(path))
@@ -248,4 +278,9 @@ function handleLogout() {
   message.success('已退出登录')
   router.push('/login')
 }
+
+// 组件挂载时加载用户信息
+onMounted(() => {
+  loadUserInfo()
+})
 </script>

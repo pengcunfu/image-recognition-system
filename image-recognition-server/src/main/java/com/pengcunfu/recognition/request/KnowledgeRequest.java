@@ -51,5 +51,18 @@ public class KnowledgeRequest {
         private String category;
         private String keyword;
         private String tag;
+        // 管理员功能字段
+        private Integer status;
+        private String startTime;
+        private String endTime;
+    }
+
+    /**
+     * 审核知识条目请求（管理员功能）
+     */
+    @Data
+    public static class AuditKnowledgeRequest {
+        private Integer status; // 1-PUBLISHED, 2-REJECTED
+        private String reason;
     }
 }

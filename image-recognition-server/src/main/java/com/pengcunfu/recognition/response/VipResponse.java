@@ -33,7 +33,6 @@ public class VipResponse {
         private LocalDateTime startTime;
         private LocalDateTime expireTime;
         private LocalDateTime createdAt;
-        private LocalDateTime createTime; // 兼容字段
     }
 
     /**
@@ -86,5 +85,43 @@ public class VipResponse {
         private LocalDateTime startTime;
         private LocalDateTime expireTime;
         private LocalDateTime createdAt;
+    }
+
+    /**
+     * VIP订单信息（管理员）
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipOrderInfo {
+        private Long id;
+        private Long userId;
+        private String username;
+        private String orderNo;
+        private Integer planType;
+        private BigDecimal amount;
+        private String paymentMethod;
+        private Integer paymentStatus;
+        private LocalDateTime paymentTime;
+        private LocalDateTime createdAt;
+    }
+
+    /**
+     * VIP统计数据（管理员）
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipStats {
+        private Long totalVips;           // 总VIP用户数
+        private Long activeVips;          // 活跃VIP用户数
+        private Long expiredVips;         // 已过期VIP用户数
+        private BigDecimal totalRevenue;  // 总收入
+        private BigDecimal monthlyRevenue; // 本月收入
+        private Long newVipsThisMonth;    // 本月新增VIP
+        private Double renewalRate;       // 续费率
+        private Double avgLifetime;       // 平均生命周期（天）
     }
 }

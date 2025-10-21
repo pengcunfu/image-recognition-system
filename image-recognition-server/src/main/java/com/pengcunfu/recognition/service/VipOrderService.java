@@ -245,8 +245,104 @@ public class VipOrderService {
                 .paymentStatus(order.getPaymentStatus())
                 .paymentTime(order.getPaymentTime())
                 .createdAt(order.getCreatedAt())
-                .createTime(order.getCreatedAt())
+                .build();
+    }
+
+    // ==================== 管理员方法 ====================
+
+    /**
+     * 获取VIP订单列表（管理员）
+     */
+    public PageResponse<VipResponse.VipOrderInfo> getOrdersAdmin(
+            Integer page, Integer size, Integer paymentStatus, String keyword) {
+        log.info("管理员获取VIP订单列表: page={}, size={}, paymentStatus={}, keyword={}",
+                page, size, paymentStatus, keyword);
+
+        Page<VipOrder> orderPage = new Page<>(page, size);
+
+        // 构建查询条件
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<VipOrder> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+
+        if (paymentStatus != null) {
+            queryWrapper.eq(VipOrder::getPaymentStatus, paymentStatus);
+        }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            queryWrapper.and(wrapper -> wrapper
+                .like(VipOrder::getOrderNo, keyword)
+            );
+        }
+
+        queryWrapper.orderByDesc(VipOrder::getCreatedAt);
+
+        Page<VipOrder> result = vipOrderRepository.selectPage(orderPage, queryWrapper);
+
+        return PageResponse.<VipResponse.VipOrderInfo>builder()
+                .data(result.getRecords().stream()
+                        .map(this::convertToVipOrderInfo)
+                        .collect(Collectors.toList()))
+                .total(result.getTotal())
+                .page((int) result.getCurrent())
+                .size((int) result.getSize())
+                .build();
+    }
+
+    /**
+     * 更新订单状态（管理员）
+     */
+    @Transactional
+    public void updateOrderStatus(Long orderId, Integer status) {
+        log.info("管理员更新订单状态: orderId={}, status={}", orderId, status);
+
+        VipOrder order = vipOrderRepository.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "订单不存在");
+        }
+
+        order = VipOrder.builder()
+                .id(orderId)
+                .paymentStatus(status)
+                .build();
+
+        vipOrderRepository.updateById(order);
+
+        log.info("订单状态更新成功: orderId={}, status={}", orderId, status);
+    }
+
+    /**
+     * 转换为VIP订单信息（管理员）
+     */
+    private VipResponse.VipOrderInfo convertToVipOrderInfo(VipOrder order) {
+        User user = userRepository.selectById(order.getUserId());
+
+        return VipResponse.VipOrderInfo.builder()
+                .id(order.getId())
+                .userId(order.getUserId())
+                .username(user != null ? user.getUsername() : "未知用户")
+                .orderNo(order.getOrderNo())
+                .planType(order.getPlanType())
+                .amount(order.getAmount())
+                .paymentStatus(order.getPaymentStatus())
+                .paymentTime(order.getPaymentTime())
+                .build();
+    }
+
+    /**
+     * 获取VIP统计数据（管理员）
+     */
+    public VipResponse.VipStats getVipStats() {
+        log.info("获取VIP统计数据");
+        // TODO: 实现VIP统计数据查询逻辑
+        return VipResponse.VipStats.builder()
+                .totalVips(0L)
+                .activeVips(0L)
+                .expiredVips(0L)
+                .totalRevenue(java.math.BigDecimal.ZERO)
+                .monthlyRevenue(java.math.BigDecimal.ZERO)
+                .newVipsThisMonth(0L)
+                .renewalRate(0.0)
+                .avgLifetime(0.0)
                 .build();
     }
 }
-

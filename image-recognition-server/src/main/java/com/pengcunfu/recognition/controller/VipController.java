@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.VipRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.PageResponse;
@@ -19,6 +20,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/vip")
 @RequiredArgsConstructor
+@Role("USER")
 public class VipController {
 
     private final VipOrderService vipOrderService;

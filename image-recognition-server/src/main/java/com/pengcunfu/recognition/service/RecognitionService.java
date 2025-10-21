@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -128,7 +130,7 @@ public class RecognitionService {
                 .page((int) pageResult.getCurrent())
                 .size((int) pageResult.getSize())
                 .pages((int) pageResult.getPages())
-                .build();
+                    .build();
     }
 
     /**
@@ -184,7 +186,147 @@ public class RecognitionService {
                 .errorMessage(result.getErrorMessage())
                 .processingTime(result.getProcessingTime())
                 .createdAt(result.getCreatedAt())
-                .createTime(result.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * 批量图像识别
+     */
+    @Transactional
+    public List<RecognitionResponse.RecognitionInfo> batchRecognizeImages(Long userId, RecognitionRequest.BatchRecognitionRequest request) {
+        log.info("执行批量图像识别: userId={}, imageCount={}", userId, request.getImageUrls().length);
+
+        // 检查用户
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        // 检查批量识别限流（1分钟内最多5次）
+        if (!rateLimitService.isApiAllowed(userId, "batch_recognition", 5, 60)) {
+            throw new RateLimitException("批量识别操作过于频繁，请稍后再试");
+        }
+
+        List<RecognitionResponse.RecognitionInfo> results = new ArrayList<>();
+        
+        // 逐个处理图片
+        for (String imageUrl : request.getImageUrls()) {
+            try {
+                // 创建单个识别请求
+                RecognitionRequest.ImageRecognitionRequest singleRequest = new RecognitionRequest.ImageRecognitionRequest();
+                singleRequest.setImageUrl(imageUrl);
+                singleRequest.setRecognitionType(request.getRecognitionType());
+                
+                // 执行识别
+                RecognitionResponse.RecognitionInfo result = recognizeImage(userId, singleRequest);
+                results.add(result);
+
+        } catch (Exception e) {
+                log.error("批量识别中单张图片识别失败: userId={}, imageUrl={}, error={}", 
+                    userId, imageUrl, e.getMessage(), e);
+                
+                // 创建失败记录
+                RecognitionResult failedResult = RecognitionResult.builder()
+                        .userId(userId)
+                        .imageUrl(imageUrl)
+                        .recognitionType(request.getRecognitionType())
+                        .status(RecognitionStatus.FAILED.getCode())
+                        .errorMessage("识别失败: " + e.getMessage())
+                        .createdAt(LocalDateTime.now())
+                    .build();
+                
+                recognitionResultRepository.insert(failedResult);
+                
+                results.add(RecognitionResponse.RecognitionInfo.builder()
+                        .id(failedResult.getId())
+                        .userId(userId)
+                        .imageUrl(imageUrl)
+                        .recognitionType(request.getRecognitionType())
+                        .status(RecognitionStatus.FAILED.getCode())
+                        .errorMessage("识别失败: " + e.getMessage())
+                        .createdAt(failedResult.getCreatedAt())
+                        .build());
+            }
+        }
+        
+        log.info("批量图像识别完成: userId={}, totalCount={}, successCount={}", 
+            userId, results.size(), 
+            results.stream().filter(r -> r.getStatus() == RecognitionStatus.SUCCESS.getCode()).count());
+        
+        return results;
+    }
+
+    // ==================== 管理员方法 ====================
+
+    /**
+     * 获取识别记录列表（管理员）
+     */
+    public PageResponse<RecognitionResponse.RecognitionInfo> getRecordsAdmin(
+            Integer page, Integer size, Integer status, Long userId, String keyword) {
+        log.info("管理员获取识别记录列表: page={}, size={}, status={}, userId={}, keyword={}",
+                page, size, status, userId, keyword);
+
+        Page<RecognitionResult> resultPage = new Page<>(page, size);
+
+        // 构建查询条件
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RecognitionResult> queryWrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+
+        if (status != null) {
+            queryWrapper.eq(RecognitionResult::getStatus, status);
+        }
+
+        if (userId != null) {
+            queryWrapper.eq(RecognitionResult::getUserId, userId);
+        }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            queryWrapper.like(RecognitionResult::getMainCategory, keyword);
+        }
+
+        queryWrapper.orderByDesc(RecognitionResult::getCreatedAt);
+
+        Page<RecognitionResult> result = recognitionResultRepository.selectPage(resultPage, queryWrapper);
+
+        return PageResponse.<RecognitionResponse.RecognitionInfo>builder()
+                .data(result.getRecords().stream()
+                        .map(this::convertToRecognitionInfo)
+                        .collect(Collectors.toList()))
+                .total(result.getTotal())
+                .page((int) result.getCurrent())
+                .size((int) result.getSize())
+                .build();
+    }
+
+    /**
+     * 删除识别记录（管理员）
+     */
+    @Transactional
+    public void deleteRecord(Long recordId) {
+        log.info("管理员删除识别记录: recordId={}", recordId);
+
+        RecognitionResult record = recognitionResultRepository.selectById(recordId);
+        if (record == null) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "识别记录不存在");
+        }
+
+        recognitionResultRepository.deleteById(recordId);
+        log.info("识别记录删除成功: recordId={}", recordId);
+    }
+
+    /**
+     * 批量删除识别记录（管理员）
+     */
+    @Transactional
+    public void batchDeleteRecords(List<Long> ids) {
+        log.info("管理员批量删除识别记录: count={}", ids.size());
+
+        if (ids == null || ids.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "删除列表不能为空");
+        }
+
+        // 逐个删除
+        ids.forEach(id -> recognitionResultRepository.deleteById(id));
+        log.info("批量删除识别记录成功: count={}", ids.size());
     }
 }

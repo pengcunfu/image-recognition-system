@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.CommentRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.CommentResponse;
@@ -44,6 +45,7 @@ public class CommentController {
     /**
      * 创建评论
      */
+    @Role("USER")
     @PostMapping
     public ApiResponse<CommentResponse.CommentInfo> createComment(
             @Valid @RequestBody CommentRequest.CreateCommentRequest request) {
@@ -57,6 +59,7 @@ public class CommentController {
     /**
      * 删除评论
      */
+    @Role("USER")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteComment(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -68,6 +71,7 @@ public class CommentController {
     /**
      * 点赞评论
      */
+    @Role("USER")
     @PostMapping("/{id}/like")
     public ApiResponse<Void> likeComment(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
@@ -79,6 +83,7 @@ public class CommentController {
     /**
      * 取消点赞评论
      */
+    @Role("USER")
     @DeleteMapping("/{id}/like")
     public ApiResponse<Void> unlikeComment(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();

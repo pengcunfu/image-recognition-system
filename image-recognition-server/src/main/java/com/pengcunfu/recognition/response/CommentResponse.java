@@ -34,7 +34,6 @@ public class CommentResponse {
         private Integer status;
         private Boolean isLiked;
         private List<CommentInfo> replies;
-        private LocalDateTime createTime;
         private LocalDateTime createdAt;
     }
 }

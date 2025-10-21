@@ -1,14 +1,17 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.AuthRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.UserResponse;
 import com.pengcunfu.recognition.service.AuthService;
+import com.pengcunfu.recognition.service.CaptchaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 /**
  * 认证控制器
@@ -20,6 +23,7 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
+    private final CaptchaService captchaService;
 
     /**
      * 用户登录
@@ -46,6 +50,7 @@ public class AuthController {
     /**
      * 退出登录
      */
+    @Role("USER")
     @PostMapping("/logout")
     public ApiResponse<Void> logout() {
         Long userId = com.pengcunfu.recognition.security.SecurityContextHolder.getCurrentUserId();
@@ -57,6 +62,7 @@ public class AuthController {
     /**
      * 刷新Token
      */
+    @Role("USER")
     @PostMapping("/refresh")
     public ApiResponse<UserResponse.LoginResponse> refreshToken() {
         Long userId = com.pengcunfu.recognition.security.SecurityContextHolder.getCurrentUserId();
@@ -99,6 +105,16 @@ public class AuthController {
         log.info("重置密码");
         authService.resetPassword(request);
         return ApiResponse.success();
+    }
+
+    /**
+     * 获取图形验证码
+     */
+    @GetMapping("/captcha")
+    public ApiResponse<Map<String, String>> getCaptcha() {
+        log.info("获取图形验证码");
+        Map<String, String> captcha = captchaService.generateCaptcha();
+        return ApiResponse.success(captcha);
     }
 }
 

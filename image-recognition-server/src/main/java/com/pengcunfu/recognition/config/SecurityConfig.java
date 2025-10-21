@@ -41,41 +41,21 @@ public class SecurityConfig {
                         // 公开访问的接口（无需认证）
                         .requestMatchers(
                                 // 认证相关接口
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/send-email-code",
-                                
-                                // 健康检查和系统信息
-                                "/api/v1/health",
-                                "/actuator/health",
-                                
-                                // 知识库公开接口
-                                "/api/v1/knowledge",
-                                "/api/v1/knowledge/categories",
-                                "/api/v1/knowledge/search",
-                                
-                                // 社区公开接口（列表查看）
-                                "/api/v1/community/posts",
-                                "/api/v1/community/posts/*/comments",
-                                
-                                // 文件访问
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/auth/send-code",
+                                "/api/auth/captcha",
+                                // 文件访问接口
                                 "/api/v1/files/**",
-                                "/files/**",
-                                
-                                // Swagger文档
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                
                                 // 静态资源
                                 "/static/**",
                                 "/favicon.ico"
                         ).permitAll()
                         
                         // 所有API接口都需要认证
-                        .requestMatchers("/api/v1/**").authenticated()
+                        .requestMatchers("/api/**").authenticated()
                         
                         // 其他所有请求都需要认证
                         .anyRequest().authenticated()

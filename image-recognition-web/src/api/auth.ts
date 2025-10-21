@@ -1,22 +1,67 @@
-import { get, post, put, del, patch, baseURL } from '@/utils/request'
-import type {
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
-  ForgotPasswordRequest,
-  TokenValidationResponse,
-  SmsCodeRequest,
-  SmsCodeResponse,
-  SmsCodeVerifyRequest,
-  OperationResult,
-  SendEmailCodeRequest,
-  AuthChangePasswordRequest,
-  BindPhoneRequest,
-  BindEmailRequest,
-  OAuthUrlResponse,
-  OAuthBinding
-} from './types'
+import { get, post, baseURL } from '@/utils/request'
+import type { UserInfo } from './types'
+
+/**
+ * 登录请求
+ */
+export interface LoginRequest {
+  username: string
+  password: string
+  captchaId: string
+  captchaCode: string
+}
+
+/**
+ * 登录响应
+ */
+export interface LoginResponse {
+  token: string
+  user: UserInfo
+}
+
+/**
+ * 注册请求
+ */
+export interface RegisterRequest {
+  username: string
+  email: string
+  password: string
+  emailCode: string
+}
+
+/**
+ * 注册响应
+ */
+export interface RegisterResponse {
+  userId: number
+  username: string
+  email: string
+}
+
+/**
+ * 忘记密码请求
+ */
+export interface ForgotPasswordRequest {
+  email: string
+  emailCode: string
+  newPassword: string
+}
+
+/**
+ * 发送验证码请求
+ */
+export interface SendCodeRequest {
+  email: string
+  type: string
+}
+
+/**
+ * 验证码响应
+ */
+export interface CaptchaResponse {
+  captchaId: string
+  captchaImage: string
+}
 
 /**
  * 认证API模块
@@ -26,137 +71,58 @@ export class AuthAPI {
    * 用户登录
    */
   static login(data: LoginRequest) {
-    return post<LoginResponse>('/api/v1/auth/login', data)
+    return post<LoginResponse>('/api/auth/login', data)
   }
 
   /**
    * 用户注册
    */
   static register(data: RegisterRequest) {
-    return post<RegisterResponse>('/api/v1/auth/register', data)
+    return post<RegisterResponse>('/api/auth/register', data)
   }
 
   /**
-   * 发送忘记密码验证码
-   */
-  static sendForgotPasswordCode(data: SendEmailCodeRequest) {
-    return post<string>('/api/v1/auth/email-code', data)
-  }
-
-  /**
-   * 忘记密码（重置密码）
-   */
-  static forgotPassword(data: ForgotPasswordRequest) {
-    return post<string>('/api/v1/auth/forgot-password', data)
-  }
-
-  /**
-   * 获取验证码图片URL
-   */
-  static getCaptchaUrl() {
-    const timestamp = new Date().getTime()
-    return `${baseURL}/api/v1/auth/captcha?t=${timestamp}`
-  }
-
-  /**
-   * 发送邮箱验证码
-   */
-  static sendEmailCode(data: SendEmailCodeRequest) {
-    return post('/api/v1/auth/email-code', data)
-  }
-
-  /**
-   * 用户登出
+   * 退出登录
    */
   static logout() {
-    return post<string>('/api/v1/auth/logout')
-  }
-
-  /**
-   * 验证Token
-   */
-  static validateToken() {
-    return get<TokenValidationResponse>('/api/v1/auth/validate')
-  }
-
-  /**
-   * 发送短信验证码
-   */
-  static sendSmsCode(data: SmsCodeRequest) {
-    return post<SmsCodeResponse>('/api/v1/auth/sms-code', data)
-  }
-
-  /**
-   * 验证短信验证码
-   */
-  static verifySmsCode(data: SmsCodeVerifyRequest) {
-    return post<boolean>('/api/v1/auth/sms-code/verify', data)
+    return post<void>('/api/auth/logout')
   }
 
   /**
    * 刷新Token
    */
   static refreshToken() {
-    return post<LoginResponse>('/api/v1/auth/refresh')
+    return post<LoginResponse>('/api/auth/refresh')
   }
 
   /**
-   * 修改密码
+   * 发送验证码
    */
-  static changePassword(data: AuthChangePasswordRequest) {
-    return post<OperationResult>('/api/v1/auth/change-password', data)
+  static sendVerificationCode(data: SendCodeRequest) {
+    return post<void>(`/api/auth/send-code?email=${encodeURIComponent(data.email)}&type=${data.type}`)
   }
 
   /**
-   * 绑定手机号
+   * 忘记密码
    */
-  static bindPhone(data: BindPhoneRequest) {
-    return post<OperationResult>('/api/v1/auth/bind-phone', data)
+  static forgotPassword(data: ForgotPasswordRequest) {
+    return post<void>(`/api/auth/forgot-password?email=${encodeURIComponent(data.email)}&code=${data.emailCode}&newPassword=${encodeURIComponent(data.newPassword)}`)
   }
 
   /**
-   * 绑定邮箱
+   * 重置密码（已登录用户）
    */
-  static bindEmail(data: BindEmailRequest) {
-    return post<OperationResult>('/api/v1/auth/bind-email', data)
+  static resetPassword(data: { oldPassword: string; newPassword: string }) {
+    return post<void>('/api/auth/reset-password', data)
   }
 
   /**
-   * GitHub OAuth登录
+   * 获取图形验证码
    */
-  static githubLogin(code: string) {
-    return post<LoginResponse>('/api/v1/auth/oauth/github', { code })
-  }
-
-  /**
-   * Gitee OAuth登录
-   */
-  static giteeLogin(code: string) {
-    return post<LoginResponse>('/api/v1/auth/oauth/gitee', { code })
-  }
-
-  /**
-   * 获取OAuth登录URL
-   */
-  static getOAuthUrl(provider: 'github' | 'gitee') {
-    return get<OAuthUrlResponse>(`/api/v1/auth/oauth/${provider}/url`)
-  }
-
-  /**
-   * 解绑第三方账号
-   */
-  static unbindOAuth(provider: 'github' | 'gitee') {
-    return del<OperationResult>(`/api/v1/auth/oauth/${provider}/unbind`)
-  }
-
-  /**
-   * 获取用户绑定的第三方账号
-   */
-  static getOAuthBindings() {
-    return get<OAuthBinding[]>('/api/v1/auth/oauth/bindings')
+  static getCaptcha() {
+    return get<CaptchaResponse>('/api/auth/captcha')
   }
 }
 
 // 导出默认实例
 export default AuthAPI
-

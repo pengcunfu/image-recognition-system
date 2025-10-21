@@ -3,46 +3,38 @@ import type { RouteRecordRaw } from 'vue-router'
 import { message } from 'ant-design-vue'
 
 // 公共页面组件
-import LoginView from '@/views/common/LoginView.vue'
-import RegisterView from '@/views/common/RegisterView.vue'
-import ForgotPasswordView from '@/views/common/ForgotPasswordView.vue'
-import AboutView from '@/views/common/AboutView.vue'
-import ContactView from '@/views/common/ContactView.vue'
-import PrivacyView from '@/views/common/PrivacyView.vue'
-import TermsView from '@/views/common/TermsView.vue'
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
+import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
 
 // 管理员组件
-import DashboardLayout from '@/layout/DashboardLayout.vue'
-import DashboardView from '@/views/admin/DashboardView.vue'
-import UsersView from '@/views/admin/UsersView.vue'
-import OrdersView from '@/views/admin/OrdersView.vue'
-import AnalyticsView from '@/views/admin/AnalyticsView.vue'
-import SettingsView from '@/views/admin/SettingsView.vue'
-import PostsManagementView from '@/views/admin/PostsManagementView.vue'
-import KnowledgeManagementView from '@/views/admin/KnowledgeManagementView.vue'
-import CategoryManagementView from '@/views/admin/CategoryManagementView.vue'
-import VipManagementView from '@/views/admin/VipManagementView.vue'
-import RecognitionManagementView from '@/views/admin/RecognitionManagementView.vue'
+import DashboardLayout from '@/layout/AdminLayout.vue'
+import DashboardView from '@/views/admin/AdminStatsView.vue'
+import UsersView from '@/views/admin/AdminUsersView.vue'
+import OrdersView from '@/views/admin/AdminOrdersView.vue'
+import PostsManagementView from '@/views/admin/AdminCommunityView.vue'
+import KnowledgeManagementView from '@/views/admin/AdminKnowledgeView.vue'
+import VipManagementView from '@/views/admin/AdminVipsView.vue'
+import RecognitionManagementView from '@/views/admin/AdminRecognitionView.vue'
 import AdminProfileView from '@/views/admin/AdminProfileView.vue'
 
 // 用户组件
 import UserLayout from '@/layout/UserLayout.vue'
-import UserDashboardView from '@/views/user/UserDashboardView.vue'
-import ImageRecognitionView from '@/views/user/ImageRecognitionView.vue'
-import BatchRecognitionView from '@/views/user/BatchRecognitionView.vue'
-import HistoryView from '@/views/user/HistoryView.vue'
-import KnowledgeView from '@/views/user/KnowledgeView.vue'
-import CommunityView from '@/views/user/CommunityView.vue'
-import UserProfileView from '@/views/user/UserProfileView.vue'
-import PostDetailView from '@/views/user/PostDetailView.vue'
-import KnowledgeDetailView from '@/views/user/KnowledgeDetailView.vue'
-import RecognitionDetailView from '@/views/user/RecognitionDetailView.vue'
+import UserDashboardView from '@/views/UserDashboardView.vue'
+import ImageRecognitionView from '@/views/ImageRecognitionView.vue'
+import BatchRecognitionView from '@/views/BatchRecognitionView.vue'
+import HistoryView from '@/views/HistoryView.vue'
+import KnowledgeView from '@/views/KnowledgeView.vue'
+import CommunityView from '@/views/CommunityView.vue'
+import UserProfileView from '@/views/UserProfileView.vue'
+import PostDetailView from '@/views/PostDetailView.vue'
+import KnowledgeDetailView from '@/views/KnowledgeDetailView.vue'
+import RecognitionDetailView from '@/views/RecognitionDetailView.vue'
 
 // VIP功能组件（已合并到 user 目录）
-import AdvancedRecognitionView from '@/views/user/AdvancedRecognitionView.vue'
-import VipAnalyticsView from '@/views/user/VipAnalyticsView.vue'
-import AiTrainingView from '@/views/user/AiTrainingView.vue'
-import ApiAccessView from '@/views/user/ApiAccessView.vue'
+import AdvancedRecognitionView from '@/views/AdvancedRecognitionView.vue'
+import VipAnalyticsView from '@/views/VipAnalyticsView.vue'
+import AiTrainingView from '@/views/AiTrainingView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -127,40 +119,6 @@ const routes: Array<RouteRecordRaw> = [
       }
     ]
   },
-  {
-    path: '/analytics',
-    component: DashboardLayout,
-    meta: {
-      requiresAuth: true
-    },
-    children: [
-      {
-        path: '',
-        name: 'Analytics',
-        component: AnalyticsView,
-        meta: {
-          title: '数据分析 - 智能图像识别系统'
-        }
-      }
-    ]
-  },
-  {
-    path: '/settings',
-    component: DashboardLayout,
-    meta: {
-      requiresAuth: true
-    },
-    children: [
-      {
-        path: '',
-        name: 'Settings',
-        component: SettingsView,
-        meta: {
-          title: '系统设置 - 智能图像识别系统'
-        }
-      }
-    ]
-  },
   // 新增管理页面路由
   {
     path: '/posts-management',
@@ -194,24 +152,6 @@ const routes: Array<RouteRecordRaw> = [
         component: KnowledgeManagementView,
         meta: {
           title: '知识库管理 - 智能图像识别系统'
-        }
-      }
-    ]
-  },
-  {
-    path: '/category-management',
-    component: DashboardLayout,
-    meta: {
-      requiresAuth: true,
-      requiresAdmin: true
-    },
-    children: [
-      {
-        path: '',
-        name: 'CategoryManagement',
-        component: CategoryManagementView,
-        meta: {
-          title: '分类管理 - 智能图像识别系统'
         }
       }
     ]
@@ -401,54 +341,8 @@ const routes: Array<RouteRecordRaw> = [
           title: 'AI模型训练 - 智能图像识别系统',
           requiresVip: true
         }
-      },
-      {
-        path: 'api-access',
-        name: 'ApiAccess',
-        component: ApiAccessView,
-        meta: {
-          title: 'API访问管理 - 智能图像识别系统',
-          requiresVip: true
-        }
       }
     ]
-  },
-  // 公共页面路由（不需要登录）
-  {
-    path: '/about',
-    name: 'About',
-    component: AboutView,
-    meta: {
-      title: '关于我们 - 智能图像识别系统',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/contact',
-    name: 'Contact',
-    component: ContactView,
-    meta: {
-      title: '联系我们 - 智能图像识别系统',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/privacy',
-    name: 'Privacy',
-    component: PrivacyView,
-    meta: {
-      title: '隐私政策 - 智能图像识别系统',
-      requiresAuth: false
-    }
-  },
-  {
-    path: '/terms',
-    name: 'Terms',
-    component: TermsView,
-    meta: {
-      title: '服务条款 - 智能图像识别系统',
-      requiresAuth: false
-    }
   },
   {
     path: '/:pathMatch(.*)*',
@@ -483,8 +377,9 @@ router.beforeEach((to, from, next) => {
   
         // 检查VIP权限
         if (to.meta?.requiresVip) {
-          const userRole = localStorage.getItem('userRole') || 'user'
-          if (userRole !== 'vip') {
+          const userRole = localStorage.getItem('userRole') || '0'
+          // role: 0=普通用户, 1=VIP, 2=管理员
+          if (userRole !== '1' && userRole !== '2') {
             message.warning('此功能仅限VIP用户使用')
             next('/user/dashboard')
             return
@@ -495,9 +390,9 @@ router.beforeEach((to, from, next) => {
         if (to.path === '/login' || to.path === '/register' || to.path === '/forgot-password') {
           const isLoggedIn = localStorage.getItem('userToken') || false
           if (isLoggedIn) {
-            // 检查用户角色，决定重定向位置
-            const userRole = localStorage.getItem('userRole') || 'user'
-            if (userRole === 'admin') {
+            // 检查用户角色，决定重定向位置 (0=普通用户, 1=VIP, 2=管理员)
+            const userRole = localStorage.getItem('userRole') || '0'
+            if (userRole === '2') {
               next('/dashboard')
             } else {
               next('/user/dashboard')

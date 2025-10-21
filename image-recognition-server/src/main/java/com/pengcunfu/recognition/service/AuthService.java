@@ -68,7 +68,7 @@ public class AuthService {
         // 查询用户（支持用户名或邮箱登录）
         User user = userRepository.findByUsernameOrEmail(username);
 
-        if (user == null) {
+            if (user == null) {
             rateLimitService.recordLoginFail(username, 1800);
             throw new AuthenticationException("用户名或密码错误");
         }
@@ -81,14 +81,14 @@ public class AuthService {
         // 验证密码
         if (!passwordUtil.matches(password, user.getPassword())) {
             rateLimitService.recordLoginFail(username, 1800);
-            log.warn("密码错误: username={}", username);
+                log.warn("密码错误: username={}", username);
             throw new AuthenticationException("用户名或密码错误");
-        }
+            }
 
         // 清除登录失败记录
         rateLimitService.clearLoginFailCount(username);
 
-        // 更新最后登录时间
+            // 更新最后登录时间
         LocalDateTime now = LocalDateTime.now();
         String lastLoginTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         userRepository.updateLastLoginTime(user.getId(), lastLoginTime);
@@ -182,7 +182,9 @@ public class AuthService {
 
     /**
      * 发送邮箱验证码
+     * @deprecated 使用 {@link #sendVerificationCode(String, String)} 代替
      */
+    @Deprecated
     public void sendEmailCode(String email) {
         log.info("发送邮箱验证码: email={}", email);
 
@@ -201,8 +203,10 @@ public class AuthService {
         // 保存验证码到 Redis
         verificationCodeService.saveEmailCode(email, code);
 
-        // TODO: 发送邮件（接入邮件服务）
-        log.info("邮箱验证码: email={}, code={}", email, code);
+        // 发送验证码邮件（默认类型为 register）
+        emailService.sendVerificationCode(email, code, "register");
+
+        log.info("邮箱验证码发送成功: email={}", email);
     }
 
     /**
@@ -361,6 +365,6 @@ public class AuthService {
                 .vipExpireTime(user.getVipExpireTime())
                 .lastLoginTime(user.getLastLoginTime())
                 .createdAt(user.getCreatedAt())
-                .build();
+                                .build();
     }
 }

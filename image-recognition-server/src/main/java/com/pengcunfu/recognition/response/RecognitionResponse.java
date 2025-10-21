@@ -38,6 +38,5 @@ public class RecognitionResponse {
         private Integer status;
         private String errorMessage;
         private LocalDateTime createdAt;
-        private LocalDateTime createTime; // 兼容字段
     }
 }

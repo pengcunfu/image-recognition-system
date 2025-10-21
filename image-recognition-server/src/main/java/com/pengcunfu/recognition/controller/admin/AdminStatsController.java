@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller.admin;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.PageResponse;
 import com.pengcunfu.recognition.response.StatsResponse;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/admin/stats")
 @RequiredArgsConstructor
+@Role("ADMIN")
 public class AdminStatsController {
 
     private final StatsService statsService;

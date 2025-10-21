@@ -29,6 +29,12 @@ public interface KnowledgeRepository extends BaseMapper<Knowledge> {
             <if test="status != null">
                 AND status = #{status}
             </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="tag != null and tag != ''">
+                AND tags LIKE CONCAT('%', #{tag}, '%')
+            </if>
             <if test="keyword != null and keyword != ''">
                 AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
             </if>
@@ -38,7 +44,21 @@ public interface KnowledgeRepository extends BaseMapper<Knowledge> {
     Page<Knowledge> findKnowledgeForAdmin(
             Page<Knowledge> page,
             @Param("status") Integer status,
+            @Param("category") String category,
+            @Param("tag") String tag,
             @Param("keyword") String keyword
     );
+
+    /**
+     * 获取所有不同的分类
+     */
+    @Select("SELECT DISTINCT category FROM knowledge WHERE category IS NOT NULL AND category != '' ORDER BY category")
+    java.util.List<String> findAllCategories();
+
+    /**
+     * 获取所有标签（需要在代码中进一步处理）
+     */
+    @Select("SELECT DISTINCT tags FROM knowledge WHERE tags IS NOT NULL AND tags != ''")
+    java.util.List<String> findAllTagsRaw();
 }
 

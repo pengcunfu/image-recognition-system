@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
+import com.pengcunfu.recognition.annotation.Role;
 import com.pengcunfu.recognition.request.UserRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.UserResponse;
@@ -18,6 +19,7 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Role("USER")
 public class UserController {
 
     private final UserService userService;

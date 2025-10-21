@@ -2,10 +2,12 @@
   <a-card 
     hoverable
     :style="{ 
-      borderRadius: '12px', 
+      borderRadius: '16px', 
       overflow: 'hidden', 
       transition: 'all 0.3s ease', 
-      border: '1px solid #f0f0f0' 
+      border: '1px solid #e8e8e8',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+      background: 'white'
     }"
   >
     <div :style="{ padding: '20px' }">

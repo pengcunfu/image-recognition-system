@@ -42,7 +42,6 @@ public class CommunityResponse {
         private Integer isTop;
         private Boolean isLiked;
         private Boolean isCollected;
-        private LocalDateTime createTime;
         private LocalDateTime createdAt;
     }
 }

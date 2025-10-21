@@ -40,8 +40,6 @@ public class KnowledgeResponse {
         private Boolean isLiked;
         private Boolean isCollected;
         private Integer status;
-        private LocalDateTime createTime;
-        private LocalDateTime updateTime;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }

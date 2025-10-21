@@ -63,17 +63,18 @@ public class FileService {
             } else {
                 // 上传到本地文件系统
                 String fullPath = uploadPath + "/" + type + "/" + relativePath;
-                File destFile = new File(fullPath);
+                File destFile = new File(fullPath).getAbsoluteFile();
                 
                 // 确保目录存在
                 if (!destFile.getParentFile().exists()) {
-                    destFile.getParentFile().mkdirs();
+                    boolean created = destFile.getParentFile().mkdirs();
+                    log.debug("创建目录: path={}, success={}", destFile.getParentFile().getAbsolutePath(), created);
                 }
 
                 file.transferTo(destFile);
                 
                 String url = "/api/v1/files/" + type + "/" + relativePath;
-                log.info("文件上传成功(本地): fileName={}, path={}", fileName, fullPath);
+                log.info("文件上传成功(本地): fileName={}, path={}", fileName, destFile.getAbsolutePath());
                 return url;
             }
 

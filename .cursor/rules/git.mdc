@@ -4,7 +4,7 @@ alwaysApply: true
 
 # Git 提交规范
 
-项目有更新就需要进行Git提交操作。
+项目有更新就需要进行Git提交操作。注意：在Git提交之前需要进行必要的检查，不要有语法错误、编译错误。
 
 提交格式：`<type>(<scope>): <subject>`
 

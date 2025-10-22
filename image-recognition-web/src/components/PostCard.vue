@@ -10,9 +10,9 @@
       background: 'white'
     }"
   >
-    <div :style="{ padding: '12px' }">
+    <div :style="{ padding: '8px' }">
       <!-- 帖子头部 -->
-      <div :style="{ marginBottom: '12px' }">
+      <div :style="{ marginBottom: '8px' }">
         <div :style="{ display: 'flex', alignItems: 'flex-start', gap: '12px' }">
           <a-avatar :src="post.author.avatar" :size="36">
             {{ post.author.name.charAt(0) }}
@@ -34,7 +34,7 @@
       
       <!-- 帖子内容 -->
       <div 
-        :style="{ marginBottom: '12px', cursor: 'pointer' }"
+        :style="{ marginBottom: '8px', cursor: 'pointer' }"
         @click="handleViewDetail"
       >
         <h3 :style="{ 
@@ -68,12 +68,12 @@
       <div 
         v-if="post.images?.length" 
         :style="{ 
-          marginBottom: '12px', 
+          marginBottom: '8px', 
           borderRadius: '8px', 
           overflow: 'hidden', 
           cursor: 'pointer',
           width: '100%',
-          height: '160px'
+          height: '140px'
         }"
         @click="handlePreviewImage"
       >
@@ -89,16 +89,11 @@
         />
       </div>
       
-      <!-- 无图片时的占位空间 -->
-      <div 
-        v-if="!post.images?.length" 
-        :style="{ height: '172px', marginBottom: '12px' }"
-      ></div>
       
       <!-- 标签 -->
       <div 
         v-if="post.tags?.length" 
-        :style="{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px', minHeight: '22px' }"
+        :style="{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px', minHeight: '22px' }"
       >
         <a-tag 
           v-for="tag in post.tags.slice(0, 3)" 
@@ -117,7 +112,7 @@
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        paddingTop: '12px', 
+        paddingTop: '8px', 
         borderTop: '1px solid #f0f0f0' 
       }">
         <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">

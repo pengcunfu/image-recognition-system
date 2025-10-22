@@ -98,8 +98,8 @@
         <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
         <div v-else :style="{ 
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '12px',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+          gap: '8px',
           alignItems: 'start'
         }">
           <div 
@@ -107,8 +107,7 @@
             :key="post.id"
             :style="{ 
               width: '100%',
-              breakInside: 'avoid',
-              marginBottom: '12px'
+              breakInside: 'avoid'
             }"
           >
             <PostCard

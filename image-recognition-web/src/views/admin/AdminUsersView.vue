@@ -73,7 +73,7 @@
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'avatar'">
             <a-avatar :src="FileAPI.getImageUrl(record.avatar)" :size="32">
-              {{ record.name?.charAt(0) || record.username?.charAt(0) }}
+              {{ record.nickname?.charAt(0) || record.username?.charAt(0) }}
             </a-avatar>
           </template>
           <template v-else-if="column.key === 'role'">
@@ -92,8 +92,8 @@
             </a-tag>
             <span v-else>-</span>
           </template>
-          <template v-else-if="column.key === 'createTime'">
-            {{ formatDateTime(record.createTime) }}
+          <template v-else-if="column.key === 'createdAt'">
+            {{ formatDateTime(record.createdAt) }}
           </template>
           <template v-else-if="column.key === 'lastLoginTime'">
             {{ record.lastLoginTime ? formatDateTime(record.lastLoginTime) : '从未登录' }}
@@ -242,13 +242,13 @@
         <a-descriptions :column="1" bordered size="middle">
           <a-descriptions-item label="头像">
             <a-avatar :src="FileAPI.getImageUrl(selectedUser.avatar)" :size="64">
-              {{ selectedUser.name?.charAt(0) || selectedUser.username?.charAt(0) }}
+              {{ selectedUser.nickname?.charAt(0) || selectedUser.username?.charAt(0) }}
             </a-avatar>
           </a-descriptions-item>
           <a-descriptions-item label="用户名">{{ selectedUser.username }}</a-descriptions-item>
           <a-descriptions-item label="邮箱">{{ selectedUser.email }}</a-descriptions-item>
           <a-descriptions-item label="手机号">{{ selectedUser.phone || '-' }}</a-descriptions-item>
-          <a-descriptions-item label="姓名">{{ selectedUser.name || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="昵称">{{ selectedUser.nickname || '-' }}</a-descriptions-item>
           <a-descriptions-item label="角色">
             <a-tag :color="getRoleColor(selectedUser.role)">
               {{ getRoleText(selectedUser.role) }}
@@ -265,7 +265,7 @@
           <a-descriptions-item v-if="selectedUser.role === 1" label="VIP到期时间">
             {{ selectedUser.vipExpireTime ? formatDateTime(selectedUser.vipExpireTime) : '-' }}
           </a-descriptions-item>
-          <a-descriptions-item label="注册时间">{{ formatDateTime(selectedUser.createTime) }}</a-descriptions-item>
+          <a-descriptions-item label="注册时间">{{ formatDateTime(selectedUser.createdAt) }}</a-descriptions-item>
           <a-descriptions-item label="最后登录">
             {{ selectedUser.lastLoginTime ? formatDateTime(selectedUser.lastLoginTime) : '从未登录' }}
           </a-descriptions-item>
@@ -326,11 +326,11 @@ const userColumns = [
   { title: '用户名', dataIndex: 'username', key: 'username', width: 120 },
   { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },
   { title: '手机号', dataIndex: 'phone', key: 'phone', width: 120 },
-  { title: '姓名', dataIndex: 'name', key: 'name', width: 100 },
+  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 100 },
   { title: '角色', dataIndex: 'role', key: 'role', width: 100 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: 'VIP等级', dataIndex: 'vipLevel', key: 'vipLevel', width: 100 },
-  { title: '注册时间', dataIndex: 'createTime', key: 'createTime', width: 150 },
+  { title: '注册时间', dataIndex: 'createdAt', key: 'createdAt', width: 150 },
   { title: '最后登录', dataIndex: 'lastLoginTime', key: 'lastLoginTime', width: 150 },
   { title: '操作', key: 'action', width: 200, fixed: 'right' }
 ]

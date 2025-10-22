@@ -1,22 +1,24 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 页面标题 -->
-    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
-      <div>
-        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
-          <i class="fas fa-chart-line" :style="{ color: '#ffd700' }"></i>
-          VIP数据分析
-        </h1>
-        <p :style="{ margin: '0', fontSize: '14px', color: '#fff', opacity: 0.9 }">深度洞察您的识别数据和使用模式</p>
+    <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
+      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
+        <div>
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }">
+            <i class="fas fa-chart-line" :style="{ color: '#ffd700' }"></i>
+            VIP数据分析
+          </h1>
+          <p :style="{ margin: '0', fontSize: '14px', opacity: 0.65 }">深度洞察您的识别数据和使用模式</p>
+        </div>
+        <a-space>
+          <a-range-picker v-model:value="dateRange" @change="updateAnalytics" />
+          <a-button type="primary" @click="exportReport">
+            <i class="fas fa-file-export"></i>
+            导出报告
+          </a-button>
+        </a-space>
       </div>
-      <a-space>
-        <a-range-picker v-model:value="dateRange" @change="updateAnalytics" />
-        <a-button type="primary" @click="exportReport">
-          <i class="fas fa-file-export"></i>
-          导出报告
-        </a-button>
-      </a-space>
-    </div>
+    </a-card>
 
     <!-- 核心指标 -->
     <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">

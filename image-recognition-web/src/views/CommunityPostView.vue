@@ -2,13 +2,15 @@
   <div :style="{ padding: '24px' }">
     <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
       <!-- 页面标题 -->
-      <div :style="{ marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
-        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
-          <i class="fas fa-comments"></i>
-          社区讨论
-        </h1>
-        <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">分享交流您的图像识别经验和见解</p>
-      </div>
+      <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
+        <div :style="{ textAlign: 'center' }">
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }">
+            <i class="fas fa-comments"></i>
+            社区讨论
+          </h1>
+          <p :style="{ margin: 0, fontSize: '14px', opacity: 0.65 }">分享交流您的图像识别经验和见解</p>
+        </div>
+      </a-card>
 
     <!-- 发布对话框 -->
     <PostPublishModal

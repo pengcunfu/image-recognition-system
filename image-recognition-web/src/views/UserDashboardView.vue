@@ -1,31 +1,33 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 欢迎横幅 -->
-    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '32px 48px', marginBottom: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
-      <div :style="{ flex: 1 }">
-        <div>
-          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
-          <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">开始您的智能图像识别之旅</p>
+    <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
+      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }">
+        <div :style="{ flex: 1 }">
+          <div>
+            <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
+            <p :style="{ margin: 0, fontSize: '14px', opacity: 0.65 }">开始您的智能图像识别之旅</p>
+          </div>
+          <div :style="{ marginTop: '24px', display: 'flex', gap: '12px' }">
+            <a-button type="primary" size="large" @click="startRecognition">
+              <template #icon>
+                <i class="fas fa-camera"></i>
+              </template>
+              立即识别
+            </a-button>
+            <a-button size="large" @click="viewHistory">
+              <template #icon>
+                <i class="fas fa-history"></i>
+              </template>
+              查看历史
+            </a-button>
+          </div>
         </div>
-        <div :style="{ marginTop: '24px', display: 'flex', gap: '12px' }">
-          <a-button type="primary" size="large" @click="startRecognition">
-            <template #icon>
-              <i class="fas fa-camera"></i>
-            </template>
-            立即识别
-          </a-button>
-          <a-button size="large" @click="viewHistory">
-            <template #icon>
-              <i class="fas fa-history"></i>
-            </template>
-            查看历史
-          </a-button>
+        <div :style="{ fontSize: '80px', opacity: 0.1, marginLeft: '32px' }">
+          <i class="fas fa-brain"></i>
         </div>
       </div>
-      <div :style="{ fontSize: '80px', color: '#fff', opacity: 0.2, marginLeft: '32px' }">
-        <i class="fas fa-brain"></i>
-      </div>
-    </div>
+    </a-card>
 
     <!-- 统计卡片 -->
     <a-row :gutter="[16, 16]" :style="{ marginBottom: '24px' }">

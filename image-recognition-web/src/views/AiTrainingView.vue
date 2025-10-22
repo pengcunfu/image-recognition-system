@@ -1,19 +1,21 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 页面标题 -->
-    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
-      <div>
-        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
-          <i class="fas fa-brain" :style="{ color: '#ffd700' }"></i>
-          AI模型训练
-        </h1>
-        <p :style="{ margin: '0', fontSize: '14px', color: '#fff', opacity: 0.9 }">VIP专享的自定义AI模型训练服务</p>
+    <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
+      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
+        <div>
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }">
+            <i class="fas fa-brain" :style="{ color: '#ffd700' }"></i>
+            AI模型训练
+          </h1>
+          <p :style="{ margin: '0', fontSize: '14px', opacity: 0.65 }">VIP专享的自定义AI模型训练服务</p>
+        </div>
+        <a-tag :color="getStatusColor(currentTraining.status)" :style="{ fontSize: '14px', padding: '4px 12px' }">
+          <i class="fas fa-circle" :style="{ fontSize: '10px', marginRight: '6px' }"></i>
+          {{ getStatusText(currentTraining.status) }}
+        </a-tag>
       </div>
-      <a-tag :color="getStatusColor(currentTraining.status)" :style="{ fontSize: '14px', padding: '4px 12px' }">
-        <i class="fas fa-circle" :style="{ fontSize: '10px', marginRight: '6px' }"></i>
-        {{ getStatusText(currentTraining.status) }}
-      </a-tag>
-    </div>
+    </a-card>
 
     <!-- 训练模式选择 -->
     <a-card title="选择训练模式" :style="{ marginBottom: '16px', borderRadius: '8px' }">

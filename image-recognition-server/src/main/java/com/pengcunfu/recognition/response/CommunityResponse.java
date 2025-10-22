@@ -43,6 +43,7 @@ public class CommunityResponse {
         private Boolean isLiked;
         private Boolean isCollected;
         private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 
     /**

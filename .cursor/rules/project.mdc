@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+# 项目规范
+
+## 架构规范
+
+采用MVC分层架构、RESTful API、JWT认证、RBAC权限、Redis缓存
+
+## 后端规范
+
+后端使用 Spring Boot、Java、Maven、Spring Security、MyBatis Plus、JWT、Redis、Lombok、Jackson、Apache HttpClient、Easy-Captcha、Dotenv、Spring AOP、Spring Mail、Spring Validation、Spring DevTools 等技术
+
+AI集成：火山引擎 Doubao SDK、火山引擎对象存储SDK
+
+后端使用9094端口
+
+## 前端规范
+
+前端使用 Vue、TypeScript、Vite、Ant Design Vue、Vue Router、Pinia、Axios、ECharts、dayjs 等技术
+
+前端的样式使用行内样式，页面风格使用Ant Design的默认风格，页面布局要求紧凑，页面风格要求统一
+
+网络请求使用Axios，需要创建请求和响应拦截器。
+
+前端使用9095端口，生产环境使用80端口
+
+## 数据库规范
+
+数据库使用MySQL，数据库连接池使用HikariCP、缓存使用Redis
+
+数据表的更新和管理使用go-mysql-mcp工具
+
+## 部署规范
+
+容器化部署：Docker、Docker Compose、Nginx、Maven镜像、Node镜像、MySQL镜像、Redis镜像
+
+开发时不需要关注部署任务。

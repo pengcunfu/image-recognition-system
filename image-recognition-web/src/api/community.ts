@@ -21,6 +21,7 @@ export interface PostInfo {
   isTop: number
   status: number
   createdAt: string
+  updatedAt?: string
   createTime: string
   updateTime: string
 }

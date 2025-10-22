@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+# 接口测试规范
+
+如果有接口测试的需要，请使用PowerShell的Invoke-WebRequest命令。

@@ -2,43 +2,16 @@
 alwaysApply: true
 ---
 
-## Git 提交规范
+# Git 提交规范
 
-### 提交格式
-```
-<type>(<scope>): <subject>
-```
+项目有更新就需要进行Git提交操作。
 
-### Type 类型
-- **feat**: 新功能
-- **fix**: Bug修复
-- **refactor**: 重构
-- **perf**: 性能优化
-- **docs**: 文档
-- **style**: 格式
-- **chore**: 构建/配置
+提交格式：`<type>(<scope>): <subject>`
 
-### Scope (可选)
-- frontend/backend/api/db/config
+Type类型：feat(新功能)、fix(修复)、refactor(重构)、perf(优化)、docs(文档)、style(格式)、chore(构建/配置)
 
-### 示例
-```bash
-feat(frontend): add post edit modal
-fix(api): resolve JWT validation issue
-refactor(backend): optimize user query
-```
+提交要求：英文描述、简洁明确、一次一个改动、提交前无编译错误、不提交敏感信息
 
-### 要求
-1. 英文描述,简洁明确
-2. 一次提交一个改动
-3. 提交前确保无编译错误
-4. 不提交敏感信息
+分支规范：main(生产)、develop(开发)、feature/*(新功能)、fix/*(修复)
 
-### 分支
-- **main**: 生产代码
-- **develop**: 开发代码
-- **feature/***: 新功能
-- **fix/***: Bug修复
-
-### 忽略文件
-node_modules/, target/, .env*, .idea/, dist/, *.log, uploads/
+忽略文件：node_modules/、target/、.env*、.idea/、dist/、*.log、uploads/

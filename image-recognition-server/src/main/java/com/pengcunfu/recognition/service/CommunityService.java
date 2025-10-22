@@ -627,6 +627,7 @@ public class CommunityService {
                 .commentCount(post.getCommentCount())
                 .isTop(post.getIsTop())
                 .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
                 .build();
     }
 

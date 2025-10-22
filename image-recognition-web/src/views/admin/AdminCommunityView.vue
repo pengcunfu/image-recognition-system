@@ -418,6 +418,13 @@ const postColumns = [
     customRender: ({ text }: { text: string }) => formatDateTime(text)
   },
   { 
+    title: '更新时间', 
+    dataIndex: 'updatedAt', 
+    key: 'updatedAt',
+    width: 180,
+    customRender: ({ text }: { text: string }) => formatDateTime(text)
+  },
+  { 
     title: '操作', 
     key: 'action',
     width: 150,

@@ -33,11 +33,15 @@
               borderRadius: '12px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
-              border: selectedPlan === 0 ? '2px solid #1890ff' : '1px solid #d9d9d9'
+              border: selectedPlan === 0 ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }"
+            :bodyStyle="{ flex: 1, display: 'flex', flexDirection: 'column' }"
             @click="selectPlan(0)"
           >
-            <div :style="{ textAlign: 'center' }">
+            <div :style="{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }">
               <div :style="{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff', marginBottom: '16px' }">
                 体验套餐
               </div>
@@ -48,7 +52,7 @@
               
               <a-divider />
               
-              <div :style="{ textAlign: 'left', padding: '0 12px' }">
+              <div :style="{ textAlign: 'left', padding: '0 12px', flex: 1 }">
                 <div :style="{ marginBottom: '12px', display: 'flex', alignItems: 'center' }">
                   <CheckOutlined :style="{ color: '#52c41a', marginRight: '8px' }" />
                   <span>无限次图像识别</span>
@@ -75,7 +79,7 @@
                 type="primary" 
                 size="large" 
                 block 
-                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold' }"
+                :style="{ height: '48px', fontSize: '16px', fontWeight: 'bold' }"
                 @click="handlePurchase(0)"
                 :loading="purchasing && selectedPlan === 0"
               >
@@ -94,14 +98,18 @@
               boxShadow: selectedPlan === 1 ? '0 8px 24px rgba(24,144,255,0.3)' : '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
               border: selectedPlan === 1 ? '2px solid #1890ff' : '1px solid #d9d9d9',
-              position: 'relative'
+              position: 'relative',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }"
+            :bodyStyle="{ flex: 1, display: 'flex', flexDirection: 'column' }"
             @click="selectPlan(1)"
           >
             <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ff4d4f', color: 'white', padding: '4px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }">
               推荐
             </div>
-            <div :style="{ textAlign: 'center' }">
+            <div :style="{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }">
               <div :style="{ fontSize: '24px', fontWeight: 'bold', color: '#1890ff', marginBottom: '16px' }">
                 月度会员
               </div>
@@ -112,7 +120,7 @@
               
               <a-divider />
               
-              <div :style="{ textAlign: 'left', padding: '0 12px' }">
+              <div :style="{ textAlign: 'left', padding: '0 12px', flex: 1 }">
                 <div :style="{ marginBottom: '12px', display: 'flex', alignItems: 'center' }">
                   <CheckOutlined :style="{ color: '#52c41a', marginRight: '8px' }" />
                   <span>无限次图像识别</span>
@@ -143,7 +151,7 @@
                 type="primary" 
                 size="large" 
                 block 
-                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold' }"
+                :style="{ height: '48px', fontSize: '16px', fontWeight: 'bold' }"
                 @click="handlePurchase(1)"
                 :loading="purchasing && selectedPlan === 1"
               >
@@ -162,14 +170,18 @@
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
               border: selectedPlan === 2 ? '2px solid #1890ff' : '1px solid #d9d9d9',
-              position: 'relative'
+              position: 'relative',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column'
             }"
+            :bodyStyle="{ flex: 1, display: 'flex', flexDirection: 'column' }"
             @click="selectPlan(2)"
           >
             <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ffd700', color: '#333', padding: '4px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }">
               最划算
             </div>
-            <div :style="{ textAlign: 'center' }">
+            <div :style="{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }">
               <div :style="{ fontSize: '24px', fontWeight: 'bold', color: '#ffd700', marginBottom: '16px' }">
                 年度会员
               </div>
@@ -183,7 +195,7 @@
               
               <a-divider />
               
-              <div :style="{ textAlign: 'left', padding: '0 12px' }">
+              <div :style="{ textAlign: 'left', padding: '0 12px', flex: 1 }">
                 <div :style="{ marginBottom: '12px', display: 'flex', alignItems: 'center' }">
                   <CheckOutlined :style="{ color: '#52c41a', marginRight: '8px' }" />
                   <span>无限次图像识别</span>
@@ -218,7 +230,7 @@
                 type="primary" 
                 size="large" 
                 block 
-                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold' }"
+                :style="{ height: '48px', fontSize: '16px', fontWeight: 'bold' }"
                 @click="handlePurchase(2)"
                 :loading="purchasing && selectedPlan === 2"
               >

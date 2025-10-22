@@ -21,7 +21,7 @@ export interface VipOrderInfo {
  * 创建订单请求
  */
 export interface CreateOrderRequest {
-  planType: string
+  planType: number
   paymentMethod?: string
 }
 

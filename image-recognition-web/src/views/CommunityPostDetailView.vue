@@ -583,7 +583,10 @@ async function loadPostDetail(postId: string | number) {
     let parsedImages: { url: string; description?: string }[] = []
     if (postData.images) {
       try {
-        const imageArray = JSON.parse(postData.images)
+        // images 可能是字符串数组或 JSON 字符串
+        const imageArray = Array.isArray(postData.images) 
+          ? postData.images 
+          : JSON.parse(postData.images)
         if (Array.isArray(imageArray)) {
           parsedImages = imageArray.map((url: string) => ({
             url: ImageUtils.getImageUrl(url),

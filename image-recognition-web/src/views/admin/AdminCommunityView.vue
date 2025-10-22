@@ -93,10 +93,10 @@
           </template>
           
           <template v-else-if="column.key === 'stats'">
-            <div class="post-stats">
-              <span><i class="fas fa-eye"></i> {{ record.viewCount }}</span>
-              <span><i class="fas fa-thumbs-up"></i> {{ record.likeCount }}</span>
-              <span><i class="fas fa-comment"></i> {{ record.commentCount }}</span>
+            <div class="post-stats" style="display: flex; gap: 12px; font-size: 13px; color: #595959;">
+              <span><i class="fas fa-eye" style="margin-right: 4px;"></i>{{ record.viewCount }}</span>
+              <span><i class="fas fa-thumbs-up" style="margin-right: 4px;"></i>{{ record.likeCount }}</span>
+              <span><i class="fas fa-comment" style="margin-right: 4px;"></i>{{ record.commentCount }}</span>
             </div>
           </template>
           
@@ -247,7 +247,7 @@
             </a-avatar>
             <div class="author-details">
               <span class="author-name">{{ selectedPost.authorName || '未知用户' }}</span>
-              <span class="post-time">{{ selectedPost.createTime }}</span>
+              <span class="post-time">{{ formatDateTime(selectedPost.createdAt) }}</span>
             </div>
             <a-tag :color="getStatusColor(selectedPost.status)">
               {{ getStatusText(selectedPost.status) }}
@@ -404,9 +404,10 @@ const postColumns = [
   },
   { 
     title: '发布时间', 
-    dataIndex: 'createTime', 
-    key: 'createTime',
-    width: 180
+    dataIndex: 'createdAt', 
+    key: 'createdAt',
+    width: 180,
+    customRender: ({ text }: { text: string }) => formatDateTime(text)
   },
   { 
     title: '操作', 
@@ -481,6 +482,22 @@ function getStatusText(status: number | string) {
     case PostStatus.HIDDEN: return '已隐藏'
     case PostStatus.DRAFT: return '草稿'
     default: return '未知'
+  }
+}
+
+// 格式化日期时间
+function formatDateTime(dateTime: string): string {
+  if (!dateTime) return '-'
+  try {
+    return new Date(dateTime).toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  } catch {
+    return dateTime
   }
 }
 

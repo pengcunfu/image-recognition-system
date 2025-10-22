@@ -575,12 +575,20 @@ public class CommunityService {
     private CommunityResponse.PostInfo convertToPostInfo(CommunityPost post) {
         // 获取作者信息
         User author = userRepository.selectById(post.getUserId());
+        
+        // 优先显示昵称,如果没有则显示用户名
+        String displayName = "未知用户";
+        if (author != null) {
+            displayName = (author.getNickname() != null && !author.getNickname().isEmpty()) 
+                ? author.getNickname() 
+                : author.getUsername();
+        }
 
         return CommunityResponse.PostInfo.builder()
                 .id(post.getId())
                 .userId(post.getUserId())
                 .authorId(post.getUserId())
-                .authorName(author != null ? author.getUsername() : "未知用户")
+                .authorName(displayName)
                 .username(author != null ? author.getUsername() : "未知用户")
                 .authorAvatar(author != null ? author.getAvatar() : null)
                 .avatar(author != null ? author.getAvatar() : null)

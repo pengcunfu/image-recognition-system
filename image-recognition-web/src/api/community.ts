@@ -20,6 +20,7 @@ export interface PostInfo {
   shareCount: number
   isTop: number
   status: number
+  createdAt: string
   createTime: string
   updateTime: string
 }

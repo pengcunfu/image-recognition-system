@@ -46,14 +46,16 @@ public class VipOrderService {
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
         }
 
-        // 获取套餐价格
+        // 获取套餐价格和名称
         BigDecimal amount = calculateAmount(request.getPlanType());
+        String planName = getPlanName(request.getPlanType());
 
         // 创建订单（使用 Builder 模式）
         VipOrder order = VipOrder.builder()
                 .userId(userId)
                 .orderNo(generateOrderNo())
                 .planType(request.getPlanType())
+                .planName(planName)
                 .amount(amount)
                 .paymentMethod(0) // 默认支付宝，实际支付时再设置
                 .paymentStatus(PaymentStatus.UNPAID.getValue())
@@ -101,10 +103,17 @@ public class VipOrderService {
         user.setBalance(newBalance);
         userRepository.updateById(user);
 
+        // 计算VIP生效时间和到期时间
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startTime = now;
+        LocalDateTime expireTime = calculateExpireTime(now, order.getPlanType());
+
         // 更新订单状态
         order.setPaymentStatus(PaymentStatus.PAID.getValue());
-        order.setPaymentTime(LocalDateTime.now());
+        order.setPaymentTime(now);
         order.setPaymentMethod(2); // 2表示余额支付
+        order.setStartTime(startTime);
+        order.setExpireTime(expireTime);
         vipOrderRepository.updateById(order);
 
         // 更新用户VIP信息
@@ -238,9 +247,45 @@ public class VipOrderService {
         }
 
         user.setVipExpireTime(expireTime);
+        // 更新用户角色为VIP
+        user.setRole(1); // 1 = VIP
         userRepository.updateById(user);
 
         log.info("用户VIP状态更新成功: userId={}, expireTime={}", userId, expireTime);
+    }
+
+    /**
+     * 计算VIP到期时间
+     */
+    private LocalDateTime calculateExpireTime(LocalDateTime startTime, Integer planType) {
+        VipPlanType plan = VipPlanType.fromValue(planType);
+        switch (plan) {
+            case MONTHLY:
+                return startTime.plusMonths(1);
+            case QUARTERLY:
+                return startTime.plusMonths(3);
+            case YEARLY:
+                return startTime.plusYears(1);
+            default:
+                return startTime;
+        }
+    }
+
+    /**
+     * 获取套餐名称
+     */
+    private String getPlanName(Integer planType) {
+        VipPlanType plan = VipPlanType.fromValue(planType);
+        switch (plan) {
+            case MONTHLY:
+                return "月度会员";
+            case QUARTERLY:
+                return "季度会员";
+            case YEARLY:
+                return "年度会员";
+            default:
+                return "未知套餐";
+        }
     }
 
     /**

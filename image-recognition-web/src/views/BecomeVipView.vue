@@ -380,14 +380,15 @@ async function handlePurchase(planType: number) {
     
     message.success('VIP开通成功！')
     
-    // 刷新余额
+    // 刷新用户信息（包括余额和角色）
     await loadUserInfo()
     
-    // 跳转到用户中心或刷新页面
+    // 更新localStorage中的用户角色，以便立即生效
+    localStorage.setItem('userRole', '1') // 1 = VIP
+    
+    // 延迟跳转到用户中心
     setTimeout(() => {
       router.push('/user/dashboard')
-      // 刷新页面以更新VIP状态
-      window.location.reload()
     }, 1500)
   } catch (error: any) {
     console.error('购买VIP失败:', error)

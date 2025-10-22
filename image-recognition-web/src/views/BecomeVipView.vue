@@ -10,7 +10,7 @@
     </div>
 
     <!-- 用户余额显示 -->
-    <a-card :style="{ maxWidth: '1200px', margin: '0 auto 24px', textAlign: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none' }">
+    <a-card :style="{ maxWidth: '1200px', margin: '0 auto 24px', textAlign: 'center', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', border: 'none' }">
       <div :style="{ color: 'white' }">
         <p :style="{ fontSize: '14px', marginBottom: '8px', opacity: 0.9 }">我的余额</p>
         <p :style="{ fontSize: '32px', fontWeight: 'bold', margin: 0 }">
@@ -143,7 +143,7 @@
                 type="primary" 
                 size="large" 
                 block 
-                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none' }"
+                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold' }"
                 @click="handlePurchase(1)"
                 :loading="purchasing && selectedPlan === 1"
               >
@@ -218,7 +218,7 @@
                 type="primary" 
                 size="large" 
                 block 
-                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold', background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', border: 'none' }"
+                :style="{ marginTop: '24px', height: '48px', fontSize: '16px', fontWeight: 'bold' }"
                 @click="handlePurchase(2)"
                 :loading="purchasing && selectedPlan === 2"
               >

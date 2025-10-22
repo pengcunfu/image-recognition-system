@@ -54,7 +54,7 @@
             <div>
               <!-- 主要结果 -->
               <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', borderRadius: '8px', background: '#fafafa', marginBottom: '24px' }">
-                <div :style="{ width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '32px' }">
+                <div :style="{ width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '32px' }">
                   <i :class="recognitionResult.icon"></i>
                 </div>
                 <div :style="{ flex: 1 }">

@@ -10,7 +10,7 @@
   }">
     <div :style="{ 
       background: 'rgba(255, 255, 255, 0.95)', 
-      borderRadius: '20px', 
+      borderRadius: '8px', 
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)', 
       border: '1px solid #e8e8e8', 
       width: '480px', 

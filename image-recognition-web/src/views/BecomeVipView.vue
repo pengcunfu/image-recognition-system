@@ -30,7 +30,7 @@
           <a-card 
             hoverable
             :style="{ 
-              borderRadius: '12px', 
+              borderRadius: '8px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
               border: selectedPlan === 0 ? '2px solid #1890ff' : '1px solid #d9d9d9',
@@ -94,7 +94,7 @@
           <a-card 
             hoverable
             :style="{ 
-              borderRadius: '12px', 
+              borderRadius: '8px', 
               boxShadow: selectedPlan === 1 ? '0 8px 24px rgba(24,144,255,0.3)' : '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
               border: selectedPlan === 1 ? '2px solid #1890ff' : '1px solid #d9d9d9',
@@ -106,7 +106,7 @@
             :bodyStyle="{ flex: 1, display: 'flex', flexDirection: 'column' }"
             @click="selectPlan(1)"
           >
-            <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ff4d4f', color: 'white', padding: '4px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }">
+            <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ff4d4f', color: 'white', padding: '4px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }">
               推荐
             </div>
             <div :style="{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }">
@@ -166,7 +166,7 @@
           <a-card 
             hoverable
             :style="{ 
-              borderRadius: '12px', 
+              borderRadius: '8px', 
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
               transition: 'all 0.3s',
               border: selectedPlan === 2 ? '2px solid #1890ff' : '1px solid #d9d9d9',
@@ -178,7 +178,7 @@
             :bodyStyle="{ flex: 1, display: 'flex', flexDirection: 'column' }"
             @click="selectPlan(2)"
           >
-            <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ffd700', color: '#333', padding: '4px 16px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }">
+            <div :style="{ position: 'absolute', top: '-12px', right: '20px', background: '#ffd700', color: '#333', padding: '4px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold' }">
               最划算
             </div>
             <div :style="{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }">
@@ -244,7 +244,7 @@
 
     <!-- VIP特权说明 -->
     <div :style="{ maxWidth: '1200px', margin: '48px auto 0' }">
-      <a-card :style="{ borderRadius: '12px' }">
+      <a-card :style="{ borderRadius: '8px' }">
         <h2 :style="{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px', textAlign: 'center' }">
           VIP会员特权
         </h2>

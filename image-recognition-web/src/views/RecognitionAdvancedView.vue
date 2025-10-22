@@ -23,7 +23,7 @@
       <a-col :xs="24" :sm="12" :lg="8">
         <a-card 
           :style="{ 
-            borderRadius: '12px', 
+            borderRadius: '8px', 
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',
@@ -49,7 +49,7 @@
       <a-col :xs="24" :sm="12" :lg="8">
         <a-card 
           :style="{ 
-            borderRadius: '12px', 
+            borderRadius: '8px', 
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',
@@ -75,7 +75,7 @@
       <a-col :xs="24" :sm="12" :lg="8">
         <a-card 
           :style="{ 
-            borderRadius: '12px', 
+            borderRadius: '8px', 
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',

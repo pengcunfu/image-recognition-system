@@ -34,7 +34,7 @@
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
+            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
               <i class="fas fa-eye"></i>
             </div>
             <div :style="{ flex: 1 }">
@@ -45,9 +45,9 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
+        <a-card :style="{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
+            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
               <i class="fas fa-heart"></i>
             </div>
             <div :style="{ flex: 1 }">
@@ -60,7 +60,7 @@
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
+            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
               <i class="fas fa-comments"></i>
             </div>
             <div :style="{ flex: 1 }">
@@ -73,7 +73,7 @@
       <a-col :xs="24" :sm="12" :lg="6">
         <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
+            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
               <i class="fas fa-thumbs-up"></i>
             </div>
             <div :style="{ flex: 1 }">
@@ -171,10 +171,10 @@
       <a-row :gutter="[16, 16]">
         <a-col :xs="12" :sm="8" :lg="4" v-for="feature in features" :key="feature.key">
           <div 
-            :style="{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '32px 16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.3s ease', height: '100%' }" 
+            :style="{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '32px 16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', height: '100%' }" 
             @click="navigateToFeature(feature.path)"
           >
-            <div :style="{ width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px', fontSize: '28px', marginBottom: '16px' }">
+            <div :style="{ width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '28px', marginBottom: '16px' }">
               <i :class="feature.icon"></i>
             </div>
             <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">{{ feature.title }}</div>

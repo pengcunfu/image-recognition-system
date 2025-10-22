@@ -10,7 +10,7 @@
       background: 'white'
     }"
   >
-    <div :style="{ padding: '12px' }">
+    <div>
       <!-- 第一行：作者信息 -->
       <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', height: '32px' }">
         <a-avatar :src="post.author.avatar" :size="28">

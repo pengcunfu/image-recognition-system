@@ -28,7 +28,7 @@
         <!-- 左侧：知识列表 -->
         <div :style="{ flex: 1, minWidth: 0 }">
           <!-- 知识列表（按分类） -->
-          <a-card :loading="loading && categories.length === 0" :style="{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
+          <a-card :loading="loading && categories.length === 0" :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
             <a-tabs v-model:activeKey="activeCategory" @change="handleCategoryChange" :style="{ marginTop: '-8px' }">
               <a-tab-pane key="" tab="📚 全部">
                 <a-spin :spinning="loading">
@@ -37,7 +37,7 @@
                     <a-col :xs="24" :sm="12" :lg="8" v-for="item in knowledgeData" :key="item.id">
                       <div 
                         :style="{ 
-                          borderRadius: '12px', 
+                          borderRadius: '8px', 
                           overflow: 'hidden', 
                           cursor: 'pointer',
                           transition: 'all 0.3s',
@@ -120,7 +120,7 @@
                     <a-col :xs="24" :sm="12" :lg="8" v-for="item in getKnowledgeByCategory(cat)" :key="item.id">
                       <div 
                         :style="{ 
-                          borderRadius: '12px', 
+                          borderRadius: '8px', 
                           overflow: 'hidden', 
                           cursor: 'pointer',
                           transition: 'all 0.3s',
@@ -199,7 +199,7 @@
         <!-- 右侧边栏：热门推荐、最新更新 -->
         <div :style="{ width: '320px', flexShrink: '0' }">
           <!-- 热门推荐 -->
-          <a-card :style="{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', marginBottom: '24px' }">
+          <a-card :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', marginBottom: '24px' }">
             <template #title>
               <span :style="{ fontSize: '16px', fontWeight: 'bold', color: '#262626', display: 'flex', alignItems: 'center', gap: '8px' }">
                 <i class="fas fa-fire" :style="{ color: '#ff4d4f' }"></i>
@@ -267,7 +267,7 @@
           </a-card>
 
           <!-- 最新更新 -->
-          <a-card :style="{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', position: 'sticky', top: '24px' }">
+          <a-card :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', position: 'sticky', top: '24px' }">
             <template #title>
               <span :style="{ fontSize: '16px', fontWeight: 'bold', color: '#262626', display: 'flex', alignItems: 'center', gap: '8px' }">
                 <i class="fas fa-clock" :style="{ color: '#1890ff' }"></i>

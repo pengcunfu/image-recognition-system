@@ -1,7 +1,6 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
-      <!-- 页面头部 -->
+    <!-- 页面头部 -->
       <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
         <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 8px 0' }">
           <i class="fas fa-book-open" :style="{ marginRight: '8px', color: '#1890ff' }"></i>
@@ -313,7 +312,6 @@
           </a-card>
         </div>
       </div>
-    </div>
   </div>
 </template>
 

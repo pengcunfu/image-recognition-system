@@ -1,7 +1,6 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
-      <!-- 页面标题 -->
+    <!-- 页面标题 -->
       <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
         <div :style="{ textAlign: 'center' }">
           <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }">
@@ -119,7 +118,6 @@
           {{ pagination.current * pagination.pageSize >= pagination.total ? '没有更多了' : '加载更多' }}
         </a-button>
       </div>
-    </div>
   </div>
 </template>
 
@@ -214,15 +212,19 @@ async function loadPosts() {
     
     // 转换数据格式 - 使用 ImageUtils
     postsData.value = response.data.map(post => {
-      // 解析图片数据
+      // 处理图片数据
       let images: string[] = []
       if (post.images) {
-        try {
-          const parsed = JSON.parse(post.images)
-          images = Array.isArray(parsed) ? parsed.map((url: string) => ImageUtils.getImageUrl(url)) : []
-        } catch (e) {
-          console.warn('解析图片失败:', post.images, e)
-          images = []
+        if (Array.isArray(post.images)) {
+          images = post.images.map((url: string) => ImageUtils.getImageUrl(url))
+        } else if (typeof post.images === 'string') {
+          try {
+            const parsed = JSON.parse(post.images)
+            images = Array.isArray(parsed) ? parsed.map((url: string) => ImageUtils.getImageUrl(url)) : []
+          } catch (e) {
+            console.warn('解析图片失败:', post.images, e)
+            images = []
+          }
         }
       }
       

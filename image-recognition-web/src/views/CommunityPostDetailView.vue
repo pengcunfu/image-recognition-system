@@ -1,7 +1,6 @@
 ﻿<template>
   <div :style="{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }">
-    <div :style="{ maxWidth: '1000px', margin: '0 auto' }">
-      <!-- 返回按钮 -->
+    <!-- 返回按钮 -->
       <div :style="{ marginBottom: '16px' }">
         <a-button @click="goBack">
           <i class="fas fa-arrow-left" :style="{ marginRight: '8px' }"></i>
@@ -474,7 +473,6 @@
         </p>
       </div>
     </a-modal>
-  </div>
 </template>
 
 <script setup lang="ts">

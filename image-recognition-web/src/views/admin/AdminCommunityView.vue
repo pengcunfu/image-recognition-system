@@ -74,7 +74,7 @@
           </template>
           
           <template v-else-if="column.key === 'author'">
-            <div class="author-info">
+            <div class="author-info" style="display: flex; align-items: center; gap: 8px;">
               <a-avatar :src="FileAPI.getImageUrl(record.authorAvatar)" size="small">
                 {{ record.authorName ? record.authorName.charAt(0) : 'U' }}
               </a-avatar>
@@ -240,14 +240,14 @@
     >
       <div v-if="selectedPost" class="post-detail">
         <div class="post-header">
-          <h2>{{ selectedPost.title }}</h2>
-          <div class="post-info">
+          <h2 style="margin-bottom: 16px;">{{ selectedPost.title }}</h2>
+          <div class="post-info" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
             <a-avatar :src="FileAPI.getImageUrl(selectedPost.authorAvatar)">
               {{ selectedPost.authorName ? selectedPost.authorName.charAt(0) : 'U' }}
             </a-avatar>
-            <div class="author-details">
-              <span class="author-name">{{ selectedPost.authorName || '未知用户' }}</span>
-              <span class="post-time">{{ formatDateTime(selectedPost.createdAt) }}</span>
+            <div class="author-details" style="flex: 1;">
+              <div style="font-weight: 500; color: #262626;">{{ selectedPost.authorName || '未知用户' }}</div>
+              <div style="font-size: 12px; color: #8c8c8c; margin-top: 2px;">{{ formatDateTime(selectedPost.createdAt) }}</div>
             </div>
             <a-tag :color="getStatusColor(selectedPost.status)">
               {{ getStatusText(selectedPost.status) }}

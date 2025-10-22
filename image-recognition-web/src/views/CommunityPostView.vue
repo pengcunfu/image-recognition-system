@@ -6,7 +6,23 @@
           <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }">
             社区讨论
           </h1>
-          <p :style="{ margin: 0, fontSize: '14px', opacity: 0.65 }">分享交流您的图像识别经验和见解</p>
+          <p :style="{ margin: '0 0 16px 0', fontSize: '14px', opacity: 0.65 }">分享交流您的图像识别经验和见解</p>
+          
+          <!-- 搜索和发布按钮 -->
+          <div :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }">
+            <a-input-search
+              v-model:value="searchKeyword"
+              placeholder="搜索帖子内容、作者..."
+              @search="handleSearch"
+              @change="handleSearchChange"
+              :style="{ width: '320px' }"
+              size="large"
+            />
+            <a-button type="primary" size="large" @click="openPublishModal">
+              <i class="fas fa-edit"></i>
+              我要发布
+            </a-button>
+          </div>
         </div>
       </a-card>
 
@@ -18,7 +34,7 @@
       @save-draft="handleSaveDraft"
     />
 
-      <!-- 筛选和搜索 -->
+      <!-- 分类和标签筛选 -->
       <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
         <!-- 分类标签 -->
         <div :style="{ marginBottom: '16px' }">
@@ -66,22 +82,6 @@
           </div>
         </div>
         
-        <div :style="{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '16px' }">
-          <div :style="{ display: 'flex', gap: '12px' }">
-            <a-input-search
-              v-model:value="searchKeyword"
-              placeholder="搜索帖子内容、作者..."
-              @search="handleSearch"
-              @change="handleSearchChange"
-              :style="{ width: '320px' }"
-              size="large"
-            />
-            <a-button type="primary" size="large" @click="openPublishModal">
-              <i class="fas fa-edit"></i>
-              我要发布
-            </a-button>
-          </div>
-        </div>
         
         <!-- 搜索结果统计 -->
         <div v-if="searchKeyword" :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#e6f7ff', borderRadius: '8px' }">

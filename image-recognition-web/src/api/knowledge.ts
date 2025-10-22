@@ -68,7 +68,7 @@ export class KnowledgeAPI {
    * 取消点赞知识
    */
   static unlikeKnowledge(id: number) {
-    return del<void>(`/api/knowledge/${id}/like`)
+    return post<void>(`/api/knowledge/${id}/unlike`)
   }
 
   /**
@@ -82,7 +82,7 @@ export class KnowledgeAPI {
    * 取消收藏知识
    */
   static uncollectKnowledge(id: number) {
-    return del<void>(`/api/knowledge/${id}/collect`)
+    return post<void>(`/api/knowledge/${id}/uncollect`)
   }
 
   /**

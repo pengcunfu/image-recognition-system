@@ -463,6 +463,12 @@ async function loadKnowledgeDetail(knowledgeId: string) {
       quiz: null // 测试功能暂未实现
     }
     
+    // 初始化点赞和收藏状态
+    isLiked.value = item.isLiked || false
+    isBookmarked.value = item.isCollected || false
+    
+    console.log('点赞状态:', isLiked.value, '收藏状态:', isBookmarked.value)
+    
     // 加载分类名称
     if (item.category) {
       loadCategoryName(item.category)

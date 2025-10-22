@@ -66,7 +66,7 @@ public class KnowledgeController {
      * 取消点赞知识
      */
     @Role("USER")
-    @DeleteMapping("/{id}/like")
+    @PostMapping("/{id}/unlike")
     public ApiResponse<Void> unlikeKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
         log.info("取消点赞知识: userId={}, knowledgeId={}", userId, id);
@@ -90,7 +90,7 @@ public class KnowledgeController {
      * 取消收藏知识
      */
     @Role("USER")
-    @DeleteMapping("/{id}/collect")
+    @PostMapping("/{id}/uncollect")
     public ApiResponse<Void> uncollectKnowledge(@PathVariable Long id) {
         Long userId = SecurityContextHolder.getCurrentUserId();
         log.info("取消收藏知识: userId={}, knowledgeId={}", userId, id);

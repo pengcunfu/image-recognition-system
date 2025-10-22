@@ -4,8 +4,7 @@
     <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
       <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
         <div>
-          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }">
-            <i class="fas fa-crown" :style="{ color: '#ffd700' }"></i>
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">
             高级识别
           </h1>
           <p :style="{ margin: '0', fontSize: '14px', opacity: 0.65 }">VIP专享的高精度AI识别服务</p>

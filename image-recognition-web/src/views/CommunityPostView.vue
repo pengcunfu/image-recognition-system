@@ -4,7 +4,6 @@
       <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
         <div :style="{ textAlign: 'center' }">
           <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }">
-            <i class="fas fa-comments"></i>
             社区讨论
           </h1>
           <p :style="{ margin: 0, fontSize: '14px', opacity: 0.65 }">分享交流您的图像识别经验和见解</p>
@@ -97,18 +96,31 @@
       <!-- 帖子列表 -->
       <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
         <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
-        <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '16px' }">
-          <PostCard
+        <div v-else :style="{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: '12px',
+          alignItems: 'start'
+        }">
+          <div 
             v-for="post in filteredPosts"
             :key="post.id"
-            :post="post"
-            @viewDetail="viewPostDetail"
-            @previewImage="previewImage"
-            @searchByTag="searchByTag"
-            @toggleLike="toggleLike"
-            @toggle-favorite="toggleFavorite"
-            @reply="replyPost"
-          />
+            :style="{ 
+              width: '100%',
+              breakInside: 'avoid',
+              marginBottom: '12px'
+            }"
+          >
+            <PostCard
+              :post="post"
+              @viewDetail="viewPostDetail"
+              @previewImage="previewImage"
+              @searchByTag="searchByTag"
+              @toggleLike="toggleLike"
+              @toggle-favorite="toggleFavorite"
+              @reply="replyPost"
+            />
+          </div>
         </div>
       </a-spin>
 

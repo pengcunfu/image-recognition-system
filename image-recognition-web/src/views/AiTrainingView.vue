@@ -4,8 +4,7 @@
     <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
       <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
         <div>
-          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }">
-            <i class="fas fa-brain" :style="{ color: '#ffd700' }"></i>
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">
             AI模型训练
           </h1>
           <p :style="{ margin: '0', fontSize: '14px', opacity: 0.65 }">VIP专享的自定义AI模型训练服务</p>
@@ -102,11 +101,11 @@
     <a-card title="数据集管理" :style="{ marginBottom: '16px', borderRadius: '8px' }">
       <template #extra>
         <a-space>
-          <a-button type="primary" size="small" @click="showUploadModal">
+          <a-button type="primary" @click="showUploadModal">
             <i class="fas fa-upload"></i>
             上传数据集
           </a-button>
-          <a-button size="small" @click="createDataset">
+          <a-button @click="createDataset">
             <i class="fas fa-plus"></i>
             创建数据集
           </a-button>
@@ -152,10 +151,10 @@
               <p :style="{ margin: 0, fontSize: '13px', opacity: 0.75 }">{{ dataset.description }}</p>
             </div>
             <a-space>
-              <a-button type="text" size="small" @click.stop="editDataset(dataset)">
+              <a-button type="text" @click.stop="editDataset(dataset)" :style="{ padding: '4px 8px' }">
                 <i class="fas fa-edit"></i>
               </a-button>
-              <a-button type="text" size="small" danger @click.stop="deleteDataset(dataset)">
+              <a-button type="text" danger @click.stop="deleteDataset(dataset)" :style="{ padding: '4px 8px' }">
                 <i class="fas fa-trash"></i>
               </a-button>
             </a-space>
@@ -234,16 +233,16 @@
         </a-col>
       </a-row>
 
-      <div :style="{ marginTop: '16px', display: 'flex', gap: '8px' }">
+      <div :style="{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }">
         <a-button type="primary" size="large" @click="startTraining" :loading="isTraining">
           <i class="fas fa-play"></i>
           开始训练
         </a-button>
-        <a-button @click="saveConfig">
+        <a-button size="large" @click="saveConfig">
           <i class="fas fa-save"></i>
           保存配置
         </a-button>
-        <a-button @click="loadConfig">
+        <a-button size="large" @click="loadConfig">
           <i class="fas fa-folder-open"></i>
           加载配置
         </a-button>
@@ -282,7 +281,7 @@
           :style="{ marginBottom: '16px' }"
         />
 
-        <div :style="{ display: 'flex', gap: '8px' }">
+        <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap' }">
           <a-button @click="pauseTraining">
             <i class="fas fa-pause"></i>
             暂停训练

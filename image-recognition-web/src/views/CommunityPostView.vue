@@ -97,17 +97,18 @@
       <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
         <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
         <div v-else :style="{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: '8px',
-          alignItems: 'start'
+          columnCount: 'auto',
+          columnWidth: '280px',
+          columnGap: '16px',
+          columnFill: 'balance'
         }">
           <div 
             v-for="post in filteredPosts"
             :key="post.id"
             :style="{ 
-              width: '100%',
-              breakInside: 'avoid'
+              breakInside: 'avoid',
+              marginBottom: '16px',
+              width: '100%'
             }"
           >
             <PostCard

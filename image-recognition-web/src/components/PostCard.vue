@@ -10,70 +10,66 @@
       background: 'white'
     }"
   >
-    <div :style="{ padding: '8px' }">
-      <!-- 帖子头部 -->
-      <div :style="{ marginBottom: '8px' }">
-        <div :style="{ display: 'flex', alignItems: 'flex-start', gap: '12px' }">
-          <a-avatar :src="post.author.avatar" :size="36">
-            {{ post.author.name.charAt(0) }}
-          </a-avatar>
-          <div :style="{ flex: 1, minWidth: 0 }">
-            <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }">
-              <span :style="{ fontWeight: 600, color: '#262626', fontSize: '14px' }">{{ post.author.name }}</span>
-              <a-tag v-if="post.author.level" :color="getLevelColor(post.author.level)" size="small">
-                {{ post.author.level }}
-              </a-tag>
-            </div>
-            <div :style="{ display: 'flex', alignItems: 'center', gap: '8px' }">
-              <span :style="{ fontSize: '12px', color: '#999' }">{{ post.createTime }}</span>
-              <a-tag :color="getTypeColor(post.type)" size="small">{{ getTypeName(post.type) }}</a-tag>
-            </div>
+    <div :style="{ padding: '12px' }">
+      <!-- 第一行：作者信息 -->
+      <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', minHeight: '32px' }">
+        <a-avatar :src="post.author.avatar" :size="24">
+          {{ post.author.name.charAt(0) }}
+        </a-avatar>
+        <div :style="{ flex: 1, minWidth: 0 }">
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }">
+            <span :style="{ fontWeight: 500, color: '#262626', fontSize: '13px' }">{{ post.author.name }}</span>
+            <a-tag v-if="post.author.level" :color="getLevelColor(post.author.level)" size="small" :style="{ fontSize: '11px', padding: '0 4px', height: '16px', lineHeight: '16px' }">
+              {{ post.author.level }}
+            </a-tag>
+          </div>
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px' }">
+            <span :style="{ fontSize: '11px', color: '#999' }">{{ post.createTime }}</span>
+            <a-tag :color="getTypeColor(post.type)" size="small" :style="{ fontSize: '10px', padding: '0 4px', height: '14px', lineHeight: '14px' }">{{ getTypeName(post.type) }}</a-tag>
           </div>
         </div>
       </div>
       
-      <!-- 帖子内容 -->
-      <div 
-        :style="{ marginBottom: '8px', cursor: 'pointer' }"
-        @click="handleViewDetail"
-      >
+      <!-- 第二行：标题（1行） -->
+      <div :style="{ marginBottom: '8px', height: '22px' }">
         <h3 :style="{ 
-          fontSize: '16px', 
+          fontSize: '15px', 
           fontWeight: 600, 
           color: '#262626', 
-          margin: '0 0 8px 0', 
-          lineHeight: '1.4', 
-          transition: 'color 0.3s',
+          margin: 0, 
+          lineHeight: '22px', 
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          cursor: 'pointer'
+        }" @click="handleViewDetail">{{ post.title || '无标题' }}</h3>
+      </div>
+      
+      <!-- 第三行：内容（2行固定高度） -->
+      <div :style="{ marginBottom: '12px', height: '40px', cursor: 'pointer' }" @click="handleViewDetail">
+        <p :style="{ 
+          color: '#666', 
+          lineHeight: '20px', 
+          margin: 0, 
+          fontSize: '13px',
+          height: '40px',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden'
-        }">{{ post.title || '无标题' }}</h3>
-        <p :style="{ 
-          color: '#666', 
-          lineHeight: '1.5', 
-          margin: 0, 
-          fontSize: '14px',
-          display: '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }">
-          {{ getContentPreview(post.content) }}
-          <span v-if="post.content.length > 150" :style="{ color: '#1890ff', fontWeight: 500, marginLeft: '4px' }">...阅读全文</span>
-        </p>
+        }">{{ getContentPreview(post.content) }}</p>
       </div>
       
-      <!-- 封面图片 -->
+      <!-- 封面图片（有图片的卡片） -->
       <div 
         v-if="post.images?.length" 
         :style="{ 
-          marginBottom: '8px', 
+          marginBottom: '12px', 
           borderRadius: '8px', 
           overflow: 'hidden', 
           cursor: 'pointer',
           width: '100%',
-          height: '140px'
+          height: '120px'
         }"
         @click="handlePreviewImage"
       >
@@ -89,11 +85,10 @@
         />
       </div>
       
-      
       <!-- 标签 -->
       <div 
         v-if="post.tags?.length" 
-        :style="{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px', minHeight: '22px' }"
+        :style="{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px', height: '24px', overflow: 'hidden' }"
       >
         <a-tag 
           v-for="tag in post.tags.slice(0, 3)" 
@@ -113,7 +108,8 @@
         justifyContent: 'space-between', 
         alignItems: 'center', 
         paddingTop: '8px', 
-        borderTop: '1px solid #f0f0f0' 
+        borderTop: '1px solid #f0f0f0',
+        height: '32px'
       }">
         <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
           <span :style="{ display: 'flex', alignItems: 'center', gap: '4px', color: '#999', fontSize: '12px' }">

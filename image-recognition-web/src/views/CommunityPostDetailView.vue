@@ -1,17 +1,17 @@
 ﻿<template>
-  <div :style="{ minHeight: '100vh', background: '#f5f5f5', padding: '24px 0' }">
-    <div :style="{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }">
+  <div :style="{ padding: '24px', background: '#f5f5f5', minHeight: '100vh' }">
+    <div :style="{ maxWidth: '1000px', margin: '0 auto' }">
       <!-- 返回按钮 -->
-      <div :style="{ marginBottom: '24px' }">
-        <a-button @click="goBack" size="large">
+      <div :style="{ marginBottom: '16px' }">
+        <a-button @click="goBack">
           <i class="fas fa-arrow-left" :style="{ marginRight: '8px' }"></i>
           返回社区
         </a-button>
       </div>
 
       <!-- 帖子内容 -->
-      <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px', border: 'none' }">
-        <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }">
+      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
+        <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }">
           <!-- 作者信息 -->
           <div :style="{ display: 'flex', gap: '12px', alignItems: 'center' }">
             <a-avatar :size="50" :src="post.authorAvatar">
@@ -38,7 +38,7 @@
 
           <!-- 操作按钮 -->
           <a-dropdown>
-            <a-button type="text" size="large">
+            <a-button type="text">
               <i class="fas fa-ellipsis-h"></i>
             </a-button>
             <template #overlay>
@@ -65,12 +65,12 @@
         </div>
 
         <!-- 帖子标题 -->
-        <h1 :style="{ fontSize: '28px', fontWeight: '600', color: '#262626', margin: '0 0 16px 0', lineHeight: '1.4' }">
+        <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0', lineHeight: '1.4' }">
           {{ post.title }}
         </h1>
 
         <!-- 标签 -->
-        <div :style="{ marginBottom: '24px', display: 'flex', gap: '8px', flexWrap: 'wrap' }">
+        <div :style="{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }">
           <a-tag 
             v-for="tag in post.tags" 
             :key="tag" 
@@ -86,12 +86,12 @@
         </div>
 
         <!-- 帖子内容 -->
-        <div :style="{ fontSize: '15px', lineHeight: '1.8', color: '#262626', marginBottom: '24px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }">
+        <div :style="{ fontSize: '14px', lineHeight: '1.8', marginBottom: '16px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }">
           {{ post.content }}
         </div>
 
         <!-- 图片列表 -->
-        <div v-if="post.images && post.images.length > 0" :style="{ marginBottom: '24px' }">
+        <div v-if="post.images && post.images.length > 0" :style="{ marginBottom: '16px' }">
           <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }">
             <div 
               v-for="(image, index) in post.images" 
@@ -140,8 +140,8 @@
         </div>
 
         <!-- 识别结果展示 -->
-        <div v-if="post.recognitionResults && post.recognitionResults.length > 0" :style="{ marginBottom: '24px', padding: '16px', background: '#fafafa', borderRadius: '8px' }">
-          <h3 :style="{ fontSize: '16px', fontWeight: '500', color: '#262626', marginBottom: '16px' }">
+        <div v-if="post.recognitionResults && post.recognitionResults.length > 0" :style="{ marginBottom: '16px', padding: '12px', background: '#fafafa', borderRadius: '8px' }">
+          <h3 :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '12px' }">
             <i class="fas fa-eye" :style="{ marginRight: '8px', color: '#1890ff' }"></i>
             识别结果
           </h3>
@@ -177,14 +177,14 @@
         <!-- 互动区域 -->
         <div :style="{ 
           borderTop: '1px solid #f0f0f0', 
-          paddingTop: '20px',
+          paddingTop: '16px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '16px'
+          gap: '12px'
         }">
-          <div :style="{ display: 'flex', gap: '24px', fontSize: '14px', color: '#8c8c8c' }">
+          <div :style="{ display: 'flex', gap: '16px', fontSize: '13px', opacity: 0.65 }">
             <span :style="{ display: 'flex', alignItems: 'center', gap: '6px' }">
               <i class="fas fa-thumbs-up"></i>
               {{ post.likes }} 点赞
@@ -199,22 +199,21 @@
             </span>
           </div>
 
-          <div :style="{ display: 'flex', gap: '12px' }">
+          <div :style="{ display: 'flex', gap: '8px' }">
             <a-button 
               @click="toggleLike" 
               :type="isLiked ? 'primary' : 'default'"
-              size="large"
             >
               <i class="fas fa-thumbs-up" :style="{ marginRight: '6px' }"></i>
               {{ isLiked ? '已点赞' : '点赞' }}
             </a-button>
             
-            <a-button @click="toggleBookmark" :type="isBookmarked ? 'primary' : 'default'" size="large">
+            <a-button @click="toggleBookmark" :type="isBookmarked ? 'primary' : 'default'">
               <i class="fas fa-bookmark" :style="{ marginRight: '6px' }"></i>
               {{ isBookmarked ? '已收藏' : '收藏' }}
             </a-button>
             
-            <a-button @click="scrollToComments" size="large">
+            <a-button @click="scrollToComments">
               <i class="fas fa-comment" :style="{ marginRight: '6px' }"></i>
               评论
             </a-button>
@@ -223,21 +222,21 @@
       </a-card>
 
       <!-- 评论区域 -->
-      <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px', border: 'none' }">
+      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
         <template #title>
           <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
-            <span :style="{ fontSize: '18px', fontWeight: '500' }">评论区</span>
-            <span :style="{ fontSize: '14px', color: '#8c8c8c', fontWeight: 'normal' }">共 {{ comments.length }} 条评论</span>
+            <span :style="{ fontSize: '16px', fontWeight: '500' }">评论区</span>
+            <span :style="{ fontSize: '13px', opacity: 0.65, fontWeight: 'normal' }">共 {{ comments.length }} 条评论</span>
           </div>
         </template>
 
         <!-- 发表评论 -->
-        <div :style="{ marginBottom: '24px', padding: '16px', background: '#fafafa', borderRadius: '8px' }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }">
-            <a-avatar :src="currentUser.avatar">
+        <div :style="{ marginBottom: '16px', padding: '12px', background: '#fafafa', borderRadius: '8px' }">
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }">
+            <a-avatar :src="currentUser.avatar" :size="32">
               {{ currentUser.name.charAt(0) }}
             </a-avatar>
-            <span :style="{ fontSize: '14px', fontWeight: '500', color: '#262626' }">{{ currentUser.name }}</span>
+            <span :style="{ fontSize: '14px', fontWeight: '500' }">{{ currentUser.name }}</span>
           </div>
           
           <div>
@@ -250,29 +249,17 @@
               :style="{ marginBottom: '12px' }"
             />
             
-            <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
-              <div :style="{ display: 'flex', gap: '8px' }">
-                <a-button type="text" @click="insertEmoji" size="small">
-                  <i class="fas fa-smile" :style="{ marginRight: '6px' }"></i>
-                  表情
-                </a-button>
-                <a-button type="text" @click="uploadImage" size="small">
-                  <i class="fas fa-image" :style="{ marginRight: '6px' }"></i>
-                  图片
-                </a-button>
-              </div>
-              
-              <div :style="{ display: 'flex', gap: '8px' }">
-                <a-button @click="clearComment">清空</a-button>
-                <a-button 
-                  type="primary" 
-                  @click="submitComment" 
-                  :loading="submittingComment"
-                  :disabled="!newComment.content.trim()"
-                >
-                  发表评论
-                </a-button>
-              </div>
+            <div :style="{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px' }">
+              <a-button @click="clearComment" size="small">清空</a-button>
+              <a-button 
+                type="primary" 
+                @click="submitComment" 
+                :loading="submittingComment"
+                :disabled="!newComment.content.trim()"
+                size="small"
+              >
+                发表评论
+              </a-button>
             </div>
           </div>
         </div>
@@ -297,21 +284,21 @@
               borderBottom: '1px solid #f0f0f0' 
             }"
           >
-            <a-avatar :src="comment.authorAvatar">
+            <a-avatar :src="comment.authorAvatar" :size="32">
               {{ comment.author.charAt(0) }}
             </a-avatar>
             
             <div :style="{ flex: 1 }">
-              <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }">
-                <span :style="{ fontSize: '14px', fontWeight: '500', color: '#262626' }">{{ comment.author }}</span>
+              <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }">
+                <span :style="{ fontSize: '14px', fontWeight: '500' }">{{ comment.author }}</span>
                 <a-tag v-if="comment.authorLevel" :color="getAuthorLevelColor(comment.authorLevel)" size="small">
                   {{ comment.authorLevel }}
                 </a-tag>
-                <span :style="{ fontSize: '12px', color: '#8c8c8c' }">{{ comment.createTime }}</span>
+                <span :style="{ fontSize: '12px', opacity: 0.65 }">{{ comment.createTime }}</span>
                 <a-tag v-if="comment.isAuthor" color="blue" size="small">楼主</a-tag>
               </div>
               
-              <div :style="{ fontSize: '14px', lineHeight: '1.6', color: '#262626', marginBottom: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }">
+              <div :style="{ fontSize: '14px', lineHeight: '1.6', marginBottom: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }">
                 {{ comment.content }}
               </div>
               
@@ -336,19 +323,19 @@
                 </div>
               </div>
               
-              <div :style="{ display: 'flex', gap: '16px', alignItems: 'center' }">
-                <a-button type="text" @click="toggleCommentLike(comment)" size="small" :style="{ padding: '0 8px' }">
-                  <i class="fas fa-thumbs-up" :style="{ marginRight: '4px', color: comment.isLiked ? '#1890ff' : '#8c8c8c' }"></i>
-                  <span :style="{ color: comment.isLiked ? '#1890ff' : '#8c8c8c' }">{{ comment.likes || 0 }}</span>
+              <div :style="{ display: 'flex', gap: '12px', alignItems: 'center' }">
+                <a-button type="text" @click="toggleCommentLike(comment)" size="small" :style="{ padding: '0' }">
+                  <i class="fas fa-thumbs-up" :style="{ marginRight: '4px', color: comment.isLiked ? '#1890ff' : undefined }"></i>
+                  <span>{{ comment.likes || 0 }}</span>
                 </a-button>
                 
-                <a-button type="text" @click="replyToComment(comment)" size="small" :style="{ padding: '0 8px', color: '#8c8c8c' }">
+                <a-button type="text" @click="replyToComment(comment)" size="small" :style="{ padding: '0' }">
                   <i class="fas fa-reply" :style="{ marginRight: '4px' }"></i>
                   回复
                 </a-button>
                 
                 <a-dropdown>
-                  <a-button type="text" size="small" :style="{ padding: '0 8px', color: '#8c8c8c' }">
+                  <a-button type="text" size="small" :style="{ padding: '0' }">
                     <i class="fas fa-ellipsis-h"></i>
                   </a-button>
                   <template #overlay>
@@ -367,30 +354,31 @@
               </div>
               
               <!-- 回复列表 -->
-              <div v-if="comment.replies && comment.replies.length > 0" :style="{ marginTop: '12px', padding: '12px', background: '#fafafa', borderRadius: '6px' }">
+              <div v-if="comment.replies && comment.replies.length > 0" :style="{ marginTop: '8px', padding: '8px', background: '#fafafa', borderRadius: '6px' }">
                 <div 
                   v-for="reply in comment.replies" 
                   :key="reply.id"
-                  :style="{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'flex-start' }"
+                  :style="{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'flex-start' }"
                 >
                   <a-avatar :src="reply.authorAvatar" :size="24">
                     {{ reply.author.charAt(0) }}
                   </a-avatar>
                   <div :style="{ flex: 1 }">
-                    <span :style="{ fontSize: '13px', fontWeight: '500', color: '#262626', marginRight: '8px' }">{{ reply.author }}:</span>
-                    <span :style="{ fontSize: '13px', color: '#595959' }">{{ reply.content }}</span>
-                    <span :style="{ fontSize: '12px', color: '#8c8c8c', marginLeft: '8px' }">{{ reply.createTime }}</span>
+                    <span :style="{ fontSize: '13px', fontWeight: '500', marginRight: '6px' }">{{ reply.author }}:</span>
+                    <span :style="{ fontSize: '13px' }">{{ reply.content }}</span>
+                    <span :style="{ fontSize: '12px', opacity: 0.65, marginLeft: '8px' }">{{ reply.createTime }}</span>
                   </div>
                 </div>
               </div>
               
               <!-- 回复输入框 -->
-              <div v-if="replyingTo === comment.id" :style="{ marginTop: '12px' }">
+              <div v-if="replyingTo === comment.id" :style="{ marginTop: '8px' }">
                 <a-textarea
                   v-model:value="replyContent"
                   :placeholder="`回复 ${comment.author}:`"
                   :rows="2"
                   :maxlength="200"
+                  size="small"
                   :style="{ marginBottom: '8px' }"
                 />
                 <div :style="{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }">
@@ -403,17 +391,17 @@
         </div>
 
         <!-- 加载更多评论 -->
-        <div v-if="hasMoreComments" :style="{ textAlign: 'center', marginTop: '24px' }">
-          <a-button @click="loadMoreComments" :loading="loadingComments">
+        <div v-if="hasMoreComments" :style="{ textAlign: 'center', marginTop: '16px' }">
+          <a-button @click="loadMoreComments" :loading="loadingComments" size="small">
             加载更多评论
           </a-button>
         </div>
       </a-card>
 
       <!-- 相关推荐 -->
-      <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: 'none' }">
+      <a-card :style="{ borderRadius: '8px' }">
         <template #title>
-          <span :style="{ fontSize: '18px', fontWeight: '500' }">相关推荐</span>
+          <span :style="{ fontSize: '16px', fontWeight: '500' }">相关推荐</span>
         </template>
         <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
           <div 
@@ -448,10 +436,10 @@
               <div :style="{ fontSize: '14px', fontWeight: '500', color: '#262626', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">
                 {{ relatedPost.title }}
               </div>
-              <div :style="{ fontSize: '13px', color: '#8c8c8c', margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">
+              <div :style="{ fontSize: '13px', opacity: 0.65, margin: '0 0 6px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">
                 {{ relatedPost.excerpt }}
               </div>
-              <div :style="{ display: 'flex', gap: '12px', fontSize: '12px', color: '#8c8c8c' }">
+              <div :style="{ display: 'flex', gap: '12px', fontSize: '12px', opacity: 0.65 }">
                 <span>{{ relatedPost.author }}</span>
                 <span>{{ relatedPost.createTime }}</span>
                 <span>
@@ -480,7 +468,7 @@
         />
         <p 
           v-if="previewImageDescription" 
-          :style="{ marginTop: '16px', fontSize: '14px', color: '#595959' }"
+          :style="{ marginTop: '16px', fontSize: '14px', opacity: 0.65 }"
         >
           {{ previewImageDescription }}
         </p>

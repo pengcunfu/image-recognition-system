@@ -1,12 +1,13 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ textAlign: 'center', marginBottom: '32px' }">
-      <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600' }">图像识别</h1>
-      <p :style="{ margin: 0, fontSize: '16px', opacity: '0.65' }">上传图片，AI 为您智能识别图像内容</p>
+    <!-- 页面标题 -->
+    <div :style="{ marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
+      <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff' }">图像识别</h1>
+      <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">上传图片，AI 为您智能识别图像内容</p>
     </div>
 
     <!-- 上传区域 -->
-    <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '32px' }">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-upload-dragger
         v-model:fileList="fileList"
         name="image"
@@ -34,11 +35,11 @@
     </a-card>
 
     <!-- 识别结果 -->
-    <div v-if="recognitionResult" :style="{ marginBottom: '32px' }">
-      <a-row :gutter="24">
+    <div v-if="recognitionResult" :style="{ marginBottom: '16px' }">
+      <a-row :gutter="16">
         <!-- 图片预览 -->
         <a-col :xs="24" :lg="12">
-          <a-card title="上传的图片" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px', height: '100%' }">
+          <a-card title="上传的图片" :style="{ borderRadius: '8px', marginBottom: '16px', height: '100%' }">
             <div :style="{ textAlign: 'center', padding: '24px' }">
               <img :src="previewUrl" alt="上传的图片" :style="{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px' }" />
             </div>
@@ -47,7 +48,7 @@
 
         <!-- 识别结果 -->
         <a-col :xs="24" :lg="12">
-          <a-card title="识别结果" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px', height: '100%' }">
+          <a-card title="识别结果" :style="{ borderRadius: '8px', marginBottom: '16px', height: '100%' }">
             <div>
               <!-- 主要结果 -->
               <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '24px', borderRadius: '8px', background: '#fafafa', marginBottom: '24px' }">
@@ -109,7 +110,7 @@
       </a-row>
 
       <!-- 详细信息 -->
-      <a-card title="详细信息" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '32px' }">
+      <a-card title="详细信息" :style="{ borderRadius: '8px', marginBottom: '16px' }">
         <a-descriptions :column="2" bordered>
           <a-descriptions-item label="识别类别">
             {{ recognitionResult.category }}
@@ -148,7 +149,7 @@
     </div>
 
     <!-- 历史记录 -->
-    <a-card title="最近识别" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+    <a-card title="最近识别" :style="{ borderRadius: '8px' }">
       <template #extra>
         <a-button type="link" @click="viewAllHistory">查看全部</a-button>
       </template>

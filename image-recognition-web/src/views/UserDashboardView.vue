@@ -1,13 +1,13 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 欢迎横幅 -->
-    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '48px 64px', marginBottom: '32px', borderRadius: '16px', background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '32px 48px', marginBottom: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
       <div :style="{ flex: 1 }">
         <div>
-          <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
-          <p :style="{ margin: 0, fontSize: '16px' }">开始您的智能图像识别之旅</p>
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
+          <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">开始您的智能图像识别之旅</p>
         </div>
-        <div :style="{ marginTop: '32px', display: 'flex', gap: '16px' }">
+        <div :style="{ marginTop: '24px', display: 'flex', gap: '12px' }">
           <a-button type="primary" size="large" @click="startRecognition">
             <template #icon>
               <i class="fas fa-camera"></i>
@@ -22,15 +22,15 @@
           </a-button>
         </div>
       </div>
-      <div :style="{ fontSize: '120px', opacity: '0.2', marginLeft: '48px' }">
+      <div :style="{ fontSize: '80px', color: '#fff', opacity: 0.2, marginLeft: '32px' }">
         <i class="fas fa-brain"></i>
       </div>
     </div>
 
     <!-- 统计卡片 -->
-    <a-row :gutter="[24, 24]" :style="{ marginBottom: '32px' }">
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '24px' }">
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
+        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
             <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
               <i class="fas fa-eye"></i>
@@ -56,7 +56,7 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
+        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
             <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
               <i class="fas fa-comments"></i>
@@ -69,7 +69,7 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
+        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
             <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', fontSize: '24px' }">
               <i class="fas fa-thumbs-up"></i>
@@ -84,10 +84,10 @@
     </a-row>
 
     <!-- 主要内容区域 -->
-    <a-row :gutter="[24, 24]">
+    <a-row :gutter="[16, 16]">
       <!-- 最近识别 -->
       <a-col :xs="24" :lg="12">
-        <a-card title="最近识别" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', height: '100%' }">
+        <a-card title="最近识别" :style="{ borderRadius: '8px', height: '100%' }">
           <template #extra>
             <a-button type="link" @click="viewAllHistory">查看全部</a-button>
           </template>
@@ -120,7 +120,7 @@
 
       <!-- 推荐内容 -->
       <a-col :xs="24" :lg="12">
-        <a-card title="推荐内容" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', height: '100%' }">
+        <a-card title="推荐内容" :style="{ borderRadius: '8px', height: '100%' }">
           <a-tabs>
             <a-tab-pane key="knowledge" tab="知识推荐">
               <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
@@ -165,8 +165,8 @@
     </a-row>
 
     <!-- 功能入口 -->
-    <a-card title="功能导航" :style="{ marginTop: '32px', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
-      <a-row :gutter="[24, 24]">
+    <a-card title="功能导航" :style="{ marginTop: '24px', borderRadius: '8px' }">
+      <a-row :gutter="[16, 16]">
         <a-col :xs="12" :sm="8" :lg="4" v-for="feature in features" :key="feature.key">
           <div 
             :style="{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '32px 16px', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.3s ease', height: '100%' }" 

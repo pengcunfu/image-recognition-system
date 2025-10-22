@@ -16,7 +16,7 @@
 
       <div v-else>
     <!-- 知识详情卡片 -->
-    <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <!-- 知识头部 -->
       <div :style="{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '24px' }">
         <div :style="{ display: 'flex', gap: '24px', flex: 1 }">
@@ -84,16 +84,16 @@
     </a-card>
 
     <!-- 知识内容区域 -->
-    <a-row :gutter="24">
+    <a-row :gutter="16">
       <!-- 主要内容 -->
       <a-col :xs="24" :lg="16">
         <!-- 详细内容 -->
-        <a-card title="详细介绍" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card title="详细介绍" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ lineHeight: '1.8', fontSize: '15px' }" v-html="knowledge.content"></div>
         </a-card>
 
         <!-- 特征分析 -->
-        <a-card v-if="knowledge.features" title="特征分析" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card v-if="knowledge.features" title="特征分析" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }">
             <div 
               v-for="feature in knowledge.features" 
@@ -112,7 +112,7 @@
         </a-card>
 
         <!-- 识别技巧 -->
-        <a-card v-if="knowledge.tips" title="识别技巧" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card v-if="knowledge.tips" title="识别技巧" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '20px' }">
             <div 
               v-for="(tip, index) in knowledge.tips" 
@@ -143,7 +143,7 @@
         </a-card>
 
         <!-- 相关图片 -->
-        <a-card v-if="knowledge.gallery" title="相关图片" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card v-if="knowledge.gallery" title="相关图片" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }">
             <div 
               v-for="(image, index) in knowledge.gallery" 
@@ -160,7 +160,7 @@
         </a-card>
 
         <!-- 相关知识测试 -->
-        <a-card v-if="knowledge.quiz" title="知识测试" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card v-if="knowledge.quiz" title="知识测试" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div class="quiz-section">
             <div v-if="!showQuizResult" class="quiz-question">
               <h3>第 {{ currentQuestionIndex + 1 }} 题 / {{ knowledge.quiz.length }}</h3>
@@ -223,7 +223,7 @@
       <!-- 侧边栏 -->
       <a-col :xs="24" :lg="8">
         <!-- 快速信息 -->
-        <a-card title="快速信息" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card title="快速信息" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
             <div :style="{ display: 'flex', justifyContent: 'space-between', padding: '12px', borderRadius: '6px', background: '#fafafa' }">
               <span :style="{ fontSize: '14px', opacity: '0.65' }">分类</span>
@@ -253,7 +253,7 @@
         </a-card>
 
         <!-- 识别要点 -->
-        <a-card v-if="knowledge.keyPoints" title="识别要点" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card v-if="knowledge.keyPoints" title="识别要点" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '16px' }">
             <div 
               v-for="(point, index) in knowledge.keyPoints" 
@@ -272,7 +272,7 @@
         </a-card>
 
         <!-- 统计信息 -->
-        <a-card title="统计信息" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+        <a-card title="统计信息" :style="{ borderRadius: '8px', marginBottom: '16px' }">
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
             <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }">
               <i class="fas fa-eye" :style="{ width: '20px' }"></i>
@@ -294,7 +294,7 @@
         </a-card>
 
         <!-- 相关知识 -->
-        <a-card title="相关知识" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+        <a-card title="相关知识" :style="{ borderRadius: '8px' }">
           <div :style="{ display: 'flex', flexDirection: 'column', gap: '16px' }">
             <div 
               v-for="related in relatedKnowledge" 

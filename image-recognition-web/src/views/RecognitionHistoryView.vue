@@ -1,12 +1,13 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ textAlign: 'center', marginBottom: '32px' }">
-      <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600' }">历史记录</h1>
-      <p :style="{ margin: 0, fontSize: '16px', opacity: '0.65' }">查看您的图像识别历史记录</p>
+    <!-- 页面标题 -->
+    <div :style="{ marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
+      <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff' }">历史记录</h1>
+      <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">查看您的图像识别历史记录</p>
     </div>
 
     <!-- 筛选器 -->
-    <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-row :gutter="[16, 16]">
         <a-col :xs="24" :sm="12" :md="6">
           <a-select
@@ -57,9 +58,9 @@
     </a-card>
 
     <!-- 统计信息 -->
-    <a-row :gutter="[24, 24]" :style="{ marginBottom: '24px' }">
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="总识别次数"
             :value="stats.total"
@@ -69,7 +70,7 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="本月识别"
             :value="stats.thisMonth"
@@ -79,7 +80,7 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="平均置信度"
             :value="stats.averageConfidence"
@@ -90,7 +91,7 @@
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="收藏数量"
             :value="stats.favorites"
@@ -102,7 +103,7 @@
     </a-row>
 
     <!-- 视图切换 -->
-    <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+    <a-card :style="{ borderRadius: '8px' }">
       <template #title>
         <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
           <span>识别记录</span>
@@ -134,12 +135,12 @@
           
           <!-- 有数据时显示网格 -->
           <template v-else>
-            <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px', minHeight: '400px' }">
+            <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', minHeight: '400px' }">
               <div 
                 v-for="item in filteredHistory" 
                 :key="item.id"
                 class="grid-item"
-                :style="{ borderRadius: '12px', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s ease', border: '1px solid #e8e8e8' }"
+                :style="{ borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s ease', border: '1px solid #d9d9d9' }"
                 @click="viewDetail(item)"
               >
                 <div :style="{ position: 'relative', paddingBottom: '100%', overflow: 'hidden' }">
@@ -175,7 +176,7 @@
             </div>
             
             <!-- 网格视图分页 -->
-            <div v-if="filteredHistory.length > 0" :style="{ marginTop: '24px', textAlign: 'center' }">
+            <div v-if="filteredHistory.length > 0" :style="{ marginTop: '16px', textAlign: 'center' }">
               <a-pagination
                 v-model:current="pagination.current"
                 v-model:page-size="pagination.pageSize"
@@ -514,15 +515,13 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* 网格视图悬停效果 */
-.grid-item:hover .image-overlay {
-  opacity: 1 !important;
+.grid-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  transform: translateY(-2px);
 }
 
-/* 网格项悬停时的阴影效果 */
-.grid-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+.grid-item:hover .image-overlay {
+  opacity: 1 !important;
 }
 </style>
 

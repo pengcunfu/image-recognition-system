@@ -1,13 +1,13 @@
 ﻿<template>
-  <div :style="{ minHeight: '100vh', background: '#f5f5f5', padding: '40px 0' }">
-    <div :style="{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }">
-      <!-- 页面头部 -->
-      <div :style="{ textAlign: 'center', marginBottom: '40px' }">
-        <h1 :style="{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 16px 0', color: '#1890ff' }">
-          <i class="fas fa-comments" :style="{ marginRight: '16px' }"></i>
+  <div :style="{ padding: '24px' }">
+    <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
+      <!-- 页面标题 -->
+      <div :style="{ marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
+        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
+          <i class="fas fa-comments"></i>
           社区讨论
         </h1>
-        <p :style="{ fontSize: '18px', margin: 0, color: '#595959' }">分享交流您的图像识别经验和见解</p>
+        <p :style="{ margin: 0, fontSize: '14px', color: '#fff', opacity: 0.9 }">分享交流您的图像识别经验和见解</p>
       </div>
 
     <!-- 发布对话框 -->
@@ -19,7 +19,7 @@
     />
 
       <!-- 筛选和搜索 -->
-      <a-card :style="{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
+      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
         <!-- 分类标签 -->
         <div :style="{ marginBottom: '16px' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }">
@@ -112,7 +112,7 @@
       </a-spin>
 
       <!-- 加载更多 -->
-      <div v-if="filteredPosts.length > 0" :style="{ textAlign: 'center', marginTop: '32px' }">
+      <div v-if="filteredPosts.length > 0" :style="{ textAlign: 'center', marginTop: '16px' }">
         <a-button @click="loadMore" :loading="loading" size="large" :style="{ minWidth: '200px' }">
           {{ pagination.current * pagination.pageSize >= pagination.total ? '没有更多了' : '加载更多' }}
         </a-button>

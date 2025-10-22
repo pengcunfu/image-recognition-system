@@ -117,5 +117,18 @@ public class UserRequest {
         
         private Integer status; // 0-INACTIVE, 1-ACTIVE, 2-BANNED
     }
+
+    /**
+     * 更新用户余额请求（管理员功能）
+     */
+    @Data
+    public static class UpdateBalanceRequest {
+        @NotBlank(message = "操作类型不能为空")
+        private String type; // add-充值, deduct-扣除
+        
+        private java.math.BigDecimal amount;
+        
+        private String reason; // 操作原因
+    }
 }
 

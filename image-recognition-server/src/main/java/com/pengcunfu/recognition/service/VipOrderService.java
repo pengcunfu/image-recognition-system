@@ -68,7 +68,7 @@ public class VipOrderService {
     }
 
     /**
-     * 支付订单（使用 SQL 查询）
+     * 支付订单（使用余额支付）
      */
     @Transactional
     public void payOrder(Long userId, String orderNo) {
@@ -88,18 +88,30 @@ public class VipOrderService {
             throw new BusinessException(ErrorCode.INVALID_PARAM, "订单状态异常");
         }
 
-        // TODO: 调用第三方支付接口
-        // 这里模拟支付成功
+        // 检查用户余额
+        User user = userRepository.selectById(userId);
+        BigDecimal balance = user.getBalance() != null ? user.getBalance() : BigDecimal.ZERO;
+        
+        if (balance.compareTo(order.getAmount()) < 0) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "余额不足，请先充值");
+        }
+
+        // 扣除余额
+        BigDecimal newBalance = balance.subtract(order.getAmount());
+        user.setBalance(newBalance);
+        userRepository.updateById(user);
 
         // 更新订单状态
         order.setPaymentStatus(PaymentStatus.PAID.getValue());
         order.setPaymentTime(LocalDateTime.now());
+        order.setPaymentMethod(2); // 2表示余额支付
         vipOrderRepository.updateById(order);
 
         // 更新用户VIP信息
         updateUserVipStatus(userId, order.getPlanType());
 
-        log.info("VIP订单支付成功: userId={}, orderNo={}", userId, orderNo);
+        log.info("VIP订单支付成功: userId={}, orderNo={}, 余额: {} -> {}", 
+                userId, orderNo, balance, newBalance);
     }
 
     /**

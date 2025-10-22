@@ -35,6 +35,7 @@ import RecognitionDetailView from '@/views/RecognitionDetailView.vue'
 import AdvancedRecognitionView from '@/views/RecognitionAdvancedView.vue'
 import VipAnalyticsView from '@/views/VipAnalyticsView.vue'
 import AiTrainingView from '@/views/AiTrainingView.vue'
+import BecomeVipView from '@/views/BecomeVipView.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -312,6 +313,15 @@ const routes: Array<RouteRecordRaw> = [
         component: UserProfileView,
         meta: {
           title: '我的设置 - 智能图像识别系统'
+        }
+      },
+      // 成为VIP页面
+      {
+        path: 'become-vip',
+        name: 'BecomeVip',
+        component: BecomeVipView,
+        meta: {
+          title: '成为VIP - 智能图像识别系统'
         }
       },
       // VIP专享功能

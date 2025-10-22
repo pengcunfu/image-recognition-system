@@ -95,5 +95,18 @@ public class UserController {
         UserResponse.UserLikes likes = userService.getUserLikes(userId, page, size);
         return ApiResponse.success(likes);
     }
+
+    /**
+     * 更新用户余额（管理员功能）
+     */
+    @PostMapping("/{userId}/balance")
+    @Role("ADMIN")
+    public ApiResponse<Void> updateUserBalance(
+            @PathVariable Long userId,
+            @Valid @RequestBody UserRequest.UpdateBalanceRequest request) {
+        log.info("管理员更新用户余额: userId={}, type={}, amount={}", userId, request.getType(), request.getAmount());
+        userService.updateUserBalance(userId, request);
+        return ApiResponse.success();
+    }
 }
 

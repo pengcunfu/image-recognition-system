@@ -65,6 +65,14 @@
           历史记录
         </a-menu-item>
         
+        <!-- 成为VIP菜单（非VIP用户可见） -->
+        <a-menu-item v-if="!isVipUser" key="/user/become-vip">
+          <template #icon>
+            <CrownOutlined :style="{ color: '#ffd700' }" />
+          </template>
+          <span :style="{ color: '#ffd700', fontWeight: 'bold' }">成为VIP</span>
+        </a-menu-item>
+        
         <!-- VIP专享功能菜单（一级菜单） -->
         <template v-if="isVipUser">
           <a-menu-item key="/user/advanced-recognition">
@@ -237,7 +245,7 @@ async function loadUserInfo() {
 // 监听路由变化，更新选中的菜单项
 watch(() => route.path, (newPath) => {
   // 匹配用户相关路由
-  const userPaths = ['/user/dashboard', '/user/recognition', '/user/knowledge', '/user/community', '/user/history']
+  const userPaths = ['/user/dashboard', '/user/recognition', '/user/knowledge', '/user/community', '/user/history', '/user/become-vip']
   const vipPaths = ['/user/advanced-recognition', '/user/vip-analytics', '/user/ai-training']
   
   // 优先匹配VIP路径

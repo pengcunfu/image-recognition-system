@@ -343,6 +343,7 @@ public class UserService {
                 .phone(user.getPhone())
                         .avatar(user.getAvatar())
                 .bio(user.getBio())
+                .balance(user.getBalance())
                 .role(user.getRole())
                 .status(user.getStatus())
                 .vipLevel(vipLevel)
@@ -547,6 +548,48 @@ public class UserService {
         userRepository.updateById(user);
         
         log.info("VIP权限已撤销: userId={}", userId);
+    }
+
+    // ==================== 用户余额管理（管理员功能） ====================
+
+    /**
+     * 更新用户余额（管理员功能）
+     */
+    @Transactional
+    public void updateUserBalance(Long userId, UserRequest.UpdateBalanceRequest request) {
+        log.info("管理员更新用户余额: userId={}, type={}, amount={}, reason={}", 
+                userId, request.getType(), request.getAmount(), request.getReason());
+
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        if (request.getAmount() == null || request.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "金额必须大于0");
+        }
+
+        java.math.BigDecimal currentBalance = user.getBalance() != null ? user.getBalance() : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal newBalance;
+
+        if ("add".equals(request.getType())) {
+            // 充值
+            newBalance = currentBalance.add(request.getAmount());
+        } else if ("deduct".equals(request.getType())) {
+            // 扣除
+            newBalance = currentBalance.subtract(request.getAmount());
+            if (newBalance.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "余额不足，无法扣除");
+            }
+        } else {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "无效的操作类型");
+        }
+
+        user.setBalance(newBalance);
+        userRepository.updateById(user);
+
+        log.info("用户余额更新成功: userId={}, oldBalance={}, newBalance={}, reason={}", 
+                userId, currentBalance, newBalance, request.getReason());
     }
 
     /**

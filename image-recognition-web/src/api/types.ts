@@ -25,6 +25,7 @@ export interface UserInfo {
   phone?: string
   avatar?: string
   bio?: string
+  balance?: number
   role: number  // 0=普通用户, 1=VIP, 2=管理员
   status?: number
   vipLevel?: number

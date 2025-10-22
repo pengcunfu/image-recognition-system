@@ -59,6 +59,11 @@ public class User {
     private String bio;
 
     /**
+     * 账户余额
+     */
+    private java.math.BigDecimal balance;
+
+    /**
      * 用户角色: 0-USER普通用户, 1-VIP会员, 2-ADMIN管理员
      */
     private Integer role;

@@ -86,6 +86,9 @@
               {{ getStatusText(record.status) }}
             </a-tag>
           </template>
+          <template v-else-if="column.key === 'balance'">
+            <span :style="{ fontWeight: 'bold', color: '#52c41a' }">¥{{ (record.balance || 0).toFixed(2) }}</span>
+          </template>
           <template v-else-if="column.key === 'vipLevel'">
             <a-tag v-if="record.role === 1" color="gold">
               VIP {{ record.vipLevel }}
@@ -109,6 +112,9 @@
               <a-dropdown>
                 <template #overlay>
                   <a-menu>
+                    <a-menu-item @click="manageBalance(record)">
+                      管理余额
+                    </a-menu-item>
                     <a-menu-item @click="toggleUserStatus(record)">
                       {{ record.status === 'ACTIVE' ? '禁用' : '启用' }}
                     </a-menu-item>
@@ -249,6 +255,9 @@
           <a-descriptions-item label="邮箱">{{ selectedUser.email }}</a-descriptions-item>
           <a-descriptions-item label="手机号">{{ selectedUser.phone || '-' }}</a-descriptions-item>
           <a-descriptions-item label="昵称">{{ selectedUser.nickname || '-' }}</a-descriptions-item>
+          <a-descriptions-item label="余额">
+            <span :style="{ fontWeight: 'bold', color: '#52c41a' }">¥{{ (selectedUser.balance || 0).toFixed(2) }}</span>
+          </a-descriptions-item>
           <a-descriptions-item label="角色">
             <a-tag :color="getRoleColor(selectedUser.role)">
               {{ getRoleText(selectedUser.role) }}
@@ -273,6 +282,65 @@
         </a-descriptions>
       </div>
     </a-drawer>
+
+    <!-- 余额管理模态框 -->
+    <a-modal 
+      v-model:open="balanceModalVisible" 
+      title="管理用户余额" 
+      :width="500"
+      @ok="handleBalanceSubmit"
+      @cancel="balanceModalVisible = false"
+    >
+      <div :style="{ padding: '16px 0' }">
+        <a-form layout="vertical">
+          <a-form-item label="用户">
+            <a-input :value="balanceFormData.username" disabled />
+          </a-form-item>
+          
+          <a-form-item label="当前余额">
+            <a-input 
+              :value="'¥' + balanceFormData.currentBalance.toFixed(2)" 
+              disabled 
+              :style="{ fontWeight: 'bold', color: '#52c41a' }"
+            />
+          </a-form-item>
+          
+          <a-form-item label="操作类型">
+            <a-radio-group v-model:value="balanceFormData.type">
+              <a-radio value="add">充值</a-radio>
+              <a-radio value="deduct">扣除</a-radio>
+            </a-radio-group>
+          </a-form-item>
+          
+          <a-form-item label="金额">
+            <a-input-number 
+              v-model:value="balanceFormData.amount" 
+              :min="0.01" 
+              :precision="2" 
+              placeholder="请输入金额"
+              :style="{ width: '100%' }"
+            />
+          </a-form-item>
+          
+          <a-form-item label="操作原因">
+            <a-textarea 
+              v-model:value="balanceFormData.reason" 
+              placeholder="请输入操作原因（选填）"
+              :rows="3"
+            />
+          </a-form-item>
+          
+          <a-alert 
+            v-if="balanceFormData.amount"
+            :message="balanceFormData.type === 'add' 
+              ? `充值后余额：¥${(balanceFormData.currentBalance + balanceFormData.amount).toFixed(2)}`
+              : `扣除后余额：¥${(balanceFormData.currentBalance - balanceFormData.amount).toFixed(2)}`"
+            :type="balanceFormData.type === 'add' ? 'success' : 'warning'"
+            show-icon
+          />
+        </a-form>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -280,6 +348,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import { AdminAPI } from '@/api/admin'
+import { UserAPI } from '@/api/user'
 import FileAPI from '@/api/file'
 import type { UserInfo } from '@/api/types'
 
@@ -327,6 +396,7 @@ const userColumns = [
   { title: '邮箱', dataIndex: 'email', key: 'email', width: 200 },
   { title: '手机号', dataIndex: 'phone', key: 'phone', width: 120 },
   { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: 100 },
+  { title: '余额', dataIndex: 'balance', key: 'balance', width: 100 },
   { title: '角色', dataIndex: 'role', key: 'role', width: 100 },
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: 'VIP等级', dataIndex: 'vipLevel', key: 'vipLevel', width: 100 },
@@ -392,6 +462,17 @@ const formRules = {
 // 用户详情抽屉
 const drawerVisible = ref(false)
 const selectedUser = ref<UserInfo>()
+
+// 余额管理模态框
+const balanceModalVisible = ref(false)
+const balanceFormData = reactive({
+  userId: 0,
+  username: '',
+  currentBalance: 0,
+  type: 'add',
+  amount: undefined as number | undefined,
+  reason: ''
+})
 
 // 初始化
 onMounted(() => {
@@ -580,6 +661,43 @@ async function viewLoginHistory(record: UserInfo) {
   } catch (error) {
     console.error('获取登录历史失败:', error)
     message.error('获取登录历史失败')
+  }
+}
+
+// 管理余额
+function manageBalance(record: UserInfo) {
+  balanceFormData.userId = record.id
+  balanceFormData.username = record.username
+  balanceFormData.currentBalance = record.balance || 0
+  balanceFormData.type = 'add'
+  balanceFormData.amount = undefined
+  balanceFormData.reason = ''
+  balanceModalVisible.value = true
+}
+
+// 提交余额更新
+async function handleBalanceSubmit() {
+  if (!balanceFormData.amount || balanceFormData.amount <= 0) {
+    message.warning('请输入有效的金额')
+    return
+  }
+
+  try {
+    const loadingMsg = message.loading('正在更新余额...', 0)
+    
+    await UserAPI.updateBalance(balanceFormData.userId, {
+      type: balanceFormData.type as 'add' | 'deduct',
+      amount: balanceFormData.amount,
+      reason: balanceFormData.reason || undefined
+    })
+    
+    loadingMsg()
+    message.success('余额更新成功')
+    balanceModalVisible.value = false
+    loadUsers()
+  } catch (error: any) {
+    console.error('更新余额失败:', error)
+    message.error(error.message || '更新余额失败')
   }
 }
 

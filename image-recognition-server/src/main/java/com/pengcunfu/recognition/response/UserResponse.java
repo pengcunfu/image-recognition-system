@@ -27,6 +27,7 @@ public class UserResponse {
         private String phone;
         private String avatar;
         private String bio;
+        private java.math.BigDecimal balance;
         private Integer role;
         private Integer status;
         private Integer vipLevel;

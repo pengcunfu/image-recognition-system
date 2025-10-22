@@ -79,6 +79,15 @@ export interface UserLikes {
 }
 
 /**
+ * 余额操作请求
+ */
+export interface UpdateBalanceRequest {
+  type: 'add' | 'deduct'
+  amount: number
+  reason?: string
+}
+
+/**
  * 用户API模块
  */
 export class UserAPI {
@@ -122,6 +131,13 @@ export class UserAPI {
    */
   static getLikes(params: { page?: number; size?: number }) {
     return get<UserLikes>('/api/user/likes', params)
+  }
+
+  /**
+   * 更新用户余额（管理员功能）
+   */
+  static updateBalance(userId: number, data: UpdateBalanceRequest) {
+    return post<void>(`/api/user/${userId}/balance`, data)
   }
 }
 

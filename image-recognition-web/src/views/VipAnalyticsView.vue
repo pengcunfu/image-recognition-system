@@ -1,42 +1,41 @@
 ﻿<template>
-  <div class="vip-analytics-page">
-    <div class="page-header">
-      <div class="header-content">
-        <div class="title-section">
-          <h1>
-            <i class="fas fa-chart-line vip-icon"></i>
-            VIP数据分析
-          </h1>
-          <p>深度洞察您的识别数据和使用模式</p>
-        </div>
-        <div class="header-actions">
-          <a-range-picker v-model:value="dateRange" @change="updateAnalytics" />
-          <a-button type="primary" @click="exportReport">
-            <i class="fas fa-file-export"></i>
-            导出报告
-          </a-button>
-        </div>
+  <div :style="{ padding: '24px' }">
+    <!-- 页面标题 -->
+    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
+      <div>
+        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
+          <i class="fas fa-chart-line" :style="{ color: '#ffd700' }"></i>
+          VIP数据分析
+        </h1>
+        <p :style="{ margin: '0', fontSize: '14px', color: '#fff', opacity: 0.9 }">深度洞察您的识别数据和使用模式</p>
       </div>
+      <a-space>
+        <a-range-picker v-model:value="dateRange" @change="updateAnalytics" />
+        <a-button type="primary" @click="exportReport">
+          <i class="fas fa-file-export"></i>
+          导出报告
+        </a-button>
+      </a-space>
     </div>
 
     <!-- 核心指标 -->
-    <a-row :gutter="[24, 24]" class="metrics-section">
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="metric-card">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="总识别次数"
             :value="metrics.totalRecognitions"
             suffix="次"
             :value-style="{ color: '#1890ff' }"
           />
-          <div class="metric-trend trend-up">
+          <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-up"></i>
-            <span>+23.5%</span>
+            <span :style="{ marginLeft: '4px' }">+23.5%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="metric-card">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="平均精度"
             :value="metrics.averageAccuracy"
@@ -44,95 +43,105 @@
             :precision="1"
             :value-style="{ color: '#52c41a' }"
           />
-          <div class="metric-trend trend-up">
+          <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-up"></i>
-            <span>+2.1%</span>
+            <span :style="{ marginLeft: '4px' }">+2.1%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="metric-card">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="处理速度"
             :value="metrics.avgProcessTime"
             suffix="ms"
             :value-style="{ color: '#faad14' }"
           />
-          <div class="metric-trend trend-down">
+          <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-down"></i>
-            <span>-15.2%</span>
+            <span :style="{ marginLeft: '4px' }">-15.2%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card class="metric-card">
+        <a-card :style="{ borderRadius: '8px' }">
           <a-statistic
             title="节省成本"
             :value="metrics.costSaved"
             prefix="¥"
             :value-style="{ color: '#f5222d' }"
           />
-          <div class="metric-trend trend-up">
+          <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-up"></i>
-            <span>+45.8%</span>
+            <span :style="{ marginLeft: '4px' }">+45.8%</span>
           </div>
         </a-card>
       </a-col>
     </a-row>
 
     <!-- 图表分析 -->
-    <a-row :gutter="[24, 24]">
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :lg="12">
-        <a-card title="识别趋势分析" class="chart-card">
-          <div class="chart-container">
-            <div class="chart-placeholder">
-              <i class="fas fa-chart-area"></i>
-              <span>识别次数趋势图</span>
-              <div class="chart-description">
-                显示过去30天的识别活动趋势
-              </div>
-            </div>
+        <a-card title="识别趋势分析" :style="{ borderRadius: '8px' }">
+          <div :style="{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafafa', borderRadius: '8px' }">
+            <i class="fas fa-chart-area" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
+            <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">识别次数趋势图</div>
+            <div :style="{ fontSize: '13px', opacity: 0.65 }">显示过去30天的识别活动趋势</div>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :lg="12">
-        <a-card title="准确率分布" class="chart-card">
-          <div class="chart-container">
-            <div class="chart-placeholder">
-              <i class="fas fa-chart-pie"></i>
-              <span>准确率分布图</span>
-              <div class="chart-description">
-                按准确率区间统计识别结果
-              </div>
-            </div>
+        <a-card title="准确率分布" :style="{ borderRadius: '8px' }">
+          <div :style="{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafafa', borderRadius: '8px' }">
+            <i class="fas fa-chart-pie" :style="{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }"></i>
+            <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">准确率分布图</div>
+            <div :style="{ fontSize: '13px', opacity: 0.65 }">按准确率区间统计识别结果</div>
           </div>
         </a-card>
       </a-col>
     </a-row>
 
     <!-- 使用建议 -->
-    <a-card title="智能优化建议" class="suggestions-card">
-      <div class="suggestions-list">
+    <a-card title="智能优化建议" :style="{ borderRadius: '8px' }">
+      <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
         <div 
           v-for="suggestion in suggestions" 
           :key="suggestion.id"
-          class="suggestion-item"
+          :style="{ 
+            display: 'flex',
+            alignItems: 'center',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #d9d9d9',
+            background: '#fafafa',
+            gap: '16px'
+          }"
         >
-          <div class="suggestion-icon">
+          <div :style="{ 
+            width: '48px',
+            height: '48px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '20px',
+            color: '#fff',
+            flexShrink: 0
+          }">
             <i :class="suggestion.icon"></i>
           </div>
-          <div class="suggestion-content">
-            <h4>{{ suggestion.title }}</h4>
-            <p>{{ suggestion.description }}</p>
-            <div class="suggestion-impact">
+          <div :style="{ flex: 1 }">
+            <h4 :style="{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '600' }">{{ suggestion.title }}</h4>
+            <p :style="{ margin: '0 0 6px 0', fontSize: '13px', opacity: 0.75 }">{{ suggestion.description }}</p>
+            <div :style="{ fontSize: '12px', color: '#52c41a', fontWeight: '500' }">
+              <i class="fas fa-chart-line" :style="{ marginRight: '4px' }"></i>
               预期改善: {{ suggestion.impact }}
             </div>
           </div>
-          <div class="suggestion-action">
-            <a-button type="primary" size="small" @click="applySuggestion(suggestion)">
-              应用建议
-            </a-button>
-          </div>
+          <a-button type="primary" size="small" @click="applySuggestion(suggestion)">
+            应用建议
+          </a-button>
         </div>
       </div>
     </a-card>
@@ -192,4 +201,3 @@ function applySuggestion(suggestion: any) {
   message.success(`正在应用建议: ${suggestion.title}`)
 }
 </script>
-

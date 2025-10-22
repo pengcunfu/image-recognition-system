@@ -1,15 +1,16 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', padding: '32px', borderRadius: '16px', background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' }">
+    <!-- 页面标题 -->
+    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
       <div>
-        <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600', color: '#000', display: 'flex', alignItems: 'center', gap: '12px' }">
-          <i class="fas fa-crown" :style="{ color: '#ff6b00' }"></i>
+        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
+          <i class="fas fa-crown" :style="{ color: '#ffd700' }"></i>
           高级识别
         </h1>
-        <p :style="{ margin: '0', fontSize: '16px', color: '#333' }">VIP专享的高精度AI识别服务</p>
+        <p :style="{ margin: '0', fontSize: '14px', color: '#fff', opacity: 0.9 }">VIP专享的高精度AI识别服务</p>
       </div>
       <div>
-        <a-tag color="gold" :style="{ fontSize: '16px', padding: '8px 16px' }">
+        <a-tag color="gold" :style="{ fontSize: '14px', padding: '4px 12px' }">
           <i class="fas fa-star"></i>
           VIP专享
         </a-tag>
@@ -17,7 +18,7 @@
     </div>
 
     <!-- 高级识别选项 -->
-    <a-row :gutter="[24, 24]" :style="{ marginBottom: '24px' }">
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :sm="12" :lg="8">
         <a-card 
           :style="{ 
@@ -25,13 +26,13 @@
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',
-            border: selectedMode === 'precision' ? '2px solid #ffd700' : '1px solid #e8e8e8',
-            background: selectedMode === 'precision' ? '#fffbf0' : 'white'
+            border: selectedMode === 'precision' ? '2px solid #1890ff' : '1px solid #e8e8e8',
+            background: selectedMode === 'precision' ? '#e6f7ff' : 'white'
           }"
           @click="selectMode('precision')"
         >
           <div :style="{ textAlign: 'center' }">
-            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', fontSize: '28px', color: '#fff' }">
+            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '28px', color: '#fff' }">
               <i class="fas fa-search-plus"></i>
             </div>
             <h3 :style="{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '600' }">超精度识别</h3>
@@ -51,13 +52,13 @@
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',
-            border: selectedMode === 'multi' ? '2px solid #ffd700' : '1px solid #e8e8e8',
-            background: selectedMode === 'multi' ? '#fffbf0' : 'white'
+            border: selectedMode === 'multi' ? '2px solid #1890ff' : '1px solid #e8e8e8',
+            background: selectedMode === 'multi' ? '#e6f7ff' : 'white'
           }"
           @click="selectMode('multi')"
         >
           <div :style="{ textAlign: 'center' }">
-            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', fontSize: '28px', color: '#fff' }">
+            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '28px', color: '#fff' }">
               <i class="fas fa-layer-group"></i>
             </div>
             <h3 :style="{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '600' }">多目标识别</h3>
@@ -77,13 +78,13 @@
             boxShadow: '0 2px 8px rgba(0,0,0,0.06)', 
             cursor: 'pointer', 
             transition: 'all 0.3s ease',
-            border: selectedMode === 'scene' ? '2px solid #ffd700' : '1px solid #e8e8e8',
-            background: selectedMode === 'scene' ? '#fffbf0' : 'white'
+            border: selectedMode === 'scene' ? '2px solid #1890ff' : '1px solid #e8e8e8',
+            background: selectedMode === 'scene' ? '#e6f7ff' : 'white'
           }"
           @click="selectMode('scene')"
         >
           <div :style="{ textAlign: 'center' }">
-            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)', fontSize: '28px', color: '#fff' }">
+            <div :style="{ width: '64px', height: '64px', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '28px', color: '#fff' }">
               <i class="fas fa-map"></i>
             </div>
             <h3 :style="{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '600' }">场景理解</h3>
@@ -99,8 +100,8 @@
     </a-row>
 
     <!-- 高级设置 -->
-    <a-card title="高级设置" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
-      <a-row :gutter="[24, 24]">
+    <a-card title="高级设置" :style="{ borderRadius: '8px', marginBottom: '16px' }">
+      <a-row :gutter="[16, 16]">
         <a-col :xs="24" :md="12">
           <a-form layout="vertical">
             <a-form-item label="识别精度">
@@ -154,7 +155,7 @@
     </a-card>
 
     <!-- 上传区域 -->
-    <a-card :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '24px' }">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-upload-dragger
         v-model:fileList="fileList"
         name="images"
@@ -165,7 +166,7 @@
         :style="{ padding: '48px 24px' }"
       >
         <div :style="{ textAlign: 'center' }">
-          <div :style="{ fontSize: '64px', marginBottom: '24px', color: '#ffd700' }">
+          <div :style="{ fontSize: '64px', marginBottom: '24px', color: '#1890ff' }">
             <i class="fas fa-cloud-upload-alt"></i>
           </div>
           <h3 :style="{ margin: '0 0 12px 0', fontSize: '18px', fontWeight: '500' }">上传图片进行高级识别</h3>
@@ -180,8 +181,8 @@
     </a-card>
 
     <!-- 识别结果 -->
-    <div v-if="recognitionResults.length > 0" :style="{ marginBottom: '24px' }">
-      <a-card title="识别结果" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
+    <div v-if="recognitionResults.length > 0" :style="{ marginBottom: '16px' }">
+      <a-card title="识别结果" :style="{ borderRadius: '8px' }">
         <template #extra>
           <a-space>
             <a-button @click="exportResults">
@@ -198,9 +199,9 @@
         <div 
           v-for="(result, index) in recognitionResults" 
           :key="index"
-          :style="{ padding: '24px', marginBottom: index < recognitionResults.length - 1 ? '24px' : 0, borderRadius: '8px', background: '#fafafa' }"
+          :style="{ padding: '16px', marginBottom: index < recognitionResults.length - 1 ? '16px' : 0, borderRadius: '8px', background: '#fafafa' }"
         >
-          <a-row :gutter="24">
+          <a-row :gutter="16">
             <a-col :xs="24" :lg="8">
               <div :style="{ position: 'relative', borderRadius: '8px', overflow: 'hidden' }">
                 <img :src="result.imageUrl" :alt="result.filename" :style="{ width: '100%', height: 'auto', display: 'block' }" />
@@ -273,8 +274,8 @@
     </div>
 
     <!-- VIP使用统计 -->
-    <a-card title="VIP使用统计" :style="{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
-      <a-row :gutter="[24, 24]">
+    <a-card title="VIP使用统计" :style="{ borderRadius: '8px' }">
+      <a-row :gutter="[16, 16]">
         <a-col :xs="24" :sm="6">
           <a-statistic
             title="本月高级识别"

@@ -1,141 +1,172 @@
 ﻿<template>
-  <div class="ai-training-page">
-    <div class="page-header">
-      <div class="header-content">
-        <div class="title-section">
-          <h1>
-            <i class="fas fa-brain vip-icon"></i>
-            AI模型训练
-          </h1>
-          <p>VIP专享的自定义AI模型训练服务</p>
-        </div>
-        <div class="training-status">
-          <a-tag :color="getStatusColor(currentTraining.status)" class="status-tag">
-            <i class="fas fa-circle"></i>
-            {{ getStatusText(currentTraining.status) }}
-          </a-tag>
-        </div>
+  <div :style="{ padding: '24px' }">
+    <!-- 页面标题 -->
+    <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '24px', borderRadius: '8px', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)' }">
+      <div>
+        <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }">
+          <i class="fas fa-brain" :style="{ color: '#ffd700' }"></i>
+          AI模型训练
+        </h1>
+        <p :style="{ margin: '0', fontSize: '14px', color: '#fff', opacity: 0.9 }">VIP专享的自定义AI模型训练服务</p>
       </div>
+      <a-tag :color="getStatusColor(currentTraining.status)" :style="{ fontSize: '14px', padding: '4px 12px' }">
+        <i class="fas fa-circle" :style="{ fontSize: '10px', marginRight: '6px' }"></i>
+        {{ getStatusText(currentTraining.status) }}
+      </a-tag>
     </div>
 
     <!-- 训练模式选择 -->
-    <a-card title="选择训练模式" class="mode-selection-card">
-      <a-row :gutter="[24, 24]">
+    <a-card title="选择训练模式" :style="{ marginBottom: '16px', borderRadius: '8px' }">
+      <a-row :gutter="[16, 16]">
         <a-col :xs="24" :md="8">
-          <div 
-            class="training-mode"
-            :class="{ 'active': selectedMode === 'custom' }"
+          <a-card 
+            hoverable
+            :style="{ 
+              borderRadius: '8px',
+              border: selectedMode === 'custom' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              background: selectedMode === 'custom' ? '#e6f7ff' : 'white',
+              cursor: 'pointer'
+            }"
             @click="selectMode('custom')"
           >
-            <div class="mode-icon">
-              <i class="fas fa-cogs"></i>
+            <div :style="{ textAlign: 'center' }">
+              <div :style="{ width: '56px', height: '56px', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '24px', color: '#fff' }">
+                <i class="fas fa-cogs"></i>
+              </div>
+              <h3 :style="{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }">自定义训练</h3>
+              <p :style="{ margin: '0 0 12px 0', fontSize: '13px', opacity: 0.65 }">使用您的专有数据集训练专属模型</p>
+              <div :style="{ textAlign: 'left', fontSize: '12px', opacity: 0.75 }">
+                <div :style="{ marginBottom: '4px' }">• 完全自主控制</div>
+                <div :style="{ marginBottom: '4px' }">• 高度定制化</div>
+                <div>• 最佳性能优化</div>
+              </div>
             </div>
-            <h3>自定义训练</h3>
-            <p>使用您的专有数据集训练专属模型</p>
-            <ul class="mode-features">
-              <li>完全自主控制</li>
-              <li>高度定制化</li>
-              <li>最佳性能优化</li>
-            </ul>
-          </div>
+          </a-card>
         </a-col>
         <a-col :xs="24" :md="8">
-          <div 
-            class="training-mode"
-            :class="{ 'active': selectedMode === 'transfer' }"
+          <a-card 
+            hoverable
+            :style="{ 
+              borderRadius: '8px',
+              border: selectedMode === 'transfer' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              background: selectedMode === 'transfer' ? '#e6f7ff' : 'white',
+              cursor: 'pointer'
+            }"
             @click="selectMode('transfer')"
           >
-            <div class="mode-icon">
-              <i class="fas fa-share-alt"></i>
+            <div :style="{ textAlign: 'center' }">
+              <div :style="{ width: '56px', height: '56px', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '24px', color: '#fff' }">
+                <i class="fas fa-share-alt"></i>
+              </div>
+              <h3 :style="{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }">迁移学习</h3>
+              <p :style="{ margin: '0 0 12px 0', fontSize: '13px', opacity: 0.65 }">基于预训练模型进行快速优化</p>
+              <div :style="{ textAlign: 'left', fontSize: '12px', opacity: 0.75 }">
+                <div :style="{ marginBottom: '4px' }">• 训练速度快</div>
+                <div :style="{ marginBottom: '4px' }">• 数据需求少</div>
+                <div>• 成本效益高</div>
+              </div>
             </div>
-            <h3>迁移学习</h3>
-            <p>基于预训练模型进行快速优化</p>
-            <ul class="mode-features">
-              <li>训练速度快</li>
-              <li>数据需求少</li>
-              <li>成本效益高</li>
-            </ul>
-          </div>
+          </a-card>
         </a-col>
         <a-col :xs="24" :md="8">
-          <div 
-            class="training-mode"
-            :class="{ 'active': selectedMode === 'finetune' }"
+          <a-card 
+            hoverable
+            :style="{ 
+              borderRadius: '8px',
+              border: selectedMode === 'finetune' ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              background: selectedMode === 'finetune' ? '#e6f7ff' : 'white',
+              cursor: 'pointer'
+            }"
             @click="selectMode('finetune')"
           >
-            <div class="mode-icon">
-              <i class="fas fa-sliders-h"></i>
+            <div :style="{ textAlign: 'center' }">
+              <div :style="{ width: '56px', height: '56px', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', fontSize: '24px', color: '#fff' }">
+                <i class="fas fa-sliders-h"></i>
+              </div>
+              <h3 :style="{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '600' }">模型微调</h3>
+              <p :style="{ margin: '0 0 12px 0', fontSize: '13px', opacity: 0.65 }">在现有模型基础上进行精细调整</p>
+              <div :style="{ textAlign: 'left', fontSize: '12px', opacity: 0.75 }">
+                <div :style="{ marginBottom: '4px' }">• 保持稳定性</div>
+                <div :style="{ marginBottom: '4px' }">• 精确优化</div>
+                <div>• 风险可控</div>
+              </div>
             </div>
-            <h3>模型微调</h3>
-            <p>在现有模型基础上进行精细调整</p>
-            <ul class="mode-features">
-              <li>保持稳定性</li>
-              <li>精确优化</li>
-              <li>风险可控</li>
-            </ul>
-          </div>
+          </a-card>
         </a-col>
       </a-row>
     </a-card>
 
     <!-- 数据集管理 -->
-    <a-card title="数据集管理" class="dataset-card">
-      <div class="dataset-actions">
-        <a-button type="primary" @click="showUploadModal">
-          <i class="fas fa-upload"></i>
-          上传数据集
-        </a-button>
-        <a-button @click="createDataset">
-          <i class="fas fa-plus"></i>
-          创建数据集
-        </a-button>
-        <a-button @click="importDataset">
-          <i class="fas fa-download"></i>
-          导入数据集
-        </a-button>
-      </div>
+    <a-card title="数据集管理" :style="{ marginBottom: '16px', borderRadius: '8px' }">
+      <template #extra>
+        <a-space>
+          <a-button type="primary" size="small" @click="showUploadModal">
+            <i class="fas fa-upload"></i>
+            上传数据集
+          </a-button>
+          <a-button size="small" @click="createDataset">
+            <i class="fas fa-plus"></i>
+            创建数据集
+          </a-button>
+        </a-space>
+      </template>
 
-      <div class="dataset-list">
+      <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
         <div 
           v-for="dataset in datasets" 
           :key="dataset.id"
-          class="dataset-item"
-          :class="{ 'selected': selectedDataset?.id === dataset.id }"
+          :style="{ 
+            padding: '16px',
+            borderRadius: '8px',
+            border: selectedDataset?.id === dataset.id ? '2px solid #1890ff' : '1px solid #d9d9d9',
+            background: selectedDataset?.id === dataset.id ? '#e6f7ff' : '#fafafa',
+            cursor: 'pointer',
+            transition: 'all 0.3s'
+          }"
           @click="selectDataset(dataset)"
         >
-          <div class="dataset-info">
-            <div class="dataset-header">
-              <h4>{{ dataset.name }}</h4>
-              <a-tag :color="getDatasetStatusColor(dataset.status)">
-                {{ dataset.status }}
-              </a-tag>
+          <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }">
+            <div :style="{ flex: 1 }">
+              <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }">
+                <h4 :style="{ margin: 0, fontSize: '15px', fontWeight: '600' }">{{ dataset.name }}</h4>
+                <a-tag :color="getDatasetStatusColor(dataset.status)" size="small">
+                  {{ dataset.status }}
+                </a-tag>
+              </div>
+              <div :style="{ fontSize: '13px', opacity: 0.65, marginBottom: '8px' }">
+                <span :style="{ marginRight: '16px' }">
+                  <i class="fas fa-images" :style="{ marginRight: '4px' }"></i>
+                  {{ dataset.imageCount }} 张图片
+                </span>
+                <span :style="{ marginRight: '16px' }">
+                  <i class="fas fa-tags" :style="{ marginRight: '4px' }"></i>
+                  {{ dataset.categories }} 个类别
+                </span>
+                <span>
+                  <i class="fas fa-database" :style="{ marginRight: '4px' }"></i>
+                  {{ dataset.size }}
+                </span>
+              </div>
+              <p :style="{ margin: 0, fontSize: '13px', opacity: 0.75 }">{{ dataset.description }}</p>
             </div>
-            <div class="dataset-meta">
-              <span>{{ dataset.imageCount }} 张图片</span>
-              <span>{{ dataset.categories }} 个类别</span>
-              <span>{{ dataset.size }}</span>
-            </div>
-            <div class="dataset-description">
-              {{ dataset.description }}
-            </div>
-          </div>
-          <div class="dataset-actions-mini">
-            <a-button type="text" size="small" @click.stop="editDataset(dataset)">
-              <i class="fas fa-edit"></i>
-            </a-button>
-            <a-button type="text" size="small" @click.stop="deleteDataset(dataset)">
-              <i class="fas fa-trash"></i>
-            </a-button>
+            <a-space>
+              <a-button type="text" size="small" @click.stop="editDataset(dataset)">
+                <i class="fas fa-edit"></i>
+              </a-button>
+              <a-button type="text" size="small" danger @click.stop="deleteDataset(dataset)">
+                <i class="fas fa-trash"></i>
+              </a-button>
+            </a-space>
           </div>
         </div>
       </div>
     </a-card>
 
     <!-- 训练配置 -->
-    <a-card title="训练配置" class="config-card" v-if="selectedDataset">
-      <a-row :gutter="[24, 24]">
+    <a-card v-if="selectedDataset" title="训练配置" :style="{ marginBottom: '16px', borderRadius: '8px' }">
+      <a-row :gutter="[16, 16]">
         <a-col :xs="24" :lg="12">
-          <a-form layout="vertical">
+          <a-form layout="vertical" :style="{ marginBottom: 0 }">
             <a-form-item label="模型名称">
               <a-input v-model:value="trainingConfig.modelName" placeholder="输入模型名称" />
             </a-form-item>
@@ -166,7 +197,7 @@
           </a-form>
         </a-col>
         <a-col :xs="24" :lg="12">
-          <a-form layout="vertical">
+          <a-form layout="vertical" :style="{ marginBottom: 0 }">
             <a-form-item label="优化器">
               <a-select v-model:value="trainingConfig.optimizer" style="width: 100%">
                 <a-select-option value="adam">Adam (推荐)</a-select-option>
@@ -201,7 +232,7 @@
         </a-col>
       </a-row>
 
-      <div class="config-actions">
+      <div :style="{ marginTop: '16px', display: 'flex', gap: '8px' }">
         <a-button type="primary" size="large" @click="startTraining" :loading="isTraining">
           <i class="fas fa-play"></i>
           开始训练
@@ -218,45 +249,38 @@
     </a-card>
 
     <!-- 训练进度 -->
-    <a-card title="训练进度" class="progress-card" v-if="isTraining || trainingHistory.length > 0">
-      <div v-if="isTraining" class="current-training">
-        <div class="training-info">
-          <h4>{{ trainingConfig.modelName }}</h4>
-          <div class="progress-details">
-            <div class="progress-item">
-              <span>当前轮次:</span>
-              <span>{{ currentProgress.currentEpoch }} / {{ trainingConfig.epochs }}</span>
-            </div>
-            <div class="progress-item">
-              <span>训练准确率:</span>
-              <span>{{ currentProgress.trainAccuracy }}%</span>
-            </div>
-            <div class="progress-item">
-              <span>验证准确率:</span>
-              <span>{{ currentProgress.valAccuracy }}%</span>
-            </div>
-            <div class="progress-item">
-              <span>预计剩余时间:</span>
-              <span>{{ currentProgress.estimatedTime }}</span>
-            </div>
-          </div>
+    <a-card v-if="isTraining || trainingHistory.length > 0" title="训练进度" :style="{ marginBottom: '16px', borderRadius: '8px' }">
+      <div v-if="isTraining" :style="{ padding: '16px', marginBottom: '16px', borderRadius: '8px', background: '#f0f2f5' }">
+        <div :style="{ marginBottom: '16px' }">
+          <h4 :style="{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600' }">{{ trainingConfig.modelName }}</h4>
+          <a-row :gutter="[16, 16]">
+            <a-col :xs="12" :sm="6">
+              <div :style="{ fontSize: '13px', opacity: 0.65 }">当前轮次</div>
+              <div :style="{ fontSize: '16px', fontWeight: '600' }">{{ currentProgress.currentEpoch }} / {{ trainingConfig.epochs }}</div>
+            </a-col>
+            <a-col :xs="12" :sm="6">
+              <div :style="{ fontSize: '13px', opacity: 0.65 }">训练准确率</div>
+              <div :style="{ fontSize: '16px', fontWeight: '600', color: '#52c41a' }">{{ currentProgress.trainAccuracy.toFixed(1) }}%</div>
+            </a-col>
+            <a-col :xs="12" :sm="6">
+              <div :style="{ fontSize: '13px', opacity: 0.65 }">验证准确率</div>
+              <div :style="{ fontSize: '16px', fontWeight: '600', color: '#1890ff' }">{{ currentProgress.valAccuracy.toFixed(1) }}%</div>
+            </a-col>
+            <a-col :xs="12" :sm="6">
+              <div :style="{ fontSize: '13px', opacity: 0.65 }">预计剩余时间</div>
+              <div :style="{ fontSize: '16px', fontWeight: '600' }">{{ currentProgress.estimatedTime }}</div>
+            </a-col>
+          </a-row>
         </div>
         
-        <div class="progress-chart">
-          <a-progress 
-            :percent="Math.round((currentProgress.currentEpoch / trainingConfig.epochs) * 100)"
-            :stroke-color="{ '0%': '#108ee9', '100%': '#87d068' }"
-            stroke-linecap="round"
-          />
-          <div class="loss-chart">
-            <div class="chart-placeholder">
-              <i class="fas fa-chart-line"></i>
-              <span>训练损失曲线</span>
-            </div>
-          </div>
-        </div>
+        <a-progress 
+          :percent="Math.round((currentProgress.currentEpoch / trainingConfig.epochs) * 100)"
+          :stroke-color="{ '0%': '#1890ff', '100%': '#52c41a' }"
+          stroke-linecap="round"
+          :style="{ marginBottom: '16px' }"
+        />
 
-        <div class="training-controls">
+        <div :style="{ display: 'flex', gap: '8px' }">
           <a-button @click="pauseTraining">
             <i class="fas fa-pause"></i>
             暂停训练
@@ -269,8 +293,8 @@
       </div>
 
       <!-- 训练历史 -->
-      <div class="training-history">
-        <h4>训练历史</h4>
+      <div v-if="trainingHistory.length > 0">
+        <h4 :style="{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: '600' }">训练历史</h4>
         <a-table 
           :columns="historyColumns" 
           :data-source="trainingHistory"
@@ -326,10 +350,12 @@
             :multiple="true"
             accept=".zip,.tar,.gz"
           >
-            <div class="upload-area">
-              <i class="fas fa-cloud-upload-alt"></i>
-              <p>点击或拖拽文件到此区域上传</p>
-              <p class="upload-hint">支持 ZIP、TAR、GZ 格式，最大 2GB</p>
+            <div :style="{ padding: '24px', textAlign: 'center' }">
+              <div :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '12px' }">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </div>
+              <p :style="{ margin: '0 0 8px 0', fontSize: '14px' }">点击或拖拽文件到此区域上传</p>
+              <p :style="{ margin: 0, fontSize: '12px', opacity: 0.65 }">支持 ZIP、TAR、GZ 格式，最大 2GB</p>
             </div>
           </a-upload-dragger>
         </a-form-item>
@@ -618,4 +644,3 @@ function handleUploadDataset() {
   uploadFileList.value = []
 }
 </script>
-

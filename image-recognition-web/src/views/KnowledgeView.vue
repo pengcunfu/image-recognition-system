@@ -1,26 +1,29 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 页面头部 -->
-      <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
-        <h1 :style="{ fontSize: '28px', fontWeight: '600', margin: '0 0 8px 0' }">知识库</h1>
-        <p :style="{ fontSize: '14px', margin: 0, opacity: 0.65 }">探索丰富的图像识别知识百科</p>
-      </a-card>
-
-      <!-- 搜索区域 -->
-      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
-        <a-input-search
-          v-model:value="searchKeyword"
-          placeholder="搜索知识内容、标签..."
-          @search="handleSearch"
-          :style="{ borderRadius: '8px' }"
-        >
-          <template #enterButton>
-            <a-button type="primary">
-              <i class="fas fa-search" :style="{ marginRight: '4px' }"></i>
-              搜索
-            </a-button>
-          </template>
-        </a-input-search>
+      <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
+        <div :style="{ textAlign: 'center' }">
+          <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">知识库</h1>
+          <p :style="{ margin: '0 0 16px 0', fontSize: '14px', opacity: 0.65 }">探索丰富的图像识别知识百科</p>
+          
+          <!-- 搜索区域 -->
+          <div :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center' }">
+            <a-input-search
+              v-model:value="searchKeyword"
+              placeholder="搜索知识内容、标签..."
+              @search="handleSearch"
+              :style="{ width: '320px' }"
+              size="large"
+            >
+              <template #enterButton>
+                <a-button type="primary" size="large">
+                  <i class="fas fa-search"></i>
+                  搜索
+                </a-button>
+              </template>
+            </a-input-search>
+          </div>
+        </div>
       </a-card>
 
       <!-- 主内容区域：左侧知识列表 + 右侧边栏 -->

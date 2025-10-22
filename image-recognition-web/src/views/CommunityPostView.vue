@@ -17,7 +17,14 @@
               @change="handleSearchChange"
               :style="{ width: '320px' }"
               size="large"
-            />
+            >
+              <template #enterButton>
+                <a-button type="primary" size="large">
+                  <i class="fas fa-search"></i>
+                  搜索
+                </a-button>
+              </template>
+            </a-input-search>
             <a-button type="primary" size="large" @click="openPublishModal">
               <i class="fas fa-edit"></i>
               我要发布

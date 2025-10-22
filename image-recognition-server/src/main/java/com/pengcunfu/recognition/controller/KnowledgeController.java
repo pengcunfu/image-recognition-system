@@ -45,8 +45,10 @@ public class KnowledgeController {
      */
     @GetMapping("/{id}")
     public ApiResponse<KnowledgeResponse.KnowledgeInfo> getKnowledgeDetail(@PathVariable Long id) {
-        log.info("获取知识详情: id={}", id);
-        KnowledgeResponse.KnowledgeInfo knowledge = knowledgeService.getKnowledgeDetail(id);
+        // 获取当前用户ID(可能为null,匿名用户)
+        Long userId = SecurityContextHolder.getCurrentUserIdOrNull();
+        log.info("获取知识详情: id={}, userId={}", id, userId);
+        KnowledgeResponse.KnowledgeInfo knowledge = knowledgeService.getKnowledgeDetail(id, userId);
         return ApiResponse.success(knowledge);
     }
 

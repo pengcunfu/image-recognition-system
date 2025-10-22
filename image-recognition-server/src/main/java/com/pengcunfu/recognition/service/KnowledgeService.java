@@ -140,8 +140,8 @@ public class KnowledgeService {
      * 获取知识详情
      */
     @Transactional
-    public KnowledgeResponse.KnowledgeInfo getKnowledgeDetail(Long knowledgeId) {
-        log.info("获取知识详情: knowledgeId={}", knowledgeId);
+    public KnowledgeResponse.KnowledgeInfo getKnowledgeDetail(Long knowledgeId, Long userId) {
+        log.info("获取知识详情: knowledgeId={}, userId={}", knowledgeId, userId);
 
         Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
 
@@ -153,7 +153,7 @@ public class KnowledgeService {
         knowledge.setViewCount(knowledge.getViewCount() + 1);
         knowledgeRepository.updateById(knowledge);
 
-        return convertToKnowledgeInfo(knowledge);
+        return convertToKnowledgeInfo(knowledge, userId);
     }
 
     /**
@@ -382,6 +382,37 @@ public class KnowledgeService {
      * 转换为知识信息 DTO
      */
     private KnowledgeResponse.KnowledgeInfo convertToKnowledgeInfo(Knowledge knowledge) {
+        return convertToKnowledgeInfo(knowledge, null);
+    }
+
+    /**
+     * 转换为知识信息 DTO(带用户ID,用于查询点赞和收藏状态)
+     */
+    private KnowledgeResponse.KnowledgeInfo convertToKnowledgeInfo(Knowledge knowledge, Long userId) {
+        // 查询当前用户的点赞和收藏状态
+        Boolean isLiked = false;
+        Boolean isCollected = false;
+
+        if (userId != null) {
+            // 查询是否已点赞
+            UserLike like = userLikeRepository.selectOne(
+                    new LambdaQueryWrapper<UserLike>()
+                            .eq(UserLike::getUserId, userId)
+                            .eq(UserLike::getTargetId, knowledge.getId())
+                            .eq(UserLike::getTargetType, TargetType.KNOWLEDGE.getValue())
+            );
+            isLiked = (like != null);
+
+            // 查询是否已收藏
+            UserCollect collect = userCollectRepository.selectOne(
+                    new LambdaQueryWrapper<UserCollect>()
+                            .eq(UserCollect::getUserId, userId)
+                            .eq(UserCollect::getTargetId, knowledge.getId())
+                            .eq(UserCollect::getTargetType, TargetType.KNOWLEDGE.getValue())
+            );
+            isCollected = (collect != null);
+        }
+
         return KnowledgeResponse.KnowledgeInfo.builder()
                 .id(knowledge.getId())
                 .title(knowledge.getTitle())
@@ -399,10 +430,12 @@ public class KnowledgeService {
                 .likeCount(knowledge.getLikeCount())
                 .collectCount(knowledge.getCollectCount())
                 .commentCount(knowledge.getCommentCount())
+                .isLiked(isLiked)
+                .isCollected(isCollected)
                 .status(knowledge.getStatus())
                 .createdAt(knowledge.getCreatedAt())
                 .updatedAt(knowledge.getUpdatedAt())
-                    .build();
-        }
+                .build();
     }
+}
 

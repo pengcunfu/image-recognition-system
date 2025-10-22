@@ -31,6 +31,14 @@ public class SecurityContextHolder {
     }
 
     /**
+     * 获取当前用户ID(允许为null,用于不需要认证的接口)
+     */
+    public static Long getCurrentUserIdOrNull() {
+        UserPrincipal userPrincipal = getCurrentUser();
+        return userPrincipal != null ? userPrincipal.getUserId() : null;
+    }
+
+    /**
      * 获取当前用户名
      */
     public static String getCurrentUsername() {

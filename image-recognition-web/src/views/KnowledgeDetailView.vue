@@ -1,15 +1,15 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 返回按钮 -->
-    <div :style="{ marginBottom: '24px' }">
-      <a-button @click="goBack" size="large">
-        <i class="fas fa-arrow-left"></i>
-        <span :style="{ color: '#000' }">返回知识库</span>
+    <div :style="{ marginBottom: '16px' }">
+      <a-button @click="goBack">
+        <i class="fas fa-arrow-left" :style="{ marginRight: '8px' }"></i>
+        返回知识库
       </a-button>
     </div>
 
     <!-- 加载状态 -->
-    <a-spin :spinning="loading" size="large" tip="加载中...">
+    <a-spin :spinning="loading" tip="加载中...">
       <div v-if="!loading && !knowledge.id" :style="{ textAlign: 'center', padding: '100px 0' }">
         <a-empty description="知识内容不存在" />
       </div>
@@ -18,27 +18,27 @@
     <!-- 知识详情卡片 -->
     <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <!-- 知识头部 -->
-      <div :style="{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '24px' }">
-        <div :style="{ display: 'flex', gap: '24px', flex: 1 }">
-          <div :style="{ width: '400px', flexShrink: 0 }">
-            <img :src="knowledge.image || '/api/placeholder/400/300'" :alt="knowledge.title" :style="{ width: '100%', height: 'auto', borderRadius: '8px' }" />
+      <div :style="{ display: 'flex', justifyContent: 'space-between', gap: '16px', marginBottom: '16px' }">
+        <div :style="{ display: 'flex', gap: '16px', flex: 1 }">
+          <div :style="{ width: '300px', flexShrink: 0 }">
+            <img :src="knowledge.image || '/api/placeholder/300/225'" :alt="knowledge.title" :style="{ width: '100%', height: 'auto', borderRadius: '8px' }" />
           </div>
           <div :style="{ flex: 1 }">
-            <h1 :style="{ margin: '0 0 12px 0', fontSize: '28px', fontWeight: '600' }">{{ knowledge.title }}</h1>
-            <p :style="{ margin: '0 0 16px 0', fontSize: '14px', opacity: '0.65', lineHeight: '1.6' }">{{ knowledge.description }}</p>
-            <div :style="{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }">
-              <a-tag :color="getCategoryColor(knowledge.category)">
+            <h1 :style="{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '600' }">{{ knowledge.title }}</h1>
+            <p :style="{ margin: '0 0 12px 0', fontSize: '14px', opacity: 0.65, lineHeight: '1.6' }">{{ knowledge.description }}</p>
+            <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }">
+              <a-tag :color="getCategoryColor(knowledge.category)" size="small">
                 {{ knowledge.category }}
               </a-tag>
-              <a-tag v-if="knowledge.difficulty" :color="getDifficultyColor(knowledge.difficulty)">
+              <a-tag v-if="knowledge.difficulty" :color="getDifficultyColor(knowledge.difficulty)" size="small">
                 难度：{{ knowledge.difficulty }}
               </a-tag>
-              <span :style="{ fontSize: '14px', opacity: '0.65' }">
-                <i class="fas fa-eye"></i>
+              <span :style="{ fontSize: '13px', opacity: 0.65 }">
+                <i class="fas fa-eye" :style="{ marginRight: '4px' }"></i>
                 {{ knowledge.views }} 浏览
               </span>
-              <span :style="{ fontSize: '14px', opacity: '0.65' }">
-                <i class="fas fa-clock"></i>
+              <span :style="{ fontSize: '13px', opacity: 0.65 }">
+                <i class="fas fa-clock" :style="{ marginRight: '4px' }"></i>
                 更新于 {{ knowledge.updateTime }}
               </span>
             </div>
@@ -46,34 +46,34 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px', flexShrink: 0 }">
-          <a-button @click="toggleLike" :type="isLiked ? 'primary' : 'default'" danger>
+        <div :style="{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }">
+          <a-button @click="toggleLike" :type="isLiked ? 'primary' : 'default'"size="small">
             <i :class="isLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
             {{ isLiked ? '已点赞' : '点赞' }}
           </a-button>
 
-          <a-button @click="toggleBookmark" :type="isBookmarked ? 'primary' : 'default'">
-            <i class="fas fa-bookmark"></i>
+          <a-button @click="toggleBookmark" :type="isBookmarked ? 'primary' : 'default'" size="small">
+            <i class="fas fa-bookmark" :style="{ marginRight: '4px' }"></i>
             {{ isBookmarked ? '已收藏' : '收藏' }}
           </a-button>
           
-          <a-button @click="shareKnowledge">
-            <i class="fas fa-share"></i>
+          <a-button @click="shareKnowledge" size="small">
+            <i class="fas fa-share" :style="{ marginRight: '4px' }"></i>
             分享
           </a-button>
           
           <a-dropdown>
-            <a-button>
+            <a-button size="small">
               <i class="fas fa-ellipsis-h"></i>
             </a-button>
             <template #overlay>
               <a-menu>
                 <a-menu-item @click="printKnowledge">
-                  <i class="fas fa-print"></i>
+                  <i class="fas fa-print" :style="{ marginRight: '8px' }"></i>
                   打印
                 </a-menu-item>
                 <a-menu-item @click="reportKnowledge">
-                  <i class="fas fa-flag"></i>
+                  <i class="fas fa-flag" :style="{ marginRight: '8px' }"></i>
                   举报
                 </a-menu-item>
               </a-menu>
@@ -89,23 +89,23 @@
       <a-col :xs="24" :lg="16">
         <!-- 详细内容 -->
         <a-card title="详细介绍" :style="{ borderRadius: '8px', marginBottom: '16px' }">
-          <div :style="{ lineHeight: '1.8', fontSize: '15px' }" v-html="knowledge.content"></div>
+          <div :style="{ lineHeight: '1.8', fontSize: '14px' }" v-html="knowledge.content"></div>
         </a-card>
 
         <!-- 特征分析 -->
         <a-card v-if="knowledge.features" title="特征分析" :style="{ borderRadius: '8px', marginBottom: '16px' }">
-          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }">
+          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '12px' }">
             <div 
               v-for="feature in knowledge.features" 
               :key="feature.id"
-              :style="{ display: 'flex', gap: '16px', padding: '16px', borderRadius: '8px', background: '#fafafa' }"
+              :style="{ display: 'flex', gap: '12px', padding: '12px', borderRadius: '8px', background: '#fafafa' }"
             >
-              <div :style="{ width: '100px', height: '100px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden' }">
+              <div :style="{ width: '80px', height: '80px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden' }">
                 <img :src="feature.image" :alt="feature.name" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
               </div>
               <div :style="{ flex: 1 }">
-                <h4 :style="{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' }">{{ feature.name }}</h4>
-                <p :style="{ margin: 0, fontSize: '14px', opacity: '0.65', lineHeight: '1.6' }">{{ feature.description }}</p>
+                <h4 :style="{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '500' }">{{ feature.name }}</h4>
+                <p :style="{ margin: 0, fontSize: '13px', opacity: 0.65, lineHeight: '1.6' }">{{ feature.description }}</p>
               </div>
             </div>
           </div>
@@ -113,27 +113,27 @@
 
         <!-- 识别技巧 -->
         <a-card v-if="knowledge.tips" title="识别技巧" :style="{ borderRadius: '8px', marginBottom: '16px' }">
-          <div :style="{ display: 'flex', flexDirection: 'column', gap: '20px' }">
+          <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
             <div 
               v-for="(tip, index) in knowledge.tips" 
               :key="index"
-              :style="{ display: 'flex', gap: '16px', padding: '20px', borderRadius: '8px', background: '#fafafa' }"
+              :style="{ display: 'flex', gap: '12px', padding: '12px', borderRadius: '8px', background: '#fafafa' }"
             >
-              <div :style="{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: '#1890ff', color: 'white', fontSize: '18px', fontWeight: '600', flexShrink: 0 }">{{ index + 1 }}</div>
+              <div :style="{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: '#1890ff', color: 'white', fontSize: '14px', fontWeight: '600', flexShrink: 0 }">{{ index + 1 }}</div>
               <div :style="{ flex: 1 }">
-                <h4 :style="{ margin: '0 0 8px 0', fontSize: '16px', fontWeight: '500' }">{{ tip.title }}</h4>
-                <p :style="{ margin: 0, fontSize: '14px', opacity: '0.65', lineHeight: '1.6' }">{{ tip.description }}</p>
-                <div v-if="tip.examples" :style="{ marginTop: '16px' }">
-                  <h5 :style="{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '500' }">示例：</h5>
-                  <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }">
+                <h4 :style="{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '500' }">{{ tip.title }}</h4>
+                <p :style="{ margin: 0, fontSize: '13px', opacity: 0.65, lineHeight: '1.6' }">{{ tip.description }}</p>
+                <div v-if="tip.examples" :style="{ marginTop: '12px' }">
+                  <h5 :style="{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '500' }">示例：</h5>
+                  <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }">
                     <div 
                       v-for="(example, exIndex) in tip.examples" 
                       :key="exIndex"
-                      :style="{ cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', transition: 'all 0.3s ease' }"
+                      :style="{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', transition: 'all 0.3s ease', border: '1px solid #e8e8e8' }"
                       @click="previewImage(example.image, example.description)"
                     >
-                      <img :src="example.image" :alt="example.description" :style="{ width: '100%', height: '120px', objectFit: 'cover' }" />
-                      <span :style="{ display: 'block', padding: '8px', fontSize: '13px', textAlign: 'center', background: '#fff' }">{{ example.description }}</span>
+                      <img :src="example.image" :alt="example.description" :style="{ width: '100%', height: '100px', objectFit: 'cover' }" />
+                      <span :style="{ display: 'block', padding: '6px', fontSize: '12px', textAlign: 'center', background: '#fff' }">{{ example.description }}</span>
                     </div>
                   </div>
                 </div>
@@ -144,7 +144,7 @@
 
         <!-- 相关图片 -->
         <a-card v-if="knowledge.gallery" title="相关图片" :style="{ borderRadius: '8px', marginBottom: '16px' }">
-          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }">
+          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }">
             <div 
               v-for="(image, index) in knowledge.gallery" 
               :key="index"

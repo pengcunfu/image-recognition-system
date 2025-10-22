@@ -1,22 +1,22 @@
 <template>
-  <div :style="{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }">
+  <div :style="{ padding: '24px' }">
     <!-- 页面标题 -->
-    <div :style="{ textAlign: 'center', marginBottom: '48px' }">
-      <h1 :style="{ fontSize: '36px', fontWeight: 'bold', color: '#1890ff', marginBottom: '16px' }">
-        <CrownOutlined :style="{ color: '#ffd700', marginRight: '12px' }" />
+    <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
+      <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 8px 0' }">
+        <CrownOutlined :style="{ color: '#ffd700', marginRight: '8px' }" />
         成为VIP会员
       </h1>
-      <p :style="{ fontSize: '16px', color: '#666' }">解锁更多高级功能，享受专属特权</p>
-    </div>
+      <p :style="{ fontSize: '14px', opacity: 0.65, margin: 0 }">解锁更多高级功能，享受专属特权</p>
+    </a-card>
 
     <!-- 用户余额显示 -->
-    <a-card :style="{ maxWidth: '1200px', margin: '0 auto 24px', textAlign: 'center', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', border: 'none' }">
+    <a-card :style="{ maxWidth: '1200px', margin: '0 auto 16px', textAlign: 'center', background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', borderRadius: '8px' }">
       <div :style="{ color: 'white' }">
-        <p :style="{ fontSize: '14px', marginBottom: '8px', opacity: 0.9 }">我的余额</p>
-        <p :style="{ fontSize: '32px', fontWeight: 'bold', margin: 0 }">
+        <p :style="{ fontSize: '13px', marginBottom: '6px', opacity: 0.9 }">我的余额</p>
+        <p :style="{ fontSize: '28px', fontWeight: 'bold', margin: 0 }">
           ¥ {{ userBalance.toFixed(2) }}
         </p>
-        <a-button type="text" :style="{ color: 'white', marginTop: '12px', textDecoration: 'underline' }" @click="showRechargeInfo">
+        <a-button type="text" size="small" :style="{ color: 'white', marginTop: '8px', textDecoration: 'underline' }" @click="showRechargeInfo">
           如何充值？
         </a-button>
       </div>
@@ -24,7 +24,7 @@
 
     <!-- VIP套餐卡片 -->
     <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
-      <a-row :gutter="24">
+      <a-row :gutter="16">
         <!-- 7天体验卡 -->
         <a-col :span="8">
           <a-card 

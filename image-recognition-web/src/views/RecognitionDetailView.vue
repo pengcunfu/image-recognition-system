@@ -15,12 +15,12 @@
         <a-col :xs="24" :lg="12">
           <div>
             <div :style="{ borderRadius: '8px', overflow: 'hidden', marginBottom: '12px' }">
-              <img :src="recognition.originalImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }}" />
+              <img :src="recognition.originalImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }" />
             </div>
             <div v-if="recognition.processedImage">
               <h4 :style="{ fontSize: '15px', fontWeight: '600', marginBottom: '8px' }">处理后图片</h4>
               <div :style="{ borderRadius: '8px', overflow: 'hidden' }">
-                <img :src="recognition.processedImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }}" />
+                <img :src="recognition.processedImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }" />
               </div>
             </div>
           </div>
@@ -30,81 +30,82 @@
         <a-col :xs="24" :lg="12">
           <div>
             <div :style="{ marginBottom: '16px' }">
-              <h1 class="result-title">{{ recognition.result }}</h1>
-              <div class="result-meta">
+              <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 12px 0' }">{{ recognition.result }}</h1>
+              <div :style="{ display: 'flex', gap: '12px', alignItems: 'center' }">
                 <a-tag :color="getCategoryColor(recognition.category)">
                   {{ recognition.category }}
                 </a-tag>
-                <span class="recognition-time">
-                  <i class="fas fa-clock"></i>
+                <span :style="{ fontSize: '13px', opacity: 0.65 }">
+                  <i class="fas fa-clock" :style="{ marginRight: '4px' }"></i>
                   {{ recognition.time }}
                 </span>
               </div>
             </div>
 
             <!-- 置信度 -->
-            <div class="confidence-section">
-              <h3>识别置信度</h3>
-              <div class="confidence-bar">
+            <div :style="{ marginBottom: '16px' }">
+              <h3 :style="{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }">识别置信度</h3>
+              <div :style="{ marginBottom: '8px' }">
                 <a-progress 
                   :percent="recognition.confidence" 
                   :stroke-color="getConfidenceColor(recognition.confidence)"
                   :show-info="false"
                 />
-                <span class="confidence-value">{{ recognition.confidence }}%</span>
+                <span :style="{ fontSize: '20px', fontWeight: 'bold', color: getConfidenceColor(recognition.confidence) }">{{ recognition.confidence }}%</span>
               </div>
-              <div class="confidence-description">
-                <span v-if="recognition.confidence >= 90" class="high-confidence">
-                  <i class="fas fa-check-circle"></i>
+              <div>
+                <span v-if="recognition.confidence >= 90" :style="{ fontSize: '13px', color: '#52c41a' }">
+                  <i class="fas fa-check-circle" :style="{ marginRight: '4px' }"></i>
                   高置信度 - 识别结果非常可靠
                 </span>
-                <span v-else-if="recognition.confidence >= 70" class="medium-confidence">
-                  <i class="fas fa-exclamation-circle"></i>
+                <span v-else-if="recognition.confidence >= 70" :style="{ fontSize: '13px', color: '#faad14' }">
+                  <i class="fas fa-exclamation-circle" :style="{ marginRight: '4px' }"></i>
                   中等置信度 - 识别结果较为可靠
                 </span>
-                <span v-else class="low-confidence">
-                  <i class="fas fa-question-circle"></i>
+                <span v-else :style="{ fontSize: '13px', color: '#ff4d4f' }">
+                  <i class="fas fa-question-circle" :style="{ marginRight: '4px' }"></i>
                   低置信度 - 识别结果仅供参考
                 </span>
               </div>
             </div>
 
             <!-- 备选结果 -->
-            <div v-if="recognition.alternatives && recognition.alternatives.length > 0" class="alternatives-section">
-              <h3>备选结果</h3>
-              <div class="alternatives-list">
+            <div v-if="recognition.alternatives && recognition.alternatives.length > 0" :style="{ marginBottom: '16px' }">
+              <h3 :style="{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }">备选结果</h3>
+              <div :style="{ display: 'flex', flexDirection: 'column', gap: '8px' }">
                 <div 
                   v-for="(alt, index) in recognition.alternatives" 
                   :key="index"
-                  class="alternative-item"
+                  :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fafafa', borderRadius: '6px' }"
                 >
-                  <span class="alt-name">{{ alt.name }}</span>
-                  <div class="alt-confidence">
+                  <span :style="{ fontSize: '14px', fontWeight: '500' }">{{ alt.name }}</span>
+                  <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }">
                     <a-progress 
                       :percent="alt.confidence" 
                       size="small"
                       :show-info="false"
+                      :style="{ flex: 1 }"
                     />
-                    <span class="alt-value">{{ alt.confidence }}%</span>
+                    <span :style="{ fontSize: '13px', opacity: 0.65, minWidth: '40px', textAlign: 'right' }">{{ alt.confidence }}%</span>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- 操作按钮 -->
-            <div class="action-buttons">
+            <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap' }">
               <a-button type="primary" @click="viewKnowledge">
-                <i class="fas fa-book"></i>
+                <i class="fas fa-book" :style="{ marginRight: '4px' }"></i>
                 查看知识库
               </a-button>
               
               <a-button @click="toggleFavorite" :type="isFavorited ? 'primary' : 'default'">
-                <i class="fas fa-heart"></i>
+                <i class="fas fa-heart" :style="{ marginRight: '4px' }"></i>
                 {{ isFavorited ? '已收藏' : '收藏' }}
               </a-button>
               
               <a-button @click="shareResult">
-                <i class="fas fa-share"></i>
+                <i class="fas fa-share" :style="{ marginRight: '4px' }"></i>
                 分享
               </a-button>
               
@@ -115,15 +116,15 @@
                 <template #overlay>
                   <a-menu>
                     <a-menu-item @click="downloadImage">
-                      <i class="fas fa-download"></i>
+                      <i class="fas fa-download" :style="{ marginRight: '8px' }"></i>
                       下载图片
                     </a-menu-item>
                     <a-menu-item @click="reRecognize">
-                      <i class="fas fa-redo"></i>
+                      <i class="fas fa-redo" :style="{ marginRight: '8px' }"></i>
                       重新识别
                     </a-menu-item>
-                    <a-menu-item @click="deleteRecord" class="danger-item">
-                      <i class="fas fa-trash"></i>
+                    <a-menu-item @click="deleteRecord" danger>
+                      <i class="fas fa-trash" :style="{ marginRight: '8px' }"></i>
                       删除记录
                     </a-menu-item>
                   </a-menu>
@@ -136,8 +137,8 @@
     </a-card>
 
     <!-- 技术详情 -->
-    <a-card title="技术详情" class="tech-details-card">
-      <a-descriptions bordered>
+    <a-card title="技术详情" :style="{ borderRadius: '8px', marginBottom: '16px' }">
+      <a-descriptions bordered size="small">
         <a-descriptions-item label="识别模型">
           {{ recognition.model || 'ResNet-50' }}
         </a-descriptions-item>
@@ -160,13 +161,13 @@
     </a-card>
 
     <!-- 相关标签 -->
-    <a-card v-if="recognition.tags && recognition.tags.length > 0" title="相关标签" class="tags-card">
-      <div class="tags-list">
+    <a-card v-if="recognition.tags && recognition.tags.length > 0" title="相关标签" :style="{ borderRadius: '8px', marginBottom: '16px' }">
+      <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap' }">
         <a-tag 
           v-for="tag in recognition.tags" 
           :key="tag"
           color="blue"
-          class="result-tag"
+          :style="{ cursor: 'pointer', fontSize: '13px' }"
           @click="searchByTag(tag)"
         >
           {{ tag }}
@@ -175,20 +176,30 @@
     </a-card>
 
     <!-- 相关识别记录 -->
-    <a-card title="相关识别记录" class="related-card">
-      <div class="related-list">
+    <a-card title="相关识别记录" :style="{ borderRadius: '8px', marginBottom: '16px' }">
+      <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
         <div 
           v-for="related in relatedRecognitions" 
           :key="related.id"
-          class="related-item"
+          :style="{ 
+            display: 'flex', 
+            gap: '12px', 
+            padding: '12px', 
+            borderRadius: '8px', 
+            cursor: 'pointer', 
+            transition: 'all 0.3s',
+            border: '1px solid #e8e8e8'
+          }"
           @click="viewRelated(related)"
+          @mouseenter="(e) => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.borderColor = '#1890ff'; }"
+          @mouseleave="(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e8e8e8'; }"
         >
-          <img :src="related.thumbnail" :alt="related.result" />
-          <div class="related-content">
-            <h4>{{ related.result }}</h4>
-            <div class="related-meta">
-              <span class="related-confidence">{{ related.confidence }}%</span>
-              <span class="related-time">{{ related.time }}</span>
+          <img :src="related.thumbnail" :alt="related.result" :style="{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px' }" />
+          <div :style="{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">
+            <h4 :style="{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: '600' }">{{ related.result }}</h4>
+            <div :style="{ display: 'flex', gap: '12px', fontSize: '13px', opacity: 0.65 }">
+              <span>置信度: {{ related.confidence }}%</span>
+              <span>{{ related.time }}</span>
             </div>
           </div>
         </div>
@@ -196,11 +207,11 @@
     </a-card>
 
     <!-- 识别历史 -->
-    <a-card title="识别历史趋势" class="history-chart-card">
-      <div class="chart-placeholder">
-        <i class="fas fa-chart-line"></i>
-        <p>识别历史趋势图表</p>
-        <p class="chart-desc">显示最近30天的识别活动情况</p>
+    <a-card title="识别历史趋势" :style="{ borderRadius: '8px' }">
+      <div :style="{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px' }">
+        <i class="fas fa-chart-line" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
+        <p :style="{ fontSize: '16px', fontWeight: '500', margin: '0 0 8px 0' }">识别历史趋势图表</p>
+        <p :style="{ fontSize: '13px', opacity: 0.65, margin: 0 }">显示最近30天的识别活动情况</p>
       </div>
     </a-card>
   </div>

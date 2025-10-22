@@ -199,7 +199,7 @@
                 v-if="post.images?.length" 
                 :style="{ 
                   position: 'relative', 
-                  width: '100%', 
+                  width: 'calc(100% - 24px)', 
                   paddingBottom: '66.67%',
                   background: '#f5f5f5',
                   overflow: 'hidden',
@@ -241,7 +241,7 @@
                     <span v-if="(post.tags?.length || 0) > 2" :style="{ color: '#999', fontSize: '12px', alignSelf: 'center' }">+{{ (post.tags?.length || 0) - 2 }}</span>
                   </div>
                   <a-tag 
-                    :color="getTypeColor(post.type)" 
+                    color="blue" 
                     size="small" 
                     :style="{ 
                       fontSize: '10px', 

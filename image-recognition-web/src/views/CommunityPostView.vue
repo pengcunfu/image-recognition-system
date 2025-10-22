@@ -100,6 +100,11 @@
           <div 
             v-for="post in filteredPosts"
             :key="post.id"
+            :style="{ 
+              breakInside: 'avoid',
+              marginBottom: '16px',
+              width: '100%'
+            }"
           >
             <div 
               :style="{ 
@@ -527,32 +532,13 @@ const filteredPosts = computed(() => {
   return result
 })
 
-// 响应式布局样式
+// 响应式瀑布流布局样式 - 与知识库保持一致
 const layoutStyle = computed(() => {
-  // 根据屏幕宽度动态调整列宽，保持间距不变
-  const screenWidth = windowWidth.value
-  let minColumnWidth = 280
-  
-  if (screenWidth >= 1920) {
-    // 超大屏幕：更大的卡片
-    minColumnWidth = 320
-  } else if (screenWidth >= 1440) {
-    // 大屏幕：标准大小
-    minColumnWidth = 300
-  } else if (screenWidth >= 1024) {
-    // 中等屏幕：标准大小
-    minColumnWidth = 280
-  } else {
-    // 小屏幕：稍小的卡片
-    minColumnWidth = 260
-  }
-  
   return {
-    display: 'grid',
-    gridTemplateColumns: `repeat(auto-fill, minmax(${minColumnWidth}px, 1fr))`,
-    gap: '16px',
-    width: '100%',
-    alignItems: 'start'
+    columnCount: 'auto' as const,
+    columnWidth: '280px',
+    columnGap: '16px',
+    width: '100%'
   }
 })
 

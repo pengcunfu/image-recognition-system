@@ -111,15 +111,237 @@
               width: '100%'
             }"
           >
-            <PostCard
-              :post="post"
-              @viewDetail="viewPostDetail"
-              @previewImage="previewImage"
-              @searchByTag="searchByTag"
-              @toggleLike="toggleLike"
-              @toggle-favorite="toggleFavorite"
-              @reply="replyPost"
-            />
+            <div 
+              :style="{ 
+                borderRadius: '8px', 
+                overflow: 'hidden', 
+                cursor: 'pointer',
+                transition: 'all 0.3s',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'white',
+                border: '1px solid #e8e8e8'
+              }"
+              @click="viewPostDetail(post)"
+              @mouseenter="(e) => { setStyle(e, 'box-shadow', '0 4px 16px rgba(24,144,255,0.2)'); setStyle(e, 'border-color', '#1890ff'); }"
+              @mouseleave="(e) => { setStyle(e, 'box-shadow', '0 2px 8px rgba(0,0,0,0.06)'); setStyle(e, 'border-color', '#e8e8e8'); }"
+            >
+              <!-- 作者信息 -->
+              <div :style="{ padding: '12px 12px 8px 12px' }">
+                <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', height: '32px' }">
+                  <a-avatar :src="post.author.avatar" :size="24">
+                    {{ post.author.name.charAt(0) }}
+                  </a-avatar>
+                  <div :style="{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">
+                    <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '16px', marginBottom: '2px' }">
+                      <span :style="{ 
+                        fontWeight: 600, 
+                        color: '#262626', 
+                        fontSize: '13px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '120px'
+                      }">{{ post.author.name }}</span>
+                      <a-tag 
+                        v-if="post.author.level" 
+                        :color="getLevelColor(post.author.level)" 
+                        size="small" 
+                        :style="{ 
+                          fontSize: '10px', 
+                          padding: '0 6px', 
+                          height: '16px', 
+                          lineHeight: '16px',
+                          borderRadius: '8px',
+                          transform: 'scale(0.9)',
+                          transformOrigin: 'left center'
+                        }"
+                      >
+                        {{ post.author.level }}
+                      </a-tag>
+                    </div>
+                    <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '14px' }">
+                      <span :style="{ 
+                        fontSize: '11px', 
+                        color: '#8c8c8c',
+                        lineHeight: '14px'
+                      }">{{ post.createTime }}</span>
+                      <span :style="{ color: '#d9d9d9', fontSize: '10px' }">•</span>
+                      <a-tag 
+                        :color="getTypeColor(post.type)" 
+                        size="small" 
+                        :style="{ 
+                          fontSize: '10px', 
+                          padding: '0 4px', 
+                          height: '14px', 
+                          lineHeight: '14px',
+                          borderRadius: '6px',
+                          transform: 'scale(0.85)',
+                          transformOrigin: 'left center'
+                        }"
+                      >
+                        {{ getTypeName(post.type) }}
+                      </a-tag>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 标题和内容 -->
+              <div :style="{ padding: '0 12px 8px 12px' }">
+                <h3 :style="{ 
+                  fontSize: '15px', 
+                  fontWeight: 600, 
+                  color: '#262626', 
+                  margin: '0 0 6px 0', 
+                  lineHeight: '22px', 
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }">{{ post.title || '无标题' }}</h3>
+                <p :style="{ 
+                  color: '#666', 
+                  lineHeight: '20px', 
+                  margin: 0, 
+                  fontSize: '13px',
+                  height: '40px',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }">{{ getContentPreview(post.content) }}</p>
+              </div>
+
+              <!-- 图片展示 -->
+              <div 
+                v-if="post.images?.length" 
+                :style="{ 
+                  position: 'relative', 
+                  width: '100%', 
+                  paddingBottom: '66.67%',
+                  background: '#f5f5f5',
+                  overflow: 'hidden',
+                  margin: '0 12px 12px 12px',
+                  borderRadius: '8px'
+                }"
+                @click.stop="previewImage(post.images, 0)"
+              >
+                <img 
+                  :src="post.images[0]" 
+                  :alt="post.title" 
+                  :style="{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s'
+                  }" 
+                  @mouseenter="(e) => setStyle(e, 'transform', 'scale(1.05)')"
+                  @mouseleave="(e) => setStyle(e, 'transform', 'scale(1)')"
+                />
+              </div>
+
+              <!-- 标签 -->
+              <div 
+                v-if="post.tags?.length" 
+                :style="{ padding: '0 12px 12px 12px' }"
+              >
+                <div :style="{ display: 'flex', flexWrap: 'wrap', gap: '4px', height: '24px', overflow: 'hidden' }">
+                  <a-tag 
+                    v-for="tag in post.tags.slice(0, 3)" 
+                    :key="tag"
+                    size="small"
+                    :style="{ cursor: 'pointer', transition: 'all 0.3s', borderRadius: '8px', fontSize: '12px' }"
+                    @click.stop="searchByTag(tag)"
+                  >
+                    {{ tag }}
+                  </a-tag>
+                  <span v-if="post.tags.length > 3" :style="{ color: '#999', fontSize: '12px', alignSelf: 'center' }">+{{ post.tags.length - 3 }}</span>
+                </div>
+              </div>
+
+              <!-- 操作栏 -->
+              <div :style="{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                padding: '8px 12px 12px 12px',
+                borderTop: '1px solid #f0f0f0',
+                marginTop: 'auto',
+                height: '40px'
+              }">
+                <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
+                  <span :style="{ display: 'flex', alignItems: 'center', gap: '4px', color: '#999', fontSize: '12px' }">
+                    <i class="fas fa-eye"></i>
+                    {{ post.views || 0 }} 浏览
+                  </span>
+                </div>
+                <div :style="{ display: 'flex', alignItems: 'center', gap: '4px' }">
+                  <a-button 
+                    type="text" 
+                    size="small"
+                    :style="{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px', 
+                      color: post.isLiked ? '#1890ff' : '#666',
+                      background: post.isLiked ? 'rgba(24, 144, 255, 0.06)' : 'transparent',
+                      transition: 'all 0.3s ease',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '12px'
+                    }"
+                    @click.stop="toggleLike(post)"
+                  >
+                    <i class="fas fa-heart"></i>
+                    {{ post.likes }}
+                  </a-button>
+                  <a-button 
+                    type="text" 
+                    size="small"
+                    :style="{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px', 
+                      color: '#666',
+                      transition: 'all 0.3s ease',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '12px'
+                    }"
+                    @click.stop="replyPost(post)"
+                  >
+                    <i class="fas fa-comment"></i>
+                    {{ post.replies }}
+                  </a-button>
+                  <a-button 
+                    type="text" 
+                    size="small"
+                    :style="{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '4px', 
+                      color: post.isFavorited ? '#ff4d4f' : '#666',
+                      background: post.isFavorited ? 'rgba(255, 77, 79, 0.06)' : 'transparent',
+                      transition: 'all 0.3s ease',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      height: 'auto',
+                      fontSize: '12px'
+                    }"
+                    @click.stop="toggleFavorite(post)"
+                  >
+                    <i class="fas fa-star"></i>
+                  </a-button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </a-spin>
@@ -542,6 +764,56 @@ onMounted(() => {
   loadTags()
   loadPosts()
 })
+
+// 辅助函数：安全设置元素样式
+function setStyle(event: Event, property: string, value: string) {
+  const target = event.currentTarget as HTMLElement
+  if (target) {
+    target.style.setProperty(property, value)
+  }
+}
+
+// 获取内容预览
+function getContentPreview(content: string) {
+  return content.length > 100 ? content.substring(0, 100) : content
+}
+
+// 获取用户等级颜色
+function getLevelColor(level: string) {
+  const colors: Record<string, string> = {
+    '新手': 'green',
+    '资深用户': 'blue',
+    '专家': 'purple',
+    '管理员': 'red',
+    'VIP用户1': 'gold',
+    'VIP用户2': 'gold',
+    '用户': 'default'
+  }
+  return colors[level] || 'default'
+}
+
+// 获取帖子类型颜色
+function getTypeColor(type: string) {
+  const colors: Record<string, string> = {
+    'question': 'orange',
+    'share': 'blue',
+    'discussion': 'purple',
+    '问答': 'orange',
+    '分享': 'blue',
+    '讨论': 'purple'
+  }
+  return colors[type] || 'default'
+}
+
+// 获取帖子类型名称
+function getTypeName(type: string) {
+  const names: Record<string, string> = {
+    'question': '问答',
+    'share': '分享',
+    'discussion': '讨论'
+  }
+  return names[type] || type || '讨论'
+}
 
 // 导出给模板使用
 defineExpose({

@@ -548,5 +548,127 @@ public class UserService {
         
         log.info("VIP权限已撤销: userId={}", userId);
     }
+
+    /**
+     * 获取用户收藏列表
+     */
+    public UserResponse.UserCollections getUserCollections(Long userId, Integer page, Integer size) {
+        log.info("获取用户收藏列表: userId={}, page={}, size={}", userId, page, size);
+
+        int offset = (page - 1) * size;
+
+        // 获取收藏的识别结果
+        java.util.List<UserResponse.CollectionItem> recognitions = userCollectRepository
+                .findRecognitionsByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.CollectionItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("recognition")
+                        .title((String) item.get("title"))
+                        .description((String) item.get("description"))
+                        .imageUrl((String) item.get("imageUrl"))
+                        .confidence((Integer) item.get("confidence"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        // 获取收藏的帖子
+        java.util.List<UserResponse.CollectionItem> posts = userCollectRepository
+                .findPostsByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.CollectionItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("post")
+                        .title((String) item.get("title"))
+                        .description((String) item.get("content"))
+                        .imageUrl((String) item.get("images"))
+                        .likeCount((Integer) item.get("likeCount"))
+                        .viewCount((Integer) item.get("viewCount"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        // 获取收藏的知识
+        java.util.List<UserResponse.CollectionItem> knowledge = userCollectRepository
+                .findKnowledgeByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.CollectionItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("knowledge")
+                        .title((String) item.get("title"))
+                        .description((String) item.get("description"))
+                        .imageUrl((String) item.get("coverImage"))
+                        .likeCount((Integer) item.get("likeCount"))
+                        .viewCount((Integer) item.get("viewCount"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        return UserResponse.UserCollections.builder()
+                .recognitions(recognitions)
+                .posts(posts)
+                .knowledge(knowledge)
+                .build();
+    }
+
+    /**
+     * 获取用户点赞列表
+     */
+    public UserResponse.UserLikes getUserLikes(Long userId, Integer page, Integer size) {
+        log.info("获取用户点赞列表: userId={}, page={}, size={}", userId, page, size);
+
+        int offset = (page - 1) * size;
+
+        // 获取点赞的帖子
+        java.util.List<UserResponse.LikeItem> posts = userLikeRepository
+                .findPostsByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.LikeItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("post")
+                        .title((String) item.get("title"))
+                        .content((String) item.get("content"))
+                        .author((String) item.get("author"))
+                        .likeCount((Integer) item.get("likeCount"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        // 获取点赞的知识
+        java.util.List<UserResponse.LikeItem> knowledge = userLikeRepository
+                .findKnowledgeByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.LikeItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("knowledge")
+                        .title((String) item.get("title"))
+                        .content((String) item.get("description"))
+                        .author((String) item.get("author"))
+                        .likeCount((Integer) item.get("likeCount"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        // 获取点赞的评论
+        java.util.List<UserResponse.LikeItem> comments = userLikeRepository
+                .findCommentsByUserId(userId, page, size, offset)
+                .stream()
+                .map(item -> UserResponse.LikeItem.builder()
+                        .id((Long) item.get("id"))
+                        .type("comment")
+                        .title("") // 评论没有标题
+                        .content((String) item.get("content"))
+                        .author((String) item.get("author"))
+                        .likeCount((Integer) item.get("likeCount"))
+                        .createdAt((LocalDateTime) item.get("createdAt"))
+                        .build())
+                .collect(Collectors.toList());
+
+        return UserResponse.UserLikes.builder()
+                .posts(posts)
+                .knowledge(knowledge)
+                .comments(comments)
+                .build();
+    }
 }
 

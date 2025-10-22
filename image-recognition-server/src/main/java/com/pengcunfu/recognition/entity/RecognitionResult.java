@@ -45,6 +45,16 @@ public class RecognitionResult {
     private Integer imageSize;
 
     /**
+     * 图片宽度(像素)
+     */
+    private Integer imageWidth;
+
+    /**
+     * 图片高度(像素)
+     */
+    private Integer imageHeight;
+
+    /**
      * 识别类型: 0-QUICK快速识别, 1-DETAILED详细识别
      */
     private Integer recognitionType;

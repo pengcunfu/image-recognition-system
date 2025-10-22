@@ -1,35 +1,95 @@
 ﻿<template>
-  <div :style="{ minHeight: '100vh', background: '#f0f2f5' }">
-    <!-- 个人信息头部 -->
-    <UserProfileHeader 
-      :userInfo="displayUserInfo" 
-      :userStats="userStats"
-      @update-avatar="showAvatarModal"
-    />
+  <div :style="{ minHeight: '100vh', background: '#f0f2f5', padding: '24px' }">
+    <div :style="{ maxWidth: '1400px', margin: '0 auto' }">
+      <!-- 用户信息卡片 -->
+      <a-card :style="{ marginBottom: '24px', borderRadius: '12px' }">
+        <div :style="{ display: 'flex', alignItems: 'center', gap: '24px' }">
+          <!-- 头像 -->
+          <div :style="{ position: 'relative' }">
+            <a-avatar :size="100" :src="displayUserInfo.avatar">
+              {{ displayUserInfo.name?.charAt(0) }}
+            </a-avatar>
+            <a-button 
+              type="primary" 
+              shape="circle" 
+              size="small"
+              :style="{ position: 'absolute', bottom: '0', right: '0' }"
+              @click="showAvatarModal"
+            >
+              <i class="fas fa-camera"></i>
+            </a-button>
+          </div>
+          
+          <!-- 用户信息 -->
+          <div :style="{ flex: 1 }">
+            <h2 :style="{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold' }">
+              {{ displayUserInfo.name }}
+            </h2>
+            <p :style="{ margin: '0 0 12px 0', color: '#8c8c8c' }">{{ displayUserInfo.bio }}</p>
+            <div :style="{ display: 'flex', gap: '24px', fontSize: '14px', color: '#595959' }">
+              <span><i class="fas fa-calendar"></i> 加入时间: {{ userInfo.joinDate }}</span>
+              <span v-if="displayUserInfo.email"><i class="fas fa-envelope"></i> {{ displayUserInfo.email }}</span>
+            </div>
+          </div>
+        </div>
+      </a-card>
 
-    <!-- 主要内容区域 -->
-    <div>
+      <!-- 主要内容区域 -->
       <a-row :gutter="24">
-        <!-- 左侧内容 -->
-        <a-col :xs="24" :lg="16">
-          <a-tabs v-model:activeKey="activeTab" :style="{ background: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', padding: '16px' }">
-            <!-- 我的动态 -->
-            <a-tab-pane key="activities" tab="我的动态">
-              <UserActivityList :activities="activities" />
-            </a-tab-pane>
+        <!-- 左侧菜单 -->
+        <a-col :xs="24" :sm="6">
+          <a-card :style="{ borderRadius: '12px' }">
+            <a-menu 
+              v-model:selectedKeys="selectedMenu" 
+              mode="inline"
+              :style="{ border: 'none' }"
+              @click="handleMenuClick"
+            >
+              <a-menu-item key="posts">
+                <i class="fas fa-book-open" :style="{ marginRight: '8px' }"></i>
+                我的帖子
+              </a-menu-item>
+              <a-menu-item key="favorites">
+                <i class="fas fa-star" :style="{ marginRight: '8px' }"></i>
+                我的收藏
+              </a-menu-item>
+              <a-menu-item key="likes">
+                <i class="fas fa-heart" :style="{ marginRight: '8px' }"></i>
+                我的点赞
+              </a-menu-item>
+              <a-menu-item key="settings">
+                <i class="fas fa-cog" :style="{ marginRight: '8px' }"></i>
+                账号设置
+              </a-menu-item>
+            </a-menu>
+          </a-card>
+        </a-col>
 
+        <!-- 右侧内容 -->
+        <a-col :xs="24" :sm="18">
+          <a-card :style="{ borderRadius: '12px', minHeight: '500px' }">
             <!-- 我的帖子 -->
-            <a-tab-pane key="posts" tab="我的帖子">
-              <UserPostList :posts="userPosts" @view-post="viewPost" />
-            </a-tab-pane>
+            <div v-show="currentView === 'posts'">
+              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">我的帖子</h3>
+              <UserPostList 
+                :posts="userPosts" 
+                @view-post="viewPost"
+                @edit-post="editPost"
+                @delete-post="deletePost"
+                @hide-post="hidePost"
+                @show-post="showPost"
+              />
+            </div>
 
             <!-- 我的收藏 -->
-            <a-tab-pane key="favorites" tab="我的收藏">
+            <div v-show="currentView === 'favorites'">
+              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">我的收藏</h3>
               <a-tabs type="card">
                 <a-tab-pane key="recognition" tab="识别结果">
-                  <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }">
+                  <a-empty v-if="collections.recognitions.length === 0" description="暂无收藏的识别结果" />
+                  <div v-else :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }">
                     <div 
-                      v-for="item in favoriteRecognitions" 
+                      v-for="item in collections.recognitions" 
                       :key="item.id"
                       :style="{ 
                         background: '#fafafa', 
@@ -42,19 +102,20 @@
                       @click="viewFavorite(item)"
                     >
                       <div :style="{ width: '100%', height: '150px', background: '#f5f5f5' }">
-                        <img :src="item.thumbnail" :alt="item.result" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
+                        <img :src="getImageUrl(item.imageUrl)" :alt="item.title" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
                       </div>
                       <div :style="{ padding: '12px' }">
-                        <div :style="{ fontSize: '14px', fontWeight: 'bold', color: '#262626', marginBottom: '4px' }">{{ item.result }}</div>
+                        <div :style="{ fontSize: '14px', fontWeight: 'bold', color: '#262626', marginBottom: '4px' }">{{ item.title }}</div>
                         <div :style="{ fontSize: '12px', color: '#1890ff' }">置信度: {{ item.confidence }}%</div>
                       </div>
                     </div>
                   </div>
                 </a-tab-pane>
                 <a-tab-pane key="knowledge" tab="知识内容">
-                  <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+                  <a-empty v-if="collections.knowledge.length === 0" description="暂无收藏的知识内容" />
+                  <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
                     <div 
-                      v-for="item in favoriteKnowledge" 
+                      v-for="item in collections.knowledge" 
                       :key="item.id"
                       :style="{ 
                         display: 'flex', 
@@ -78,34 +139,113 @@
                         justifyContent: 'center',
                         flexShrink: 0
                       }">
-                        <i :class="item.icon" :style="{ color: '#1890ff', fontSize: '24px' }"></i>
+                        <i class="fas fa-book" :style="{ color: '#1890ff', fontSize: '24px' }"></i>
                       </div>
                       <div :style="{ flex: 1 }">
                         <h4 :style="{ fontSize: '15px', fontWeight: 'bold', color: '#262626', margin: '0 0 6px 0' }">{{ item.title }}</h4>
                         <p :style="{ fontSize: '13px', color: '#8c8c8c', margin: '0 0 8px 0' }">{{ item.description }}</p>
-                        <a-tag :color="getCategoryColor(item.category)" size="small">
-                          {{ item.category }}
-                        </a-tag>
+                        <div :style="{ display: 'flex', gap: '16px', fontSize: '12px', color: '#8c8c8c' }">
+                          <span><i class="fas fa-heart"></i> {{ item.likeCount }}</span>
+                          <span><i class="fas fa-eye"></i> {{ item.viewCount }}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </a-tab-pane>
               </a-tabs>
-            </a-tab-pane>
+            </div>
+
+            <!-- 我的点赞 -->
+            <div v-show="currentView === 'likes'">
+              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">我的点赞</h3>
+              <a-tabs type="card">
+                <a-tab-pane key="posts" tab="帖子">
+                  <a-empty v-if="likes.posts.length === 0" description="暂无点赞的帖子" />
+                  <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+                    <div 
+                      v-for="item in likes.posts" 
+                      :key="item.id"
+                      :style="{ 
+                        padding: '16px', 
+                        background: '#fafafa', 
+                        borderRadius: '8px',
+                        border: '1px solid #f0f0f0',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s'
+                      }"
+                      @click="viewPost({ id: item.id })"
+                    >
+                      <div :style="{ marginBottom: '8px' }">
+                        <h4 :style="{ fontSize: '15px', fontWeight: 'bold', color: '#262626', margin: '0 0 4px 0' }">{{ item.title }}</h4>
+                        <p :style="{ fontSize: '13px', color: '#8c8c8c', margin: '0', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }">{{ item.content }}</p>
+                      </div>
+                      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#8c8c8c' }">
+                        <span>作者: {{ item.author }}</span>
+                        <span><i class="fas fa-heart"></i> {{ item.likeCount }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </a-tab-pane>
+                <a-tab-pane key="knowledge" tab="知识">
+                  <a-empty v-if="likes.knowledge.length === 0" description="暂无点赞的知识内容" />
+                  <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+                    <div 
+                      v-for="item in likes.knowledge" 
+                      :key="item.id"
+                      :style="{ 
+                        padding: '16px', 
+                        background: '#fafafa', 
+                        borderRadius: '8px',
+                        border: '1px solid #f0f0f0',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s'
+                      }"
+                      @click="viewKnowledge({ id: item.id })"
+                    >
+                      <div :style="{ marginBottom: '8px' }">
+                        <h4 :style="{ fontSize: '15px', fontWeight: 'bold', color: '#262626', margin: '0 0 4px 0' }">{{ item.title }}</h4>
+                        <p :style="{ fontSize: '13px', color: '#8c8c8c', margin: '0' }">{{ item.content }}</p>
+                      </div>
+                      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#8c8c8c' }">
+                        <span>作者: {{ item.author }}</span>
+                        <span><i class="fas fa-heart"></i> {{ item.likeCount }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </a-tab-pane>
+                <a-tab-pane key="comments" tab="评论">
+                  <a-empty v-if="likes.comments.length === 0" description="暂无点赞的评论" />
+                  <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+                    <div 
+                      v-for="item in likes.comments" 
+                      :key="item.id"
+                      :style="{ 
+                        padding: '16px', 
+                        background: '#fafafa', 
+                        borderRadius: '8px',
+                        border: '1px solid #f0f0f0'
+                      }"
+                    >
+                      <p :style="{ fontSize: '13px', color: '#262626', margin: '0 0 8px 0' }">{{ item.content }}</p>
+                      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#8c8c8c' }">
+                        <span>作者: {{ item.author }}</span>
+                        <span><i class="fas fa-heart"></i> {{ item.likeCount }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </a-tab-pane>
+              </a-tabs>
+            </div>
 
             <!-- 设置 -->
-            <a-tab-pane key="settings" tab="设置">
+            <div v-show="currentView === 'settings'">
+              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">账号设置</h3>
               <UserSettings 
                 :userInfo="userInfo"
                 @save-profile="saveProfile"
               />
-            </a-tab-pane>
-          </a-tabs>
-        </a-col>
-
-        <!-- 右侧侧边栏 -->
-        <a-col :xs="24" :lg="8">
-          <UserSidebar :badges="badges" :recentVisitors="recentVisitors" />
+            </div>
+          </a-card>
         </a-col>
       </a-row>
     </div>
@@ -119,53 +259,59 @@
       @upload="handleAvatarUpload"
       @cancel="cancelAvatarUpload"
     />
+
+    <!-- 帖子编辑模态框 -->
+    <PostEditModal
+      v-model:visible="editModalVisible"
+      :post="currentEditPost"
+      @success="handleEditSuccess"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
-import UserProfileHeader from '@/components/UserProfileHeader.vue'
-import UserActivityList from '@/components/UserActivityList.vue'
-import UserPostList from '@/components/UserPostList.vue'
-import UserSettings from '@/components/UserSettings.vue'
-import UserSidebar from '@/components/UserSidebar.vue'
-import AvatarUploadModal from '@/components/AvatarUploadModal.vue'
+import UserPostList from './user-profile/UserPostList.vue'
+import UserSettings from './user-profile/UserSettings.vue'
+import AvatarUploadModal from './user-profile/AvatarUploadModal.vue'
+import PostEditModal from './user-profile/PostEditModal.vue'
 import { FileAPI } from '@/api/file'
 import { UserAPI } from '@/api/user'
+import { CommunityAPI } from '@/api/community'
 
-const route = useRoute()
 const router = useRouter()
-const activeTab = ref('activities')
+const route = useRoute()
 
-// 根据路由设置活动标签
-function setActiveTabFromRoute() {
-  const routeName = route.name
-  switch (routeName) {
-    case 'UserProfile':
-      activeTab.value = 'activities'
-      break
-    case 'UserFavorites':
-      activeTab.value = 'favorites'
-      break
-    case 'UserSettings':
-      activeTab.value = 'settings'
-      break
-    default:
-      activeTab.value = 'activities'
-  }
+// 当前视图
+const currentView = ref('posts')
+const selectedMenu = ref(['posts'])
+
+// 菜单点击事件
+function handleMenuClick({ key }: { key: string }) {
+  currentView.value = key
+  selectedMenu.value = [key]
 }
 
-// 监听路由变化
-watch(() => route.name, () => {
-  setActiveTabFromRoute()
+// 监听路由查询参数变化
+watch(() => route.query.tab, (tab) => {
+  if (tab && typeof tab === 'string') {
+    currentView.value = tab
+    selectedMenu.value = [tab]
+  }
 }, { immediate: true })
 
-// 组件挂载时设置标签并加载用户信息
+// 组件挂载时加载用户信息
 onMounted(() => {
-  setActiveTabFromRoute()
   loadUserProfile()
+  
+  // 如果URL中有tab参数,切换到对应视图
+  const tab = route.query.tab as string
+  if (tab) {
+    currentView.value = tab
+    selectedMenu.value = [tab]
+  }
 })
 
 // 用户信息
@@ -177,159 +323,36 @@ const userInfo = reactive({
   bio: '',
   avatar: '',
   joinDate: '',
-  location: '',
   email: '',
   phone: '',
   role: 0,
   createdAt: ''
 })
 
-// 用户统计
-const userStats = reactive({
-  recognitions: 0,
-  posts: 0,
-  likes: 0,
-  followers: 0
+// 用户帖子
+const userPosts = ref<any[]>([])
+
+// 用户收藏
+const collections = reactive({
+  recognitions: [] as any[],
+  posts: [] as any[],
+  knowledge: [] as any[]
 })
 
-
-// 活动记录
-const activities = ref([
-  {
-    id: 1,
-    type: 'recognition',
-    description: '识别了一张金毛犬的图片，置信度 95%',
-    time: '2小时前'
-  },
-  {
-    id: 2,
-    type: 'post',
-    description: '发布了新帖子《AI识别技巧分享》',
-    time: '1天前'
-  },
-  {
-    id: 3,
-    type: 'like',
-    description: '点赞了帖子《深度学习在图像识别中的应用》',
-    time: '2天前'
-  },
-  {
-    id: 4,
-    type: 'follow',
-    description: '关注了用户 "AI专家李四"',
-    time: '3天前'
-  }
-])
-
-// 用户帖子
-const userPosts = ref([
-  {
-    id: 1,
-    title: 'AI识别技巧分享',
-    excerpt: '分享一些提高图像识别准确率的实用技巧...',
-    type: 'share',
-    likes: 24,
-    replies: 8,
-    createTime: '1天前',
-    image: '/api/placeholder/100/80'
-  },
-  {
-    id: 2,
-    title: '遇到识别问题求助',
-    excerpt: '最近在识别某些特殊角度的物体时准确率较低...',
-    type: 'question',
-    likes: 12,
-    replies: 15,
-    createTime: '3天前',
-    image: undefined
-  }
-])
-
-// 收藏的识别结果
-const favoriteRecognitions = ref([
-  {
-    id: 1,
-    result: '金毛犬',
-    confidence: 95,
-    thumbnail: '/api/placeholder/120/120'
-  },
-  {
-    id: 2,
-    result: '玫瑰花',
-    confidence: 88,
-    thumbnail: '/api/placeholder/120/120'
-  }
-])
-
-// 收藏的知识
-const favoriteKnowledge = ref([
-  {
-    id: 1,
-    title: '犬类品种识别指南',
-    description: '详细介绍各种犬类品种的特征',
-    category: '动物',
-    icon: 'fas fa-dog'
-  },
-  {
-    id: 2,
-    title: '花卉识别技巧',
-    description: '掌握花卉识别的基本方法',
-    category: '植物',
-    icon: 'fas fa-flower'
-  }
-])
-
-// 成就徽章
-const badges = ref([
-  {
-    id: 1,
-    name: '新手上路',
-    description: '完成首次图像识别',
-    icon: 'fas fa-seedling',
-    earned: true
-  },
-  {
-    id: 2,
-    name: '识别达人',
-    description: '累计识别100次',
-    icon: 'fas fa-eye',
-    earned: true
-  },
-  {
-    id: 3,
-    name: '社区活跃',
-    description: '发布10篇帖子',
-    icon: 'fas fa-comment',
-    earned: true
-  },
-  {
-    id: 4,
-    name: '人气之星',
-    description: '获得100个点赞',
-    icon: 'fas fa-star',
-    earned: false
-  }
-])
-
-// 最近访客
-const recentVisitors = ref([
-  {
-    id: 1,
-    name: '李四',
-    avatar: '',
-    visitTime: '1小时前'
-  },
-  {
-    id: 2,
-    name: '王五',
-    avatar: '',
-    visitTime: '3小时前'
-  }
-])
+// 用户点赞
+const likes = reactive({
+  posts: [] as any[],
+  knowledge: [] as any[],
+  comments: [] as any[]
+})
 
 // 头像上传相关变量
 const avatarModalVisible = ref(false)
 const uploadLoading = ref(false)
+
+// 帖子编辑相关变量
+const editModalVisible = ref(false)
+const currentEditPost = ref<any>(null)
 
 // 计算属性：处理头像URL显示
 const displayUserInfo = computed(() => ({
@@ -363,30 +386,145 @@ async function loadUserProfile() {
       location: '未设置' // 后端暂时没有这个字段
     })
     
-    // 加载用户统计
-    loadUserStats()
+    // 加载用户帖子
+    loadUserPosts()
+    // 加载用户收藏
+    loadUserCollections()
+    // 加载用户点赞
+    loadUserLikes()
   } catch (error: any) {
     console.error('加载用户信息失败:', error)
     message.error('加载用户信息失败')
   }
 }
 
-// 加载用户统计信息
-async function loadUserStats() {
+// 加载用户发布的帖子
+async function loadUserPosts() {
   try {
-    const stats = await UserAPI.getStats()
-    
-    // 更新统计数据
-    Object.assign(userStats, {
-      recognitions: stats.totalRecognitions || 0,
-      posts: 0, // 后端暂时没有这个统计
-      likes: 0, // 后端暂时没有这个统计
-      followers: 0 // 后端暂时没有这个统计
+    const response = await CommunityAPI.getMyPosts({
+      page: 1,
+      size: 10
     })
+    
+    if (response && response.data) {
+      // 转换数据格式以适配组件
+      userPosts.value = response.data.map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        excerpt: post.content ? post.content.substring(0, 100) + '...' : '',
+        type: 'share', // 可以根据实际情况设置
+        likes: post.likeCount || 0,
+        replies: post.commentCount || 0,
+        createTime: formatDateTime(post.createdAt),
+        image: post.images ? getFirstImage(post.images) : undefined,
+        status: post.status || 1, // 添加状态字段: 0-待审核, 1-已发布, 2-已隐藏
+        category: post.category || '',
+        tags: post.tags || '',
+        content: post.content || ''
+      }))
+      
+      console.log('用户帖子加载成功:', userPosts.value.length, '条')
+    }
   } catch (error: any) {
-    console.error('加载用户统计失败:', error)
-    // 统计数据加载失败不影响页面显示
+    console.error('加载用户帖子失败:', error)
+    // 静默失败，不影响页面显示
   }
+}
+
+// 从images JSON字符串中获取第一张图片
+function getFirstImage(imagesJson: string): string | undefined {
+  try {
+    const images = JSON.parse(imagesJson)
+    return images && images.length > 0 ? FileAPI.getImageUrl(images[0]) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+// 格式化日期时间
+function formatDateTime(dateString: any): string {
+  if (!dateString) return '-'
+  
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    
+    // 小于1小时显示分钟
+    if (diff < 3600000) {
+      const minutes = Math.floor(diff / 60000)
+      return minutes < 1 ? '刚刚' : `${minutes}分钟前`
+    }
+    // 小于24小时显示小时
+    if (diff < 86400000) {
+      const hours = Math.floor(diff / 3600000)
+      return `${hours}小时前`
+    }
+    // 小于7天显示天数
+    if (diff < 604800000) {
+      const days = Math.floor(diff / 86400000)
+      return `${days}天前`
+    }
+    // 否则显示具体日期
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  } catch {
+    return '-'
+  }
+}
+
+// 加载用户收藏
+async function loadUserCollections() {
+  try {
+    const response = await UserAPI.getCollections({
+      page: 1,
+      size: 10
+    })
+    
+    if (response) {
+      Object.assign(collections, {
+        recognitions: response.recognitions || [],
+        posts: response.posts || [],
+        knowledge: response.knowledge || []
+      })
+      
+      console.log('用户收藏加载成功:', collections)
+    }
+  } catch (error: any) {
+    console.error('加载用户收藏失败:', error)
+    // 静默失败，不影响页面显示
+  }
+}
+
+// 加载用户点赞
+async function loadUserLikes() {
+  try {
+    const response = await UserAPI.getLikes({
+      page: 1,
+      size: 10
+    })
+    
+    if (response) {
+      Object.assign(likes, {
+        posts: response.posts || [],
+        knowledge: response.knowledge || [],
+        comments: response.comments || []
+      })
+      
+      console.log('用户点赞加载成功:', likes)
+    }
+  } catch (error: any) {
+    console.error('加载用户点赞失败:', error)
+    // 静默失败，不影响页面显示
+  }
+}
+
+// 获取图片URL
+function getImageUrl(url?: string): string {
+  if (!url) return '/api/placeholder/150/150'
+  return FileAPI.getImageUrl(url)
 }
 
 // 格式化加入时间
@@ -513,6 +651,94 @@ async function saveProfile(info: any) {
   } catch (error: any) {
     console.error('保存用户信息失败:', error)
     message.error(error.message || '保存失败，请重试')
+  }
+}
+
+// 编辑帖子
+function editPost(post: any) {
+  console.log('编辑帖子:', post)
+  currentEditPost.value = post
+  editModalVisible.value = true
+}
+
+// 编辑成功回调
+async function handleEditSuccess() {
+  message.success('帖子更新成功!')
+  // 重新加载帖子列表
+  await loadUserPosts()
+}
+
+// 删除帖子
+async function deletePost(post: any) {
+  try {
+    await new Promise((resolve) => {
+      const modal = message.loading('正在删除...', 0)
+      
+      // 使用 Ant Design 的 Modal.confirm
+      import('ant-design-vue').then(({ Modal }) => {
+        modal()
+        Modal.confirm({
+          title: '确认删除',
+          content: `确定要删除帖子"${post.title}"吗？删除后将无法恢复。`,
+          okText: '确认删除',
+          okType: 'danger',
+          cancelText: '取消',
+          onOk: async () => {
+            try {
+              await CommunityAPI.deletePost(post.id)
+              message.success('删除成功')
+              // 重新加载帖子列表
+              await loadUserPosts()
+              resolve(true)
+            } catch (error: any) {
+              message.error(error.message || '删除失败')
+              throw error
+            }
+          },
+          onCancel: () => {
+            resolve(false)
+          }
+        })
+      })
+    })
+  } catch (error: any) {
+    console.error('删除帖子失败:', error)
+  }
+}
+
+// 隐藏帖子
+async function hidePost(post: any) {
+  try {
+    const loading = message.loading('正在隐藏...', 0)
+    await CommunityAPI.updatePost(post.id, { status: 2 })
+    loading()
+    message.success('帖子已隐藏')
+    // 更新本地状态
+    const index = userPosts.value.findIndex(p => p.id === post.id)
+    if (index !== -1) {
+      userPosts.value[index].status = 2
+    }
+  } catch (error: any) {
+    console.error('隐藏帖子失败:', error)
+    message.error(error.message || '隐藏失败')
+  }
+}
+
+// 公开帖子
+async function showPost(post: any) {
+  try {
+    const loading = message.loading('正在公开...', 0)
+    await CommunityAPI.updatePost(post.id, { status: 1 })
+    loading()
+    message.success('帖子已公开')
+    // 更新本地状态
+    const index = userPosts.value.findIndex(p => p.id === post.id)
+    if (index !== -1) {
+      userPosts.value[index].status = 1
+    }
+  } catch (error: any) {
+    console.error('公开帖子失败:', error)
+    message.error(error.message || '公开失败')
   }
 }
 

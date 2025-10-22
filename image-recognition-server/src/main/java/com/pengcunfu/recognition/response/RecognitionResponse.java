@@ -25,6 +25,9 @@ public class RecognitionResponse {
         private Long userId;
         private String imageUrl;
         private String imageName;
+        private Integer imageSize;
+        private Integer imageWidth;
+        private Integer imageHeight;
         private Integer recognitionType;
         private String resultJson;
         private String mainCategory;
@@ -38,5 +41,19 @@ public class RecognitionResponse {
         private Integer status;
         private String errorMessage;
         private LocalDateTime createdAt;
+    }
+
+    /**
+     * 识别统计数据
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecognitionStats {
+        private Long total;              // 总识别次数
+        private Long thisMonth;          // 本月识别次数
+        private Double averageConfidence; // 平均置信度
+        private Long favorites;          // 收藏数量（暂时返回0）
     }
 }

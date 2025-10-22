@@ -1,6 +1,8 @@
 package com.pengcunfu.recognition.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengcunfu.recognition.constant.ErrorCode;
 import com.pengcunfu.recognition.entity.CommunityPost;
 import com.pengcunfu.recognition.entity.User;
@@ -38,6 +40,7 @@ public class CommunityService {
     private final UserLikeRepository userLikeRepository;
     private final UserCollectRepository userCollectRepository;
     private final HotDataService hotDataService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 发布帖子
@@ -46,14 +49,30 @@ public class CommunityService {
     public CommunityResponse.PostInfo createPost(Long userId, CommunityRequest.CreatePostRequest request) {
         log.info("发布帖子: userId={}, title={}", userId, request.getTitle());
 
+        // 将标签列表转换为逗号分隔的字符串
+        String tagsStr = request.getTags() != null && !request.getTags().isEmpty()
+                ? String.join(",", request.getTags())
+                : null;
+
+        // 将图片列表转换为JSON数组字符串
+        String imagesJson = null;
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            try {
+                imagesJson = objectMapper.writeValueAsString(request.getImages());
+            } catch (JsonProcessingException e) {
+                log.error("图片列表转换为JSON失败", e);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片数据处理失败");
+            }
+        }
+
         // 创建帖子（使用 builder 模式）
         CommunityPost post = CommunityPost.builder()
                 .userId(userId)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .category(request.getCategory())
-                .tags(request.getTags())
-                .images(request.getImages())
+                .tags(tagsStr)
+                .images(imagesJson)
                 .recognitionId(request.getRecognitionId())
                 .status(PostStatus.PUBLISHED.getValue())
                 .viewCount(0)
@@ -180,7 +199,21 @@ public class CommunityService {
             post.setCategory(request.getCategory());
         }
         if (request.getTags() != null) {
-            post.setTags(request.getTags());
+            String tagsStr = !request.getTags().isEmpty() 
+                    ? String.join(",", request.getTags()) 
+                    : null;
+            post.setTags(tagsStr);
+        }
+        if (request.getImages() != null) {
+            try {
+                String imagesJson = !request.getImages().isEmpty() 
+                        ? objectMapper.writeValueAsString(request.getImages()) 
+                        : null;
+                post.setImages(imagesJson);
+            } catch (JsonProcessingException e) {
+                log.error("图片列表转换为JSON失败", e);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片数据处理失败");
+            }
         }
 
         communityPostRepository.updateById(post);
@@ -223,14 +256,30 @@ public class CommunityService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "未登录或登录已过期");
         }
 
+        // 将标签列表转换为逗号分隔的字符串
+        String tagsStr = request.getTags() != null && !request.getTags().isEmpty()
+                ? String.join(",", request.getTags())
+                : null;
+
+        // 将图片列表转换为JSON数组字符串
+        String imagesJson = null;
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            try {
+                imagesJson = objectMapper.writeValueAsString(request.getImages());
+            } catch (JsonProcessingException e) {
+                log.error("图片列表转换为JSON失败", e);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片数据处理失败");
+            }
+        }
+
         // 创建帖子
         CommunityPost post = CommunityPost.builder()
                 .userId(userId)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .category(request.getCategory())
-                .tags(request.getTags())
-                .images(request.getImages())
+                .tags(tagsStr)
+                .images(imagesJson)
                 .status(request.getStatus() != null ? request.getStatus() : 1) // 默认已发布
                 .isTop(0)
                 .isFeatured(0)
@@ -270,10 +319,21 @@ public class CommunityService {
             post.setCategory(request.getCategory());
         }
         if (request.getTags() != null) {
-            post.setTags(request.getTags());
+            String tagsStr = !request.getTags().isEmpty() 
+                    ? String.join(",", request.getTags()) 
+                    : null;
+            post.setTags(tagsStr);
         }
         if (request.getImages() != null) {
-            post.setImages(request.getImages());
+            try {
+                String imagesJson = !request.getImages().isEmpty() 
+                        ? objectMapper.writeValueAsString(request.getImages()) 
+                        : null;
+                post.setImages(imagesJson);
+            } catch (JsonProcessingException e) {
+                log.error("图片列表转换为JSON失败", e);
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片数据处理失败");
+            }
         }
         if (request.getStatus() != null) {
             post.setStatus(request.getStatus());
@@ -459,6 +519,57 @@ public class CommunityService {
     }
 
     /**
+     * 获取帖子分类列表
+     */
+    public java.util.List<CommunityResponse.CategoryInfo> getCategories() {
+        log.info("获取帖子分类列表");
+
+        // 从数据库中获取所有不同的分类及其数量
+        java.util.List<CommunityResponse.CategoryInfo> categories = communityPostRepository.getCategories(PostStatus.PUBLISHED.getValue());
+
+        log.info("获取到 {} 个分类", categories.size());
+        return categories;
+    }
+
+    /**
+     * 获取帖子标签列表
+     */
+    public java.util.List<CommunityResponse.TagInfo> getTags() {
+        log.info("获取帖子标签列表");
+
+        // 从数据库中获取所有已发布帖子的tags字段
+        java.util.List<String> allTagStrings = communityPostRepository.getAllTags(PostStatus.PUBLISHED.getValue());
+
+        // 使用Map统计每个标签的出现次数
+        java.util.Map<String, Long> tagCountMap = new java.util.HashMap<>();
+
+        for (String tagString : allTagStrings) {
+            if (tagString != null && !tagString.trim().isEmpty()) {
+                // 按逗号分隔标签
+                String[] tags = tagString.split(",");
+                for (String tag : tags) {
+                    String trimmedTag = tag.trim();
+                    if (!trimmedTag.isEmpty()) {
+                        tagCountMap.put(trimmedTag, tagCountMap.getOrDefault(trimmedTag, 0L) + 1);
+                    }
+                }
+            }
+        }
+
+        // 转换为TagInfo列表并按数量降序排序
+        java.util.List<CommunityResponse.TagInfo> tagInfos = tagCountMap.entrySet().stream()
+                .map(entry -> CommunityResponse.TagInfo.builder()
+                        .name(entry.getKey())
+                        .count(entry.getValue())
+                        .build())
+                .sorted((a, b) -> Long.compare(b.getCount(), a.getCount()))
+                .collect(java.util.stream.Collectors.toList());
+
+        log.info("获取到 {} 个标签", tagInfos.size());
+        return tagInfos;
+    }
+
+    /**
      * 转换为帖子信息 DTO
      */
     private CommunityResponse.PostInfo convertToPostInfo(CommunityPost post) {
@@ -487,6 +598,28 @@ public class CommunityService {
                 .commentCount(post.getCommentCount())
                 .isTop(post.getIsTop())
                 .createdAt(post.getCreatedAt())
+                .build();
+    }
+
+    /**
+     * 获取指定用户发布的帖子列表
+     */
+    public PageResponse<CommunityResponse.PostInfo> getPostsByAuthor(Long userId, Integer page, Integer size) {
+        log.info("获取用户发布的帖子: userId={}, page={}, size={}", userId, page, size);
+
+        Page<CommunityPost> pageRequest = new Page<>(page, size);
+        
+        // 使用SQL查询该用户发布的帖子(按创建时间倒序)
+        Page<CommunityPost> pageResult = communityPostRepository.findPostsByAuthor(pageRequest, userId);
+
+        return PageResponse.<CommunityResponse.PostInfo>builder()
+                .data(pageResult.getRecords().stream()
+                        .map(this::convertToPostInfo)
+                        .collect(Collectors.toList()))
+                .total(pageResult.getTotal())
+                .page((int) pageResult.getCurrent())
+                .size((int) pageResult.getSize())
+                .pages((int) pageResult.getPages())
                 .build();
     }
 }

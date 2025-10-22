@@ -21,18 +21,18 @@ import AdminProfileView from '@/views/admin/AdminProfileView.vue'
 // 用户组件
 import UserLayout from '@/layout/UserLayout.vue'
 import UserDashboardView from '@/views/UserDashboardView.vue'
-import ImageRecognitionView from '@/views/ImageRecognitionView.vue'
-import BatchRecognitionView from '@/views/BatchRecognitionView.vue'
-import HistoryView from '@/views/HistoryView.vue'
+import RecognitionView from '@/views/RecognitionView.vue'
+import RecognitionBatchView from '@/views/RecognitionBatchView.vue'
+import RecognitionHistoryView from '@/views/RecognitionHistoryView.vue'
 import KnowledgeView from '@/views/KnowledgeView.vue'
-import CommunityView from '@/views/CommunityView.vue'
+import CommunityPostView from '@/views/CommunityPostView.vue'
 import UserProfileView from '@/views/UserProfileView.vue'
-import PostDetailView from '@/views/PostDetailView.vue'
+import CommunityPostDetailView from '@/views/CommunityPostDetailView.vue'
 import KnowledgeDetailView from '@/views/KnowledgeDetailView.vue'
 import RecognitionDetailView from '@/views/RecognitionDetailView.vue'
 
 // VIP功能组件（已合并到 user 目录）
-import AdvancedRecognitionView from '@/views/AdvancedRecognitionView.vue'
+import AdvancedRecognitionView from '@/views/RecognitionAdvancedView.vue'
 import VipAnalyticsView from '@/views/VipAnalyticsView.vue'
 import AiTrainingView from '@/views/AiTrainingView.vue'
 
@@ -228,24 +228,24 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'recognition',
-        name: 'ImageRecognition',
-        component: ImageRecognitionView,
+        name: 'Recognition',
+        component: RecognitionView,
         meta: {
           title: '图像识别 - 智能图像识别系统'
         }
       },
       {
         path: 'recognition/batch',
-        name: 'BatchRecognition',
-        component: BatchRecognitionView,
+        name: 'RecognitionBatch',
+        component: RecognitionBatchView,
         meta: {
           title: '批量识别 - 智能图像识别系统'
         }
       },
       {
         path: 'history',
-        name: 'History',
-        component: HistoryView,
+        name: 'RecognitionHistory',
+        component: RecognitionHistoryView,
         meta: {
           title: '历史记录 - 智能图像识别系统'
         }
@@ -277,15 +277,15 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'community',
         name: 'Community',
-        component: CommunityView,
+        component: CommunityPostView,
         meta: {
-          title: '社区 - 智能图像识别系统'
+          title: '社区帖子 - 智能图像识别系统'
         }
       },
       {
         path: 'community/post/:id',
         name: 'PostDetail',
-        component: PostDetailView,
+        component: CommunityPostDetailView,
         meta: {
           title: '帖子详情 - 智能图像识别系统'
         }

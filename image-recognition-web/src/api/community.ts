@@ -33,6 +33,24 @@ export interface CreatePostRequest {
   category: string
   tags: string[]
   images?: string[]
+  status?: number
+}
+
+/**
+ * 分类信息
+ */
+export interface CategoryInfo {
+  name: string
+  count: number
+  description?: string
+}
+
+/**
+ * 标签信息
+ */
+export interface TagInfo {
+  name: string
+  count: number
 }
 
 /**
@@ -111,6 +129,27 @@ export class CommunityAPI {
    */
   static uncollectPost(postId: number) {
     return del<void>(`/api/community/posts/${postId}/collect`)
+  }
+
+  /**
+   * 获取帖子分类列表
+   */
+  static getCategories() {
+    return get<CategoryInfo[]>('/api/community/categories')
+  }
+
+  /**
+   * 获取帖子标签列表
+   */
+  static getTags() {
+    return get<TagInfo[]>('/api/community/tags')
+  }
+
+  /**
+   * 获取当前用户发布的帖子列表
+   */
+  static getMyPosts(params: { page?: number; size?: number }) {
+    return get<PageResponse<PostInfo>>('/api/community/my-posts', params)
   }
 }
 

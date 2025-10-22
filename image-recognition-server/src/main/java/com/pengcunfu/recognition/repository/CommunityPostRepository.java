@@ -146,5 +146,48 @@ public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
             ORDER BY date
             """)
     java.util.List<java.util.Map<String, Object>> countPostTrendByDate(@Param("startDate") LocalDateTime startDate);
+
+    /**
+     * 获取所有分类及其帖子数量
+     */
+    @Select("""
+            SELECT 
+                category as name,
+                COUNT(*) as count,
+                '' as description
+            FROM community_posts
+            WHERE status = #{status}
+            AND category IS NOT NULL
+            AND category != ''
+            GROUP BY category
+            ORDER BY count DESC
+            """)
+    java.util.List<com.pengcunfu.recognition.response.CommunityResponse.CategoryInfo> getCategories(@Param("status") Integer status);
+
+    /**
+     * 获取所有标签(需要在Java层面处理,因为tags是逗号分隔的字符串)
+     * 这里先查询所有已发布帖子的tags字段
+     */
+    @Select("""
+            SELECT tags
+            FROM community_posts
+            WHERE status = #{status}
+            AND tags IS NOT NULL
+            AND tags != ''
+            """)
+    java.util.List<String> getAllTags(@Param("status") Integer status);
+
+    /**
+     * 分页查询指定用户发布的帖子(按创建时间倒序)
+     */
+    @Select("""
+            SELECT * FROM community_posts
+            WHERE user_id = #{userId}
+            ORDER BY created_at DESC
+            """)
+    Page<CommunityPost> findPostsByAuthor(
+            Page<CommunityPost> page,
+            @Param("userId") Long userId
+    );
 }
 

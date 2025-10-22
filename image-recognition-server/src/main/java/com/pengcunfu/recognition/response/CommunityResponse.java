@@ -44,4 +44,47 @@ public class CommunityResponse {
         private Boolean isCollected;
         private LocalDateTime createdAt;
     }
+
+    /**
+     * 分类信息
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CategoryInfo {
+        /**
+         * 分类名称
+         */
+        private String name;
+
+        /**
+         * 分类下的帖子数量
+         */
+        private Long count;
+
+        /**
+         * 分类描述
+         */
+        private String description;
+    }
+
+    /**
+     * 标签信息
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TagInfo {
+        /**
+         * 标签名称
+         */
+        private String name;
+
+        /**
+         * 标签下的帖子数量
+         */
+        private Long count;
+    }
 }

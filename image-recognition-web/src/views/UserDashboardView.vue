@@ -4,7 +4,7 @@
     <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '48px 64px', marginBottom: '32px', borderRadius: '16px', background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }">
       <div :style="{ flex: 1 }">
         <div>
-          <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600' }">欢迎回来，{{ userInfo.name }}！</h1>
+          <h1 :style="{ margin: '0 0 12px 0', fontSize: '32px', fontWeight: '600' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
           <p :style="{ margin: 0, fontSize: '16px' }">开始您的智能图像识别之旅</p>
         </div>
         <div :style="{ marginTop: '32px', display: 'flex', gap: '16px' }">
@@ -36,7 +36,7 @@
               <i class="fas fa-eye"></i>
             </div>
             <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.totalRecognitions }}</div>
+              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.recognitionCount }}</div>
               <div :style="{ fontSize: '14px', opacity: '0.65' }">总识别次数</div>
             </div>
           </div>
@@ -49,7 +49,7 @@
               <i class="fas fa-heart"></i>
             </div>
             <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.favorites }}</div>
+              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.collectCount }}</div>
               <div :style="{ fontSize: '14px', opacity: '0.65' }">我的收藏</div>
             </div>
           </div>
@@ -62,8 +62,8 @@
               <i class="fas fa-comments"></i>
             </div>
             <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.discussions }}</div>
-              <div :style="{ fontSize: '14px', opacity: '0.65' }">参与讨论</div>
+              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.commentCount }}</div>
+              <div :style="{ fontSize: '14px', opacity: '0.65' }">评论数量</div>
             </div>
           </div>
         </a-card>
@@ -75,7 +75,7 @@
               <i class="fas fa-thumbs-up"></i>
             </div>
             <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.likes }}</div>
+              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.likeCount }}</div>
               <div :style="{ fontSize: '14px', opacity: '0.65' }">获得点赞</div>
             </div>
           </div>
@@ -185,24 +185,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { UserAPI, type UserStats } from '@/api/user'
 
 const router = useRouter()
 
 // 用户信息
 const userInfo = reactive({
-  name: '张三',
-  avatar: ''
+  id: 0,
+  username: '',
+  nickname: '',
+  avatar: '',
+  email: '',
+  role: 0
 })
 
 // 统计数据
-const stats = reactive({
-  totalRecognitions: 156,
-  favorites: 23,
-  discussions: 8,
-  likes: 45
+const stats = reactive<UserStats>({
+  userId: 0,
+  recognitionCount: 0,
+  postCount: 0,
+  commentCount: 0,
+  collectCount: 0,
+  likeCount: 0
 })
 
 // 最近识别记录
@@ -351,5 +358,39 @@ function viewPost(item: any) {
 function navigateToFeature(path: string) {
   router.push(path)
 }
+
+// 加载用户信息
+async function loadUserInfo() {
+  try {
+    const profile = await UserAPI.getProfile()
+    userInfo.id = profile.id
+    userInfo.username = profile.username
+    userInfo.nickname = profile.nickname || ''
+    userInfo.avatar = profile.avatar || ''
+    userInfo.email = profile.email || ''
+    userInfo.role = profile.role
+  } catch (error) {
+    console.error('加载用户信息失败:', error)
+    // 不显示错误提示，使用默认值
+  }
+}
+
+// 加载统计数据
+async function loadStats() {
+  try {
+    const statsData = await UserAPI.getStats()
+    Object.assign(stats, statsData)
+    console.log('用户统计数据:', stats)
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    // 静默失败，使用默认值
+  }
+}
+
+// 组件挂载时加载用户信息和统计数据
+onMounted(() => {
+  loadUserInfo()
+  loadStats()
+})
 </script>
 

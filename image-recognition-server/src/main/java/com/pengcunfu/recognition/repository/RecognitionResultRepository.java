@@ -87,5 +87,26 @@ public interface RecognitionResultRepository extends BaseMapper<RecognitionResul
             WHERE user_id = #{userId}
             """)
     long countByUserId(@Param("userId") Long userId);
+
+    /**
+     * 统计用户在指定时间后的识别次数
+     */
+    @Select("""
+            SELECT COUNT(*) FROM recognition_results
+            WHERE user_id = #{userId} AND created_at >= #{startTime}
+            """)
+    long countByUserIdAndCreatedAtAfter(
+            @Param("userId") Long userId,
+            @Param("startTime") LocalDateTime startTime
+    );
+
+    /**
+     * 获取用户的平均置信度
+     */
+    @Select("""
+            SELECT AVG(confidence) FROM recognition_results
+            WHERE user_id = #{userId} AND confidence IS NOT NULL
+            """)
+    Double getAverageConfidenceByUserId(@Param("userId") Long userId);
 }
 

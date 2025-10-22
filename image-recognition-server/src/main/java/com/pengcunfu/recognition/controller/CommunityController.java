@@ -137,5 +137,39 @@ public class CommunityController {
         communityService.uncollectPost(userId, id);
         return ApiResponse.success();
     }
+
+    /**
+     * 获取帖子分类列表
+     */
+    @GetMapping("/categories")
+    public ApiResponse<java.util.List<CommunityResponse.CategoryInfo>> getCategories() {
+        log.info("获取帖子分类列表");
+        java.util.List<CommunityResponse.CategoryInfo> categories = communityService.getCategories();
+        return ApiResponse.success(categories);
+    }
+
+    /**
+     * 获取帖子标签列表
+     */
+    @GetMapping("/tags")
+    public ApiResponse<java.util.List<CommunityResponse.TagInfo>> getTags() {
+        log.info("获取帖子标签列表");
+        java.util.List<CommunityResponse.TagInfo> tags = communityService.getTags();
+        return ApiResponse.success(tags);
+    }
+
+    /**
+     * 获取当前用户发布的帖子列表
+     */
+    @Role("USER")
+    @GetMapping("/my-posts")
+    public ApiResponse<PageResponse<CommunityResponse.PostInfo>> getMyPosts(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取用户发布的帖子: userId={}, page={}, size={}", userId, page, size);
+        PageResponse<CommunityResponse.PostInfo> response = communityService.getPostsByAuthor(userId, page, size);
+        return ApiResponse.success(response);
+    }
 }
 

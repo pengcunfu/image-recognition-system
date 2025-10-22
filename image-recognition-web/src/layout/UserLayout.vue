@@ -108,13 +108,21 @@
                 <UserOutlined />
                 个人中心
               </a-menu-item>
-              <a-menu-item key="settings">
-                <SettingOutlined />
-                我的设置
+              <a-menu-item key="posts">
+                <BookOutlined />
+                我的帖子
               </a-menu-item>
               <a-menu-item key="favorites">
                 <HeartOutlined />
                 我的收藏
+              </a-menu-item>
+              <a-menu-item key="likes">
+                <LikeOutlined />
+                我的点赞
+              </a-menu-item>
+              <a-menu-item key="settings">
+                <SettingOutlined />
+                账号设置
               </a-menu-item>
               <a-menu-divider />
               <a-menu-item key="logout">
@@ -174,6 +182,7 @@ import {
   UserOutlined, 
   SettingOutlined, 
   HeartOutlined, 
+  LikeOutlined,
   LogoutOutlined
 } from '@ant-design/icons-vue'
 import { UserAPI } from '@/api/user'
@@ -258,11 +267,21 @@ function handleUserMenuClick({ key }: { key: string }) {
     case 'profile':
       router.push('/user/profile')
       break
-    case 'settings':
-      router.push('/user/settings')
+    case 'posts':
+      // 跳转到个人中心的帖子标签
+      router.push({ path: '/user/profile', query: { tab: 'posts' } })
       break
     case 'favorites':
-      router.push('/user/favorites')
+      // 跳转到个人中心的收藏标签
+      router.push({ path: '/user/profile', query: { tab: 'favorites' } })
+      break
+    case 'likes':
+      // 跳转到个人中心的点赞标签
+      router.push({ path: '/user/profile', query: { tab: 'likes' } })
+      break
+    case 'settings':
+      // 跳转到个人中心的设置标签
+      router.push({ path: '/user/profile', query: { tab: 'settings' } })
       break
     case 'logout':
       handleLogout()

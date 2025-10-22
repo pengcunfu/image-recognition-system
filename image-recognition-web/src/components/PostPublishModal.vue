@@ -121,6 +121,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { message } from 'ant-design-vue'
 import { ShareAltOutlined, QuestionCircleOutlined, CommentOutlined, PlusOutlined } from '@ant-design/icons-vue'
+import { FileAPI } from '@/api/file'
 
 // Props
 interface Props {
@@ -209,7 +210,7 @@ function handleCancel() {
   resetForm()
 }
 
-function handlePublish() {
+async function handlePublish() {
   if (!canPublish.value) {
     message.warning('请填写标题和内容')
     return
@@ -217,19 +218,39 @@ function handlePublish() {
   
   publishing.value = true
   
-  // 模拟发布过程
-  setTimeout(() => {
-    publishing.value = false
-    message.success('发布成功!')
+  try {
+    // 上传图片
+    let uploadedImageUrls: string[] = []
+    if (formData.images.length > 0) {
+      const hideLoading = message.loading('正在上传图片...', 0)
+      try {
+        // 提取原始文件对象
+        const imageFiles = formData.images
+          .map((img: any) => img.originFileObj)
+          .filter((file: any) => file instanceof File)
+        
+        if (imageFiles.length > 0) {
+          console.log('准备上传图片:', imageFiles)
+          uploadedImageUrls = await FileAPI.uploadImages(imageFiles)
+          console.log('图片上传成功:', uploadedImageUrls)
+        }
+      } catch (error) {
+        console.error('图片上传失败:', error)
+        message.error('图片上传失败，请重试')
+        return
+      } finally {
+        hideLoading()
+      }
+    }
     
     // 构造帖子数据
     const postData = {
       id: Date.now(),
       title: formData.title,
       content: formData.content,
-      type: formData.type,
+      category: formData.type, // 使用 type 作为 category
       tags: formData.tags,
-      images: formData.images.map((img: any) => img.url || img.thumbUrl),
+      images: uploadedImageUrls, // 使用上传后的URL数组
       author: {
         name: props.currentUser.name,
         avatar: props.currentUser.avatar,
@@ -244,10 +265,17 @@ function handlePublish() {
       topReplies: []
     }
     
+    console.log('发布帖子数据:', postData)
+    
     emit('publish', postData)
     visible.value = false
     resetForm()
-  }, 2000)
+  } catch (error) {
+    console.error('发布失败:', error)
+    message.error('发布失败，请重试')
+  } finally {
+    publishing.value = false
+  }
 }
 
 function handleSaveDraft() {
@@ -283,7 +311,15 @@ function beforeUpload(file: any) {
     return false
   }
   
-  return false // 阻止自动上传
+  // 创建预览URL
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    file.thumbUrl = e.target?.result
+    file.url = e.target?.result
+  }
+  reader.readAsDataURL(file)
+  
+  return false // 阻止自动上传,我们将在发布时手动上传
 }
 
 function handleRemoveImage(file: any) {

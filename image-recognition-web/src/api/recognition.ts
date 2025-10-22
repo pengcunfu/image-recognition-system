@@ -9,6 +9,9 @@ export interface RecognitionInfo {
   userId: number
   imageUrl: string
   imageName?: string
+  imageSize?: number
+  imageWidth?: number
+  imageHeight?: number
   recognitionType: number
   resultJson?: string
   mainCategory?: string
@@ -32,6 +35,16 @@ export interface RecognitionInfo {
 export interface HistoryQueryParams {
   page?: number
   size?: number
+}
+
+/**
+ * 识别统计数据
+ */
+export interface RecognitionStats {
+  total: number
+  thisMonth: number
+  averageConfidence: number
+  favorites: number
 }
 
 /**
@@ -79,6 +92,13 @@ export class RecognitionAPI {
    */
   static deleteRecognition(id: number) {
     return del<void>(`/api/recognition/${id}`)
+  }
+
+  /**
+   * 获取识别统计数据
+   */
+  static getStats() {
+    return get<RecognitionStats>('/api/recognition/stats')
   }
 }
 

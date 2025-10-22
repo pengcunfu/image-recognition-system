@@ -1,6 +1,8 @@
 package com.pengcunfu.recognition.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengcunfu.recognition.constant.ErrorCode;
 import com.pengcunfu.recognition.entity.RecognitionResult;
 import com.pengcunfu.recognition.entity.User;
@@ -17,9 +19,13 @@ import com.pengcunfu.recognition.service.redis.RateLimitService;
 import com.pengcunfu.recognition.util.DoubaoUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +44,73 @@ public class RecognitionService {
     private final UserRepository userRepository;
     private final RateLimitService rateLimitService;
     private final DoubaoUtil doubaoUtil;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
+    // 提示词缓存
+    private String quickPrompt;
+    private String detailedPrompt;
+    
+    /**
+     * 加载提示词文件
+     */
+    private String loadPrompt(String filename) {
+        try {
+            ClassPathResource resource = new ClassPathResource("prompts/" + filename);
+            return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("加载提示词文件失败: {}", filename, e);
+            return "";
+        }
+    }
+    
+    /**
+     * 获取快速识别提示词
+     */
+    private String getQuickPrompt() {
+        if (quickPrompt == null) {
+            quickPrompt = loadPrompt("image-recognition-prompt.txt");
+        }
+        return quickPrompt;
+    }
+    
+    /**
+     * 获取详细识别提示词
+     */
+    private String getDetailedPrompt() {
+        if (detailedPrompt == null) {
+            detailedPrompt = loadPrompt("image-recognition-detailed-prompt.txt");
+        }
+        return detailedPrompt;
+    }
+    
+    /**
+     * 从AI返回结果中提取JSON
+     */
+    private String extractJson(String aiResult) {
+        if (aiResult == null || aiResult.isEmpty()) {
+            return "{}";
+        }
+        
+        // 尝试找到JSON代码块
+        int jsonStart = aiResult.indexOf("```json");
+        if (jsonStart != -1) {
+            jsonStart = aiResult.indexOf("\n", jsonStart) + 1;
+            int jsonEnd = aiResult.indexOf("```", jsonStart);
+            if (jsonEnd != -1) {
+                return aiResult.substring(jsonStart, jsonEnd).trim();
+            }
+        }
+        
+        // 尝试找到大括号包裹的JSON
+        int braceStart = aiResult.indexOf("{");
+        int braceEnd = aiResult.lastIndexOf("}");
+        if (braceStart != -1 && braceEnd != -1 && braceEnd > braceStart) {
+            return aiResult.substring(braceStart, braceEnd + 1).trim();
+        }
+        
+        // 直接返回原始结果
+        return aiResult.trim();
+    }
 
     /**
      * 执行图像识别
@@ -65,6 +138,10 @@ public class RecognitionService {
         RecognitionResult result = RecognitionResult.builder()
                 .userId(userId)
                 .imageUrl(request.getImageUrl())
+                .imageName(request.getImageName())
+                .imageSize(request.getImageSize())
+                .imageWidth(request.getImageWidth())
+                .imageHeight(request.getImageHeight())
                 .recognitionType(request.getRecognitionType() != null && request.getRecognitionType() == 1
                         ? RecognitionType.DETAILED.getValue() 
                         : RecognitionType.QUICK.getValue())
@@ -74,29 +151,100 @@ public class RecognitionService {
         recognitionResultRepository.insert(result);
 
         try {
-            // 调用 AI 识别服务
+            long startTime = System.currentTimeMillis();
+            
+            // 调用 AI 识别服务，使用预定义的提示词
             boolean isDetailed = request.getRecognitionType() != null && request.getRecognitionType() == 1;
-            String prompt = isDetailed 
-                    ? "请详细分析这张图片，包括主要对象、特征、场景、颜色等详细信息" 
-                    : "请快速识别这张图片中的主要对象";
-            String aiResult = doubaoUtil.recognizeImage(
-                    request.getImageUrl(),
-                    prompt
-            );
+            String prompt = isDetailed ? getDetailedPrompt() : getQuickPrompt();
+            
+            log.info("使用提示词类型: {}", isDetailed ? "详细" : "快速");
+            String aiResult = doubaoUtil.recognizeImage(request.getImageUrl(), prompt);
+            
+            // 提取JSON格式结果
+            String jsonResult = extractJson(aiResult);
+            log.info("提取的JSON结果: {}", jsonResult);
+            
+            // 解析 AI 返回的 JSON
+            String category = "未分类";
+            String name = "未知";
+            BigDecimal confidence = new BigDecimal("0.0");
+            String tags = "";
+            String description = "";
+            
+            try {
+                JsonNode jsonNode = objectMapper.readTree(jsonResult);
+                
+                // 提取主类别和名称
+                if (jsonNode.has("category")) {
+                    category = jsonNode.get("category").asText();
+                }
+                if (jsonNode.has("name")) {
+                    name = jsonNode.get("name").asText();
+                }
+                
+                // 提取置信度
+                if (jsonNode.has("confidence")) {
+                    double conf = jsonNode.get("confidence").asDouble();
+                    confidence = new BigDecimal(String.valueOf(conf));
+                }
+                
+                // 提取标签
+                if (jsonNode.has("attributes")) {
+                    JsonNode attributesNode = jsonNode.get("attributes");
+                    if (attributesNode.isArray()) {
+                        List<String> tagList = new ArrayList<>();
+                        attributesNode.forEach(node -> tagList.add(node.asText()));
+                        tags = String.join(",", tagList);
+                    }
+                }
+                
+                // 提取描述信息
+                StringBuilder desc = new StringBuilder();
+                if (jsonNode.has("color")) {
+                    desc.append("颜色: ").append(jsonNode.get("color").asText()).append("; ");
+                }
+                if (jsonNode.has("shape")) {
+                    desc.append("形状: ").append(jsonNode.get("shape").asText()).append("; ");
+                }
+                if (jsonNode.has("material")) {
+                    desc.append("材质: ").append(jsonNode.get("material").asText()).append("; ");
+                }
+                
+                // 详细识别模式下的额外信息
+                if (isDetailed) {
+                    if (jsonNode.has("background")) {
+                        desc.append("背景: ").append(jsonNode.get("background").asText()).append("; ");
+                    }
+                    if (jsonNode.has("environment")) {
+                        desc.append("环境: ").append(jsonNode.get("environment").asText()).append("; ");
+                    }
+                    if (jsonNode.has("lighting")) {
+                        desc.append("光线: ").append(jsonNode.get("lighting").asText()).append("; ");
+                    }
+                }
+                
+                description = desc.toString();
+                
+            } catch (Exception e) {
+                log.error("解析AI返回的JSON失败", e);
+                // 如果解析失败，使用默认值，但保留原始JSON
+            }
+            
+            long processingTime = System.currentTimeMillis() - startTime;
 
-            // 更新识别结果（简化处理，实际应解析 AI 返回的 JSON）
-            result.setResultJson(aiResult);
-            result.setMainCategory("未分类"); // 从 AI 结果中解析
-            result.setConfidence(new java.math.BigDecimal("0.95")); // 从 AI 结果中解析
-            result.setTags("标签1,标签2"); // 从 AI 结果中解析
-            result.setDescription("识别描述"); // 从 AI 结果中解析
+            // 更新识别结果
+            result.setResultJson(jsonResult);
+            result.setMainCategory(name); // 使用识别出的具体名称作为主类别
+            result.setConfidence(confidence);
+            result.setTags(tags);
+            result.setDescription(description);
             result.setStatus(RecognitionStatus.SUCCESS.getValue());
-            result.setProcessingTime(100); // 计算实际耗时
+            result.setProcessingTime((int) processingTime);
 
             recognitionResultRepository.updateById(result);
 
-            log.info("图像识别成功: userId={}, resultId={}, category={}", 
-                    userId, result.getId(), result.getMainCategory());
+            log.info("图像识别成功: userId={}, resultId={}, category={}, name={}, confidence={}, time={}ms", 
+                    userId, result.getId(), category, name, confidence, processingTime);
 
             return convertToRecognitionInfo(result);
 
@@ -167,6 +315,39 @@ public class RecognitionService {
     }
 
     /**
+     * 获取识别统计数据
+     */
+    public RecognitionResponse.RecognitionStats getRecognitionStats(Long userId) {
+        log.info("获取识别统计数据: userId={}", userId);
+
+        // 获取总识别次数
+        Long total = recognitionResultRepository.countByUserId(userId);
+
+        // 获取本月识别次数
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        Long thisMonth = recognitionResultRepository.countByUserIdAndCreatedAtAfter(userId, startOfMonth);
+
+        // 计算平均置信度
+        Double averageConfidence = recognitionResultRepository.getAverageConfidenceByUserId(userId);
+        if (averageConfidence == null) {
+            averageConfidence = 0.0;
+        } else {
+            // 转换为百分比
+            averageConfidence = averageConfidence * 100;
+        }
+
+        // 收藏数量（暂时返回0，等待收藏功能实现）
+        Long favorites = 0L;
+
+        return RecognitionResponse.RecognitionStats.builder()
+                .total(total)
+                .thisMonth(thisMonth)
+                .averageConfidence(averageConfidence)
+                .favorites(favorites)
+                .build();
+    }
+
+    /**
      * 转换为识别信息 DTO
      */
     private RecognitionResponse.RecognitionInfo convertToRecognitionInfo(RecognitionResult result) {
@@ -175,6 +356,9 @@ public class RecognitionService {
                 .userId(result.getUserId())
                 .imageUrl(result.getImageUrl())
                 .imageName(result.getImageName())
+                .imageSize(result.getImageSize())
+                .imageWidth(result.getImageWidth())
+                .imageHeight(result.getImageHeight())
                 .mainCategory(result.getMainCategory())
                 .category(result.getMainCategory())
                 .confidence(result.getConfidence())

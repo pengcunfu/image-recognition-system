@@ -48,5 +48,62 @@ public interface UserCollectRepository extends BaseMapper<UserCollect> {
             WHERE user_id = #{userId}
             """)
     long countByUserId(@Param("userId") Long userId);
+
+    /**
+     * 获取用户收藏的识别结果
+     */
+    @Select("""
+            SELECT rr.id, rr.main_category as title, rr.description, rr.image_url as imageUrl,
+                   rr.confidence, rr.created_at as createdAt
+            FROM user_collects uc
+            JOIN recognition_results rr ON uc.target_id = rr.id
+            WHERE uc.user_id = #{userId} AND uc.target_type = 0
+            ORDER BY uc.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+            """)
+    java.util.List<java.util.Map<String, Object>> findRecognitionsByUserId(
+            @Param("userId") Long userId,
+            @Param("page") Integer page,
+            @Param("size") Integer size,
+            @Param("offset") Integer offset
+    );
+
+    /**
+     * 获取用户收藏的帖子
+     */
+    @Select("""
+            SELECT cp.id, cp.title, cp.content, cp.images,
+                   cp.like_count as likeCount, cp.view_count as viewCount, cp.created_at as createdAt
+            FROM user_collects uc
+            JOIN community_posts cp ON uc.target_id = cp.id
+            WHERE uc.user_id = #{userId} AND uc.target_type = 1
+            ORDER BY uc.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+            """)
+    java.util.List<java.util.Map<String, Object>> findPostsByUserId(
+            @Param("userId") Long userId,
+            @Param("page") Integer page,
+            @Param("size") Integer size,
+            @Param("offset") Integer offset
+    );
+
+    /**
+     * 获取用户收藏的知识
+     */
+    @Select("""
+            SELECT k.id, k.title, k.content as description, k.cover_image as coverImage,
+                   k.like_count as likeCount, k.view_count as viewCount, k.created_at as createdAt
+            FROM user_collects uc
+            JOIN knowledge k ON uc.target_id = k.id
+            WHERE uc.user_id = #{userId} AND uc.target_type = 2
+            ORDER BY uc.created_at DESC
+            LIMIT #{size} OFFSET #{offset}
+            """)
+    java.util.List<java.util.Map<String, Object>> findKnowledgeByUserId(
+            @Param("userId") Long userId,
+            @Param("page") Integer page,
+            @Param("size") Integer size,
+            @Param("offset") Integer offset
+    );
 }
 

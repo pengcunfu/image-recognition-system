@@ -25,9 +25,9 @@ public class CommunityRequest {
 
         private String category;
 
-        private String tags;
+        private java.util.List<String> tags;
 
-        private String images;
+        private java.util.List<String> images;
         
         private Integer status; // 帖子状态: 0-草稿, 1-已发布, 2-待审核, 4-已隐藏
     }
@@ -40,8 +40,8 @@ public class CommunityRequest {
         private String title;
         private String content;
         private String category;
-        private String tags;
-        private String images;
+        private java.util.List<String> tags;
+        private java.util.List<String> images;
         private Integer status; // 帖子状态
     }
 

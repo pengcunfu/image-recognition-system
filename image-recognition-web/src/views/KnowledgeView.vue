@@ -35,9 +35,9 @@
           <!-- 知识列表（按分类） -->
           <a-card :loading="loading && categories.length === 0" :style="{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
             <a-tabs v-model:activeKey="activeCategory" @change="handleCategoryChange" :style="{ marginTop: '-8px' }">
-              <a-tab-pane key="all" tab="📚 全部">
+              <a-tab-pane key="" tab="📚 全部">
                 <a-spin :spinning="loading">
-                  <a-empty v-if="knowledgeData.length === 0" description="暂无知识条目" />
+                  <a-empty v-if="!loading && knowledgeData.length === 0" description="暂无知识条目" />
                   <a-row v-else :gutter="[16, 16]">
                     <a-col :xs="24" :sm="12" :lg="8" v-for="item in knowledgeData" :key="item.id">
                       <div 
@@ -115,14 +115,14 @@
                 </a-spin>
               </a-tab-pane>
               <a-tab-pane 
-                v-for="cat in categories.filter(c => c.key !== 'all')" 
-                :key="cat.key" 
-                :tab="cat.name"
+                v-for="cat in categories" 
+                :key="cat" 
+                :tab="cat"
               >
                 <a-spin :spinning="loading">
-                  <a-empty v-if="getKnowledgeByCategory(cat.name).length === 0" description="暂无知识条目" />
+                  <a-empty v-if="!loading && getKnowledgeByCategory(cat).length === 0" description="暂无知识条目" />
                   <a-row v-else :gutter="[16, 16]">
-                    <a-col :xs="24" :sm="12" :lg="8" v-for="item in getKnowledgeByCategory(cat.name)" :key="item.id">
+                    <a-col :xs="24" :sm="12" :lg="8" v-for="item in getKnowledgeByCategory(cat)" :key="item.id">
                       <div 
                         :style="{ 
                           borderRadius: '12px', 
@@ -327,20 +327,11 @@ import { FileAPI } from '@/api/file'
 
 const router = useRouter()
 const searchKeyword = ref('')
-const activeCategory = ref('all')
+const activeCategory = ref('')
 const loading = ref(false)
 
-// 本地分类接口定义
-interface LocalCategory {
-  id: number
-  key: string
-  name: string
-  icon: string
-  itemCount?: number
-}
-
-// 分类数据
-const categories = ref<LocalCategory[]>([])
+// 分类数据（简化为字符串数组）
+const categories = ref<string[]>([])
 
 // 扩展的知识条目类型（包含前端显示属性）
 interface ExtendedKnowledgeItem extends KnowledgeInfo {
@@ -362,32 +353,21 @@ const hotKnowledge = ref<ExtendedKnowledgeItem[]>([])
 // 最新知识
 const latestKnowledge = ref<ExtendedKnowledgeItem[]>([])
 
-// 分类图标映射
-const categoryIcons: Record<string, string> = {
-  'animals': 'fas fa-paw',
-  'plants': 'fas fa-leaf',
-  'food': 'fas fa-apple-alt',
-  'vehicles': 'fas fa-car',
-  'buildings': 'fas fa-building',
-  'objects': 'fas fa-cube',
-  'nature': 'fas fa-tree',
-  'tools': 'fas fa-wrench'
-}
-
-// 加载分类数据（使用本地静态数据）
-function loadCategories() {
-  // 使用本地预定义的分类数据
-  categories.value = [
-    { id: 1, key: 'animals', name: '动物', icon: categoryIcons['animals'], itemCount: 0 },
-    { id: 2, key: 'plants', name: '植物', icon: categoryIcons['plants'], itemCount: 0 },
-    { id: 3, key: 'food', name: '食物', icon: categoryIcons['food'], itemCount: 0 },
-    { id: 4, key: 'vehicles', name: '交通工具', icon: categoryIcons['vehicles'], itemCount: 0 },
-    { id: 5, key: 'buildings', name: '建筑', icon: categoryIcons['buildings'], itemCount: 0 },
-    { id: 6, key: 'objects', name: '物品', icon: categoryIcons['objects'], itemCount: 0 },
-    { id: 7, key: 'nature', name: '自然', icon: categoryIcons['nature'], itemCount: 0 },
-    { id: 8, key: 'tools', name: '工具', icon: categoryIcons['tools'], itemCount: 0 }
-  ]
-  console.log('分类加载成功:', categories.value)
+// 加载分类数据（从服务器获取）
+async function loadCategories() {
+  try {
+    const categoryNames = await KnowledgeAPI.getCategories()
+    console.log('从服务器获取的分类:', categoryNames)
+    
+    categories.value = categoryNames
+    
+    console.log('分类加载成功:', categories.value)
+  } catch (error: any) {
+    console.error('加载分类失败:', error)
+    message.error(error.message || '加载分类失败')
+    // 如果加载失败，使用默认分类
+    categories.value = []
+  }
 }
 
 // 加载知识库数据（按分类）
@@ -414,9 +394,6 @@ async function loadKnowledgeByCategory(categoryKey?: string) {
       views: item.viewCount || 0,
       likes: item.likeCount || 0
     }))
-    
-    // 更新分类计数
-    updateCategoryCount()
     
     console.log('知识数据加载成功:', knowledgeData.value.length, '条')
   } catch (error: any) {
@@ -493,20 +470,6 @@ function formatDate(dateStr: string): string {
   }
 }
 
-// 更新分类计数
-function updateCategoryCount() {
-  categories.value.forEach(cat => {
-    const count = knowledgeData.value.filter(item => item.category === cat.name).length
-    ;(cat as any).itemCount = count
-  })
-}
-
-// 根据分类key获取分类名称
-function getCategoryNameByKey(categoryKey: string): string {
-  const category = categories.value.find(cat => cat.key === categoryKey)
-  return category?.name || '未分类'
-}
-
 // 根据分类获取知识
 function getKnowledgeByCategory(categoryName: string): ExtendedKnowledgeItem[] {
   return knowledgeData.value.filter(item => item.category === categoryName)
@@ -557,7 +520,7 @@ async function handleSearch() {
     }))
     
     // 切换到全部标签页显示搜索结果
-    activeCategory.value = 'all'
+    activeCategory.value = ''
     
     message.success(`找到 ${response.total || records.length} 条相关知识`)
   } catch (error: any) {
@@ -568,18 +531,19 @@ async function handleSearch() {
   }
 }
 
-function handleCategoryChange(key: string) {
-  activeCategory.value = key
-  if (key === 'all') {
+function handleCategoryChange(categoryName: string) {
+  activeCategory.value = categoryName
+  // 如果是空字符串(全部),不传分类参数
+  if (categoryName === '') {
     loadKnowledgeByCategory()
   } else {
-    loadKnowledgeByCategory(key)
+    loadKnowledgeByCategory(categoryName)
   }
 }
 
-function selectCategory(key: string) {
-  activeCategory.value = key
-  handleCategoryChange(key)
+function selectCategory(categoryName: string) {
+  activeCategory.value = categoryName
+  handleCategoryChange(categoryName)
 }
 
 function viewKnowledge(item: any) {

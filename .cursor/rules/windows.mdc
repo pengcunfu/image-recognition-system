@@ -1,0 +1,13 @@
+---
+alwaysApply: true
+---
+## Windows 开发环境规范
+
+本项目在 Windows 平台上开发,所有系统命令使用 PowerShell 语法。
+
+### 命令规范
+
+- 使用 PowerShell 语法,而非 Linux/Unix 命令
+- 路径分隔符: 使用反斜杠 `\` 或正斜杠 `/`(PowerShell 兼容)
+- 命令连接: 避免使用 `&&` 连接符,使用分号 `;` 或分别执行
+- 文件操作: 使用 PowerShell cmdlet

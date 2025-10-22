@@ -69,5 +69,31 @@ public class UserController {
         UserResponse.UserStats stats = userService.getUserStats(userId);
         return ApiResponse.success(stats);
     }
+
+    /**
+     * 获取用户收藏列表
+     */
+    @GetMapping("/collects")
+    public ApiResponse<UserResponse.UserCollections> getUserCollections(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取用户收藏列表: userId={}, page={}, size={}", userId, page, size);
+        UserResponse.UserCollections collections = userService.getUserCollections(userId, page, size);
+        return ApiResponse.success(collections);
+    }
+
+    /**
+     * 获取用户点赞列表
+     */
+    @GetMapping("/likes")
+    public ApiResponse<UserResponse.UserLikes> getUserLikes(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取用户点赞列表: userId={}, page={}, size={}", userId, page, size);
+        UserResponse.UserLikes likes = userService.getUserLikes(userId, page, size);
+        return ApiResponse.success(likes);
+    }
 }
 

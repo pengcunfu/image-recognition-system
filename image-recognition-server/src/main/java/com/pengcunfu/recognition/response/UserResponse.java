@@ -75,4 +75,66 @@ public class UserResponse {
         private Long collectCount;
         private Long likeCount;
     }
+
+    /**
+     * 用户收藏列表
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserCollections {
+        private java.util.List<CollectionItem> recognitions;
+        private java.util.List<CollectionItem> posts;
+        private java.util.List<CollectionItem> knowledge;
+    }
+
+    /**
+     * 收藏项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CollectionItem {
+        private Long id;
+        private String type; // recognition, post, knowledge
+        private String title;
+        private String description;
+        private String imageUrl;
+        private Integer confidence; // 仅识别结果有
+        private Integer likeCount; // 帖子/知识有
+        private Integer viewCount; // 帖子/知识有
+        private LocalDateTime createdAt;
+    }
+
+    /**
+     * 用户点赞列表
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserLikes {
+        private java.util.List<LikeItem> posts;
+        private java.util.List<LikeItem> knowledge;
+        private java.util.List<LikeItem> comments;
+    }
+
+    /**
+     * 点赞项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LikeItem {
+        private Long id;
+        private String type; // post, knowledge, comment
+        private String title;
+        private String content;
+        private String author;
+        private Integer likeCount;
+        private LocalDateTime createdAt;
+    }
 }

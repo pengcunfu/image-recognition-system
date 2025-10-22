@@ -15,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 /**
@@ -57,6 +60,20 @@ public class RecognitionController {
                 throw new BusinessException(ErrorCode.INVALID_PARAM, "文件大小不能超过 10MB");
             }
             
+            // 获取图片尺寸
+            Integer imageWidth = null;
+            Integer imageHeight = null;
+            try {
+                BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+                if (image != null) {
+                    imageWidth = image.getWidth();
+                    imageHeight = image.getHeight();
+                    log.info("图片尺寸: {}x{}", imageWidth, imageHeight);
+                }
+            } catch (Exception e) {
+                log.warn("获取图片尺寸失败: {}", e.getMessage());
+            }
+            
             // 直接上传到 TOS
             String imageUrl = tosUtil.uploadFile(file, "recognition");
             log.info("文件上传成功: userId={}, imageUrl={}", userId, imageUrl);
@@ -65,6 +82,10 @@ public class RecognitionController {
             RecognitionRequest.ImageRecognitionRequest request = new RecognitionRequest.ImageRecognitionRequest();
             request.setRecognitionType(recognitionType);
             request.setImageUrl(imageUrl);
+            request.setImageSize((int) file.getSize());
+            request.setImageWidth(imageWidth);
+            request.setImageHeight(imageHeight);
+            request.setImageName(file.getOriginalFilename());
             
             // 执行识别
             RecognitionResponse.RecognitionInfo result = recognitionService.recognizeImage(userId, request);
@@ -114,6 +135,17 @@ public class RecognitionController {
         log.info("删除识别记录: userId={}, id={}", userId, id);
         recognitionService.deleteRecognitionResult(userId, id);
         return ApiResponse.success();
+    }
+
+    /**
+     * 获取识别统计数据
+     */
+    @GetMapping("/stats")
+    public ApiResponse<RecognitionResponse.RecognitionStats> getStats() {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取识别统计数据: userId={}", userId);
+        RecognitionResponse.RecognitionStats stats = recognitionService.getRecognitionStats(userId);
+        return ApiResponse.success(stats);
     }
 
     /**

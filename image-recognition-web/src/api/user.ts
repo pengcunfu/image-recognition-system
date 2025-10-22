@@ -5,20 +5,12 @@ import type { UserInfo } from './types'
  * 用户统计信息
  */
 export interface UserStats {
-  totalRecognitions: number
-  totalUploads: number
-  totalFavorites: number
-  totalShares: number
-  joinDays: number
-  lastActiveTime: string
-  monthlyUsage: {
-    recognitions: number
-    uploads: number
-  }
-  weeklyActivity: Array<{
-    date: string
-    count: number
-  }>
+  userId: number
+  recognitionCount: number
+  postCount: number
+  commentCount: number
+  collectCount: number
+  likeCount: number
 }
 
 /**
@@ -38,6 +30,52 @@ export interface ChangePasswordRequest {
   oldPassword: string
   newPassword: string
   confirmPassword?: string
+}
+
+/**
+ * 收藏项
+ */
+export interface CollectionItem {
+  id: number
+  type: string // recognition, post, knowledge
+  title: string
+  description?: string
+  imageUrl?: string
+  confidence?: number
+  likeCount?: number
+  viewCount?: number
+  createdAt: string
+}
+
+/**
+ * 用户收藏列表
+ */
+export interface UserCollections {
+  recognitions: CollectionItem[]
+  posts: CollectionItem[]
+  knowledge: CollectionItem[]
+}
+
+/**
+ * 点赞项
+ */
+export interface LikeItem {
+  id: number
+  type: string // post, knowledge, comment
+  title: string
+  content: string
+  author: string
+  likeCount: number
+  createdAt: string
+}
+
+/**
+ * 用户点赞列表
+ */
+export interface UserLikes {
+  posts: LikeItem[]
+  knowledge: LikeItem[]
+  comments: LikeItem[]
 }
 
 /**
@@ -70,6 +108,20 @@ export class UserAPI {
    */
   static getStats() {
     return get<UserStats>('/api/user/stats')
+  }
+
+  /**
+   * 获取用户收藏列表
+   */
+  static getCollections(params: { page?: number; size?: number }) {
+    return get<UserCollections>('/api/user/collects', params)
+  }
+
+  /**
+   * 获取用户点赞列表
+   */
+  static getLikes(params: { page?: number; size?: number }) {
+    return get<UserLikes>('/api/user/likes', params)
   }
 }
 

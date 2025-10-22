@@ -73,7 +73,7 @@
           overflow: 'hidden', 
           cursor: 'pointer',
           width: '100%',
-          aspectRatio: '16/9'
+          height: '160px'
         }"
         @click="handlePreviewImage"
       >
@@ -88,6 +88,12 @@
           }"
         />
       </div>
+      
+      <!-- 无图片时的占位空间 -->
+      <div 
+        v-if="!post.images?.length" 
+        :style="{ height: '172px', marginBottom: '12px' }"
+      ></div>
       
       <!-- 标签 -->
       <div 
@@ -111,7 +117,7 @@
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        paddingTop: '16px', 
+        paddingTop: '12px', 
         borderTop: '1px solid #f0f0f0' 
       }">
         <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">

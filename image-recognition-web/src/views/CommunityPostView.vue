@@ -130,62 +130,42 @@
             >
               <!-- 作者信息 -->
               <div :style="{ padding: '12px 12px 8px 12px' }">
-                <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', height: '32px' }">
-                  <a-avatar :src="post.author.avatar" :size="24">
-                    {{ post.author.name.charAt(0) }}
-                  </a-avatar>
-                  <div :style="{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">
-                    <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '16px', marginBottom: '2px' }">
-                      <span :style="{ 
-                        fontWeight: 600, 
-                        color: '#262626', 
-                        fontSize: '13px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '120px'
-                      }">{{ post.author.name }}</span>
-                      <a-tag 
-                        v-if="post.author.level" 
-                        :color="getLevelColor(post.author.level)" 
-                        size="small" 
-                        :style="{ 
-                          fontSize: '10px', 
-                          padding: '0 6px', 
-                          height: '16px', 
-                          lineHeight: '16px',
-                          borderRadius: '8px',
-                          transform: 'scale(0.9)',
-                          transformOrigin: 'left center'
-                        }"
-                      >
-                        {{ post.author.level }}
-                      </a-tag>
-                    </div>
-                    <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '14px' }">
-                      <span :style="{ 
-                        fontSize: '11px', 
-                        color: '#8c8c8c',
-                        lineHeight: '14px'
-                      }">{{ post.createTime }}</span>
-                      <span :style="{ color: '#d9d9d9', fontSize: '10px' }">•</span>
-                      <a-tag 
-                        :color="getTypeColor(post.type)" 
-                        size="small" 
-                        :style="{ 
-                          fontSize: '10px', 
-                          padding: '0 4px', 
-                          height: '14px', 
-                          lineHeight: '14px',
-                          borderRadius: '6px',
-                          transform: 'scale(0.85)',
-                          transformOrigin: 'left center'
-                        }"
-                      >
-                        {{ getTypeName(post.type) }}
-                      </a-tag>
-                    </div>
+                <div :style="{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '28px' }">
+                  <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }">
+                    <a-avatar :src="post.author.avatar" :size="24">
+                      {{ post.author.name.charAt(0) }}
+                    </a-avatar>
+                    <span :style="{ 
+                      fontWeight: 600, 
+                      color: '#262626', 
+                      fontSize: '13px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      maxWidth: '100px'
+                    }">{{ post.author.name }}</span>
+                    <a-tag 
+                      v-if="post.author.level" 
+                      :color="getLevelColor(post.author.level)" 
+                      size="small" 
+                      :style="{ 
+                        fontSize: '10px', 
+                        padding: '0 6px', 
+                        height: '16px', 
+                        lineHeight: '16px',
+                        borderRadius: '8px',
+                        transform: 'scale(0.9)',
+                        transformOrigin: 'left center'
+                      }"
+                    >
+                      {{ post.author.level }}
+                    </a-tag>
                   </div>
+                  <span :style="{ 
+                    fontSize: '11px', 
+                    color: '#8c8c8c',
+                    flexShrink: 0
+                  }">{{ post.createTime }}</span>
                 </div>
               </div>
 
@@ -245,22 +225,36 @@
                 />
               </div>
 
-              <!-- 标签 -->
-              <div 
-                v-if="post.tags?.length" 
-                :style="{ padding: '0 12px 12px 12px' }"
-              >
-                <div :style="{ display: 'flex', flexWrap: 'wrap', gap: '4px', height: '24px', overflow: 'hidden' }">
+              <!-- 标签和帖子类型 -->
+              <div :style="{ padding: '0 12px 12px 12px' }">
+                <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '24px' }">
+                  <div :style="{ display: 'flex', flexWrap: 'wrap', gap: '4px', flex: 1, minWidth: 0, overflow: 'hidden' }">
+                    <a-tag 
+                      v-for="tag in post.tags?.slice(0, 2)" 
+                      :key="tag"
+                      size="small"
+                      :style="{ cursor: 'pointer', transition: 'all 0.3s', borderRadius: '8px', fontSize: '12px' }"
+                      @click.stop="searchByTag(tag)"
+                    >
+                      {{ tag }}
+                    </a-tag>
+                    <span v-if="(post.tags?.length || 0) > 2" :style="{ color: '#999', fontSize: '12px', alignSelf: 'center' }">+{{ (post.tags?.length || 0) - 2 }}</span>
+                  </div>
                   <a-tag 
-                    v-for="tag in post.tags.slice(0, 3)" 
-                    :key="tag"
-                    size="small"
-                    :style="{ cursor: 'pointer', transition: 'all 0.3s', borderRadius: '8px', fontSize: '12px' }"
-                    @click.stop="searchByTag(tag)"
+                    :color="getTypeColor(post.type)" 
+                    size="small" 
+                    :style="{ 
+                      fontSize: '10px', 
+                      padding: '0 6px', 
+                      height: '20px', 
+                      lineHeight: '20px',
+                      borderRadius: '6px',
+                      flexShrink: 0,
+                      marginLeft: '8px'
+                    }"
                   >
-                    {{ tag }}
+                    {{ getTypeName(post.type) }}
                   </a-tag>
-                  <span v-if="post.tags.length > 3" :style="{ color: '#999', fontSize: '12px', alignSelf: 'center' }">+{{ post.tags.length - 3 }}</span>
                 </div>
               </div>
 
@@ -360,7 +354,6 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import PostPublishModal from '@/components/PostPublishModal.vue'
-import PostCard from '@/components/PostCard.vue'
 import { CommunityAPI, type CreatePostRequest, type CategoryInfo, type TagInfo } from '@/api/community'
 import { ImageUtils } from '@/utils/image'
 

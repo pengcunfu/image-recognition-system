@@ -36,33 +36,33 @@
       >
         <a-menu-item key="/user/dashboard">
           <template #icon>
-            <HomeOutlined />
+            <HomeOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
           </template>
-          首页
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">首页</span>
         </a-menu-item>
         <a-menu-item key="/user/recognition">
           <template #icon>
-            <CameraOutlined />
+            <CameraOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
           </template>
-          图像识别
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">图像识别</span>
         </a-menu-item>
         <a-menu-item key="/user/knowledge">
           <template #icon>
-            <BookOutlined />
+            <BookOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
           </template>
-          知识库
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">知识库</span>
         </a-menu-item>
         <a-menu-item key="/user/community">
           <template #icon>
-            <TeamOutlined />
+            <TeamOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
           </template>
-          社区
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">社区</span>
         </a-menu-item>
         <a-menu-item key="/user/history">
           <template #icon>
-            <HistoryOutlined />
+            <HistoryOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
           </template>
-          历史记录
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">历史记录</span>
         </a-menu-item>
         
         <!-- VIP专享功能菜单（一级菜单） -->

@@ -96,20 +96,10 @@
       <!-- 帖子列表 -->
       <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
         <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
-        <div v-else :style="{ 
-          columnCount: 'auto',
-          columnWidth: '280px',
-          columnGap: '16px',
-          columnFill: 'balance'
-        }">
+        <div v-else :style="layoutStyle">
           <div 
             v-for="post in filteredPosts"
             :key="post.id"
-            :style="{ 
-              breakInside: 'avoid',
-              marginBottom: '16px',
-              width: '100%'
-            }"
           >
             <div 
               :style="{ 
@@ -350,7 +340,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import PostPublishModal from '@/components/PostPublishModal.vue'
@@ -387,6 +377,7 @@ const selectedTag = ref('')
 const loading = ref(false)
 const publishModalVisible = ref(false)
 const showAdvancedSearch = ref(false)
+const windowWidth = ref(window.innerWidth || 1200)
 
 // 分页参数
 const pagination = reactive({
@@ -534,6 +525,35 @@ const filteredPosts = computed(() => {
   }
 
   return result
+})
+
+// 响应式布局样式
+const layoutStyle = computed(() => {
+  // 根据屏幕宽度动态调整列宽，保持间距不变
+  const screenWidth = windowWidth.value
+  let minColumnWidth = 280
+  
+  if (screenWidth >= 1920) {
+    // 超大屏幕：更大的卡片
+    minColumnWidth = 320
+  } else if (screenWidth >= 1440) {
+    // 大屏幕：标准大小
+    minColumnWidth = 300
+  } else if (screenWidth >= 1024) {
+    // 中等屏幕：标准大小
+    minColumnWidth = 280
+  } else {
+    // 小屏幕：稍小的卡片
+    minColumnWidth = 260
+  }
+  
+  return {
+    display: 'grid',
+    gridTemplateColumns: `repeat(auto-fill, minmax(${minColumnWidth}px, 1fr))`,
+    gap: '16px',
+    width: '100%',
+    alignItems: 'start'
+  }
 })
 
 // 方法
@@ -751,11 +771,24 @@ function selectTag(tagName: string) {
   loadPosts()
 }
 
+// 窗口大小变化处理
+function handleResize() {
+  windowWidth.value = window.innerWidth
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   loadCategories()
   loadTags()
   loadPosts()
+  
+  // 添加窗口大小变化监听
+  window.addEventListener('resize', handleResize)
+})
+
+// 组件卸载时清理监听器
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 // 辅助函数：安全设置元素样式

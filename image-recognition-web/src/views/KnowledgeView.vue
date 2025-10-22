@@ -30,11 +30,24 @@
           <!-- 知识列表（按分类） -->
           <a-card :loading="loading && categories.length === 0" :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
             <a-tabs v-model:activeKey="activeCategory" @change="handleCategoryChange" :style="{ marginTop: '-8px' }">
-              <a-tab-pane key="" tab="📚 全部">
+              <a-tab-pane key="" tab="全部">
                 <a-spin :spinning="loading">
                   <a-empty v-if="!loading && knowledgeData.length === 0" description="暂无知识条目" />
-                  <a-row v-else :gutter="[16, 16]">
-                    <a-col :xs="24" :sm="12" :lg="8" v-for="item in knowledgeData" :key="item.id">
+                  <div v-else :style="{ 
+                    columnCount: 'auto',
+                    columnWidth: '280px',
+                    columnGap: '16px',
+                    columnFill: 'balance'
+                  }">
+                    <div 
+                      v-for="item in knowledgeData" 
+                      :key="item.id"
+                      :style="{ 
+                        breakInside: 'avoid',
+                        marginBottom: '16px',
+                        width: '100%'
+                      }"
+                    >
                       <div 
                         :style="{ 
                           borderRadius: '8px', 
@@ -75,7 +88,7 @@
                             @mouseleave="(e) => setStyle(e, 'transform', 'scale(1)')"
                           />
                         </div>
-                        <div :style="{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }">
+                        <div :style="{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }">
                           <h3 :style="{ 
                             margin: 0, 
                             fontSize: '16px', 
@@ -105,8 +118,8 @@
                           </div>
                         </div>
                       </div>
-                    </a-col>
-                  </a-row>
+                    </div>
+                  </div>
                 </a-spin>
               </a-tab-pane>
               <a-tab-pane 
@@ -116,8 +129,21 @@
               >
                 <a-spin :spinning="loading">
                   <a-empty v-if="!loading && getKnowledgeByCategory(cat).length === 0" description="暂无知识条目" />
-                  <a-row v-else :gutter="[16, 16]">
-                    <a-col :xs="24" :sm="12" :lg="8" v-for="item in getKnowledgeByCategory(cat)" :key="item.id">
+                  <div v-else :style="{ 
+                    columnCount: 'auto',
+                    columnWidth: '280px',
+                    columnGap: '16px',
+                    columnFill: 'balance'
+                  }">
+                    <div 
+                      v-for="item in getKnowledgeByCategory(cat)" 
+                      :key="item.id"
+                      :style="{ 
+                        breakInside: 'avoid',
+                        marginBottom: '16px',
+                        width: '100%'
+                      }"
+                    >
                       <div 
                         :style="{ 
                           borderRadius: '8px', 
@@ -158,7 +184,7 @@
                             @mouseleave="(e) => setStyle(e, 'transform', 'scale(1)')"
                           />
                         </div>
-                        <div :style="{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }">
+                        <div :style="{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }">
                           <h3 :style="{ 
                             margin: 0, 
                             fontSize: '16px', 
@@ -188,8 +214,8 @@
                           </div>
                         </div>
                       </div>
-                    </a-col>
-                  </a-row>
+                    </div>
+                  </div>
                 </a-spin>
               </a-tab-pane>
             </a-tabs>

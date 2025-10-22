@@ -30,11 +30,10 @@
       </a-upload-dragger>
 
       <!-- 批量操作 -->
-      <div v-if="fileList.length > 0" class="batch-actions">
-        <div class="action-buttons">
+      <div v-if="fileList.length > 0" :style="{ marginTop: '16px' }">
+        <div :style="{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }">
           <a-button 
-            type="primary" 
-            size="large"
+            type="primary"
             :loading="processing"
             @click="startBatchRecognition"
             :disabled="fileList.length === 0"
@@ -59,10 +58,10 @@
         </div>
         
         <!-- 进度条 -->
-        <div v-if="processing" class="progress-section">
-          <div class="progress-info">
+        <div v-if="processing" :style="{ padding: '12px', background: '#fafafa', borderRadius: '8px' }">
+          <div :style="{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }">
             <span>处理进度：{{ uploadedCount }} / {{ fileList.length }}</span>
-            <span>{{ Math.round((uploadedCount / fileList.length) * 100) }}%</span>
+            <span :style="{ fontWeight: '600', color: '#1890ff' }">{{ Math.round((uploadedCount / fileList.length) * 100) }}%</span>
           </div>
           <a-progress 
             :percent="Math.round((uploadedCount / fileList.length) * 100)"
@@ -74,57 +73,62 @@
     </a-card>
 
     <!-- 图片列表 -->
-    <div v-if="fileList.length > 0" class="images-grid">
-      <div 
-        v-for="(file, index) in fileList" 
-        :key="file.uid"
-        class="image-item"
-        :class="{ 'processing': isProcessing(index), 'completed': isCompleted(index) }"
-      >
-        <div class="image-preview">
-          <img :src="getPreviewUrl(file)" :alt="file.name" />
-          <div class="image-overlay">
-            <div v-if="isProcessing(index)" class="processing-indicator">
-              <a-spin size="large" />
-              <span>识别中...</span>
-            </div>
-            <div v-else-if="isCompleted(index)" class="completed-indicator">
-              <i class="fas fa-check-circle"></i>
-              <span>已完成</span>
-            </div>
-            <div v-else class="pending-indicator">
-              <i class="fas fa-clock"></i>
-              <span>待处理</span>
+    <a-card v-if="fileList.length > 0" :style="{ borderRadius: '8px', marginTop: '16px' }">
+      <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '16px' }">
+        <div 
+          v-for="(file, index) in fileList" 
+          :key="file.uid"
+          :style="{ 
+            borderRadius: '8px', 
+            overflow: 'hidden', 
+            border: '1px solid #e8e8e8',
+            background: isCompleted(index) ? '#f6ffed' : isProcessing(index) ? '#e6f7ff' : 'white'
+          }"
+        >
+          <div :style="{ position: 'relative', paddingBottom: '75%', background: '#f5f5f5' }">
+            <img :src="getPreviewUrl(file)" :alt="file.name" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+            <div :style="{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: isProcessing(index) || isCompleted(index) ? 1 : 0, transition: 'opacity 0.3s' }">
+              <div v-if="isProcessing(index)" :style="{ textAlign: 'center', color: 'white' }">
+                <a-spin size="large" />
+                <div :style="{ marginTop: '8px' }">识别中...</div>
+              </div>
+              <div v-else-if="isCompleted(index)" :style="{ textAlign: 'center', color: 'white', fontSize: '24px' }">
+                <i class="fas fa-check-circle" :style="{ color: '#52c41a' }"></i>
+                <div :style="{ marginTop: '8px', fontSize: '14px' }">已完成</div>
+              </div>
+              <div v-else :style="{ textAlign: 'center', color: 'white' }">
+                <i class="fas fa-clock"></i>
+                <div :style="{ marginTop: '8px', fontSize: '14px' }">待处理</div>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div class="image-info">
-          <div class="file-name">{{ file.name }}</div>
-          <div class="file-size">{{ formatFileSize(file.size) }}</div>
-        </div>
+          
+          <div :style="{ padding: '12px' }">
+            <div :style="{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }">{{ file.name }}</div>
+            <div :style="{ fontSize: '12px', opacity: 0.65 }">{{ formatFileSize(file.size) }}</div>
+          </div>
 
-        <!-- 识别结果 -->
-        <div v-if="results[index]" class="recognition-result">
-          <div class="result-main">
-            <span class="result-name">{{ results[index].name }}</span>
-            <span class="result-confidence">{{ results[index].confidence }}%</span>
-          </div>
-          <div class="result-actions">
-            <a-button type="link" size="small" @click="viewDetail(index)">
-              详情
-            </a-button>
-            <a-button type="link" size="small" @click="addToFavorites(index)">
-              收藏
-            </a-button>
+          <!-- 识别结果 -->
+          <div v-if="results[index]" :style="{ padding: '12px', borderTop: '1px solid #e8e8e8', background: '#fafafa' }">
+            <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }">
+              <span :style="{ fontSize: '14px', fontWeight: '600' }">{{ results[index].name }}</span>
+              <span :style="{ fontSize: '13px', color: '#1890ff', fontWeight: '600' }">{{ results[index].confidence }}%</span>
+            </div>
+            <div :style="{ display: 'flex', gap: '8px' }">
+              <a-button type="link" size="small" @click="viewDetail(index)" :style="{ padding: 0 }">
+                详情
+              </a-button>
+              <a-button type="link" size="small" @click="addToFavorites(index)" :style="{ padding: 0 }">
+                收藏
+              </a-button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </a-card>
 
     <!-- 批量结果统计 -->
-    <div v-if="results.length > 0" class="results-summary">
-      <a-card title="识别结果统计" class="summary-card">
+    <a-card v-if="results.length > 0" title="识别结果统计" :style="{ borderRadius: '8px', marginTop: '16px' }">
         <a-row :gutter="[24, 24]">
           <a-col :xs="24" :sm="8">
             <a-statistic
@@ -153,24 +157,23 @@
         </a-row>
 
         <!-- 类别分布 -->
-        <div class="category-distribution">
-          <h4>识别类别分布：</h4>
-          <div class="category-list">
+        <div :style="{ marginTop: '24px' }">
+          <h4 :style="{ fontSize: '15px', fontWeight: '600', marginBottom: '12px' }">识别类别分布：</h4>
+          <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap' }">
             <a-tag 
               v-for="(count, category) in categoryStats" 
               :key="category"
               color="blue"
-              class="category-tag"
+              :style="{ fontSize: '13px', padding: '4px 12px' }"
             >
               {{ category }}: {{ count }}张
             </a-tag>
           </div>
         </div>
       </a-card>
-    </div>
 
     <!-- 历史记录 -->
-    <a-card title="批量识别历史" class="history-card">
+    <a-card title="批量识别历史" :style="{ borderRadius: '8px', marginTop: '16px' }">
       <a-table 
         :columns="historyColumns" 
         :data-source="batchHistory"

@@ -104,20 +104,20 @@
           </template>
           
           <template v-else-if="column.key === 'stats'">
-            <div class="knowledge-stats">
-              <span><i class="fas fa-eye"></i> {{ record?.views || 0 }}</span>
-              <span><i class="fas fa-thumbs-up"></i> {{ record?.likes || 0 }}</span>
-              <span><i class="fas fa-bookmark"></i> {{ record?.collections || 0 }}</span>
+            <div class="knowledge-stats" style="display: flex; gap: 12px; font-size: 13px; color: #595959;">
+              <span><i class="fas fa-eye" style="margin-right: 4px;"></i>{{ record?.viewCount || 0 }}</span>
+              <span><i class="fas fa-thumbs-up" style="margin-right: 4px;"></i>{{ record?.likeCount || 0 }}</span>
+              <span><i class="fas fa-bookmark" style="margin-right: 4px;"></i>{{ record?.collectCount || 0 }}</span>
             </div>
           </template>
           
           <template v-else-if="column.key === 'status'">
             <a-tag 
-              :color="record?.status === 'published' ? 'success' : 'warning'"
+              :color="record?.status === 1 ? 'success' : 'warning'"
               class="status-tag"
             >
-              <i :class="record?.status === 'published' ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
-              {{ record?.status === 'published' ? '已发布' : '草稿' }}
+              <i :class="record?.status === 1 ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
+              {{ record?.status === 1 ? '已发布' : '草稿' }}
             </a-tag>
           </template>
           
@@ -132,10 +132,10 @@
                     <a-menu-item key="view">
                       查看详情
                     </a-menu-item>
-                    <a-menu-item key="publish" v-if="record?.status === 'draft'">
+                    <a-menu-item key="publish" v-if="record?.status !== 1">
                       发布
                     </a-menu-item>
-                    <a-menu-item key="unpublish" v-if="record?.status === 'published'">
+                    <a-menu-item key="unpublish" v-if="record?.status === 1">
                       撤回
                     </a-menu-item>
                     <a-menu-item key="duplicate">
@@ -286,15 +286,16 @@
             <i v-else class="fas fa-image" style="font-size: 64px; color: #d9d9d9;"></i>
           </div>
           <div class="knowledge-info">
-            <h2>{{ selectedKnowledge.title }}</h2>
-            <div class="knowledge-meta">
+            <h2>{{ selectedKnowledge.title || selectedKnowledge.name }}</h2>
+            <div class="knowledge-meta" style="display: flex; gap: 12px; align-items: center; margin: 12px 0;">
               <a-tag :color="getCategoryColor(selectedKnowledge.category || '')">
                 {{ selectedKnowledge.category }}
-              </a-tag>    
-              <span class="difficulty">难度: {{ selectedKnowledge.difficulty }}</span>
-              <span class="update-time">更新时间: {{ selectedKnowledge.updateTime }}</span>
+              </a-tag>
+              <span class="update-time" style="font-size: 13px; color: #8c8c8c;">
+                更新时间: {{ formatDateTime(selectedKnowledge.updatedAt) }}
+              </span>
             </div>
-            <p class="description">{{ selectedKnowledge.description }}</p>
+            <p class="description" style="color: #595959; line-height: 1.6;">{{ selectedKnowledge.content }}</p>
           </div>
         </div>
         
@@ -316,16 +317,16 @@
           <h4>统计信息</h4>
           <a-row :gutter="16">
             <a-col :span="6">
-              <a-statistic title="浏览量" :value="selectedKnowledge.views" />
+              <a-statistic title="浏览量" :value="selectedKnowledge.viewCount || 0" />
             </a-col>
             <a-col :span="6">
-              <a-statistic title="点赞数" :value="selectedKnowledge.likes" />
+              <a-statistic title="点赞数" :value="selectedKnowledge.likeCount || 0" />
             </a-col>
             <a-col :span="6">
-              <a-statistic title="收藏数" :value="selectedKnowledge.collections" />
+              <a-statistic title="收藏数" :value="selectedKnowledge.collectCount || 0" />
             </a-col>
             <a-col :span="6">
-              <a-statistic title="分享数" :value="selectedKnowledge.shares || 0" />
+              <a-statistic title="评论数" :value="selectedKnowledge.commentCount || 0" />
             </a-col>
           </a-row>
           
@@ -455,8 +456,8 @@ const knowledgeColumns = [
   },  
   { 
     title: '作者', 
-    dataIndex: 'authorId', 
-    key: 'authorId',
+    dataIndex: 'authorName', 
+    key: 'authorName',
     width: 120
   },
   { 
@@ -472,9 +473,10 @@ const knowledgeColumns = [
   },
   { 
     title: '更新时间', 
-    dataIndex: 'updateTime', 
-    key: 'updateTime',
-    width: 180
+    dataIndex: 'updatedAt', 
+    key: 'updatedAt',
+    width: 180,
+    customRender: ({ text }: { text: string }) => formatDateTime(text)
   },
   { 
     title: '操作', 
@@ -508,14 +510,7 @@ async function loadKnowledgeItems() {
     }
     
     // 直接使用后端返回的数据
-    knowledgeItems.value = response.data.map((item: any) => ({
-      ...item,
-      title: item.title || item.name,
-      views: item.viewCount || 0,
-      likes: item.likeCount || 0,
-      collections: item.favoriteCount || 0,
-      shares: item.shareCount || 0
-    }))
+    knowledgeItems.value = response.data
     
     pagination.total = response.total || 0
     pagination.current = response.page || 1
@@ -648,14 +643,7 @@ function editKnowledge(knowledge: any) {
 async function viewKnowledge(knowledge: any) {
   try {
     // 直接使用当前知识信息
-    selectedKnowledge.value = {
-      ...knowledge,
-      title: knowledge.title || knowledge.name,
-      views: knowledge.viewCount || knowledge.views || 0,
-      likes: knowledge.likeCount || knowledge.likes || 0,
-      collections: knowledge.favoriteCount || knowledge.collections || 0,
-      shares: knowledge.shareCount || knowledge.shares || 0
-    }
+    selectedKnowledge.value = knowledge
     drawerVisible.value = true
   } catch (error) {
     console.error('获取知识详情失败:', error)
@@ -879,7 +867,7 @@ async function handleLike(knowledge: any) {
     message.info('点赞功能仅供展示')
     // 更新本地数据
     if (selectedKnowledge.value) {
-      selectedKnowledge.value.likes = (selectedKnowledge.value.likes || 0) + 1
+      selectedKnowledge.value.likeCount = (selectedKnowledge.value.likeCount || 0) + 1
     }
   } catch (error) {
     console.error('点赞失败:', error)
@@ -893,7 +881,7 @@ async function handleCollect(knowledge: any) {
     message.info('收藏功能仅供展示')
     // 更新本地数据
     if (selectedKnowledge.value) {
-      selectedKnowledge.value.collections = (selectedKnowledge.value.collections || 0) + 1
+      selectedKnowledge.value.collectCount = (selectedKnowledge.value.collectCount || 0) + 1
     }
   } catch (error) {
     console.error('收藏失败:', error)

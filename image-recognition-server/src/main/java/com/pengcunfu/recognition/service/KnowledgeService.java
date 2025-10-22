@@ -9,9 +9,11 @@ import com.pengcunfu.recognition.entity.UserCollect;
 import com.pengcunfu.recognition.enums.KnowledgeStatus;
 import com.pengcunfu.recognition.enums.TargetType;
 import com.pengcunfu.recognition.exception.BusinessException;
+import com.pengcunfu.recognition.entity.User;
 import com.pengcunfu.recognition.repository.KnowledgeRepository;
 import com.pengcunfu.recognition.repository.UserLikeRepository;
 import com.pengcunfu.recognition.repository.UserCollectRepository;
+import com.pengcunfu.recognition.repository.UserRepository;
 import com.pengcunfu.recognition.request.KnowledgeRequest;
 import com.pengcunfu.recognition.response.KnowledgeResponse;
 import com.pengcunfu.recognition.response.PageResponse;
@@ -34,6 +36,7 @@ public class KnowledgeService {
     private final KnowledgeRepository knowledgeRepository;
     private final UserLikeRepository userLikeRepository;
     private final UserCollectRepository userCollectRepository;
+    private final UserRepository userRepository;
 
     /**
      * 获取知识列表
@@ -413,6 +416,18 @@ public class KnowledgeService {
             isCollected = (collect != null);
         }
 
+        // 查询作者信息
+        String authorName = null;
+        if (knowledge.getAuthorId() != null) {
+            User author = userRepository.selectById(knowledge.getAuthorId());
+            if (author != null) {
+                // 优先使用昵称,如果没有则使用用户名
+                authorName = author.getNickname() != null && !author.getNickname().isEmpty() 
+                    ? author.getNickname() 
+                    : author.getUsername();
+            }
+        }
+
         return KnowledgeResponse.KnowledgeInfo.builder()
                 .id(knowledge.getId())
                 .title(knowledge.getTitle())
@@ -426,6 +441,7 @@ public class KnowledgeService {
                 .images(knowledge.getImages())
                 .tags(knowledge.getTags())
                 .authorId(knowledge.getAuthorId())
+                .authorName(authorName)
                 .viewCount(knowledge.getViewCount())
                 .likeCount(knowledge.getLikeCount())
                 .collectCount(knowledge.getCollectCount())

@@ -47,6 +47,11 @@
 
         <!-- 操作按钮 -->
         <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px', flexShrink: 0 }">
+          <a-button @click="toggleLike" :type="isLiked ? 'primary' : 'default'" danger>
+            <i :class="isLiked ? 'fas fa-heart' : 'far fa-heart'"></i>
+            {{ isLiked ? '已点赞' : '点赞' }}
+          </a-button>
+
           <a-button @click="toggleBookmark" :type="isBookmarked ? 'primary' : 'default'">
             <i class="fas fa-bookmark"></i>
             {{ isBookmarked ? '已收藏' : '收藏' }}
@@ -375,6 +380,7 @@ const knowledge = ref<any>({
 const relatedKnowledge = ref<any[]>([])
 
 // 状态管理
+const isLiked = ref(false)
 const isBookmarked = ref(false)
 const imagePreviewVisible = ref(false)
 const previewImageUrl = ref('')
@@ -637,6 +643,27 @@ function getDifficultyColor(difficulty: string) {
   return colors[difficulty] || 'default'
 }
 
+async function toggleLike() {
+  try {
+    if (isLiked.value) {
+      // 取消点赞
+      await KnowledgeAPI.unlikeKnowledge(knowledge.value.id)
+      isLiked.value = false
+      knowledge.value.likes--
+      message.success('取消点赞')
+    } else {
+      // 点赞
+      await KnowledgeAPI.likeKnowledge(knowledge.value.id)
+      isLiked.value = true
+      knowledge.value.likes++
+      message.success('点赞成功')
+    }
+  } catch (error: any) {
+    console.error('点赞操作失败:', error)
+    message.error(error.message || '操作失败，请重试')
+  }
+}
+
 async function toggleBookmark() {
   try {
     if (isBookmarked.value) {
@@ -652,9 +679,9 @@ async function toggleBookmark() {
       knowledge.value.bookmarks++
       message.success('收藏成功')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('收藏操作失败:', error)
-    message.error('操作失败，请重试')
+    message.error(error.message || '操作失败，请重试')
   }
 }
 

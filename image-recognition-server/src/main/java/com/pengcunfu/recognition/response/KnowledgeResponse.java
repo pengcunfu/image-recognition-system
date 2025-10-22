@@ -33,6 +33,7 @@ public class KnowledgeResponse {
         private String tags;
         private Long authorId;
         private String authorName;
+        private String authorAvatar;
         private Integer viewCount;
         private Integer likeCount;
         private Integer collectCount;

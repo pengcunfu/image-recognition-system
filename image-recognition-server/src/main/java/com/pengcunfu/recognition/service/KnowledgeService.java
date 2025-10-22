@@ -418,6 +418,7 @@ public class KnowledgeService {
 
         // 查询作者信息
         String authorName = null;
+        String authorAvatar = null;
         if (knowledge.getAuthorId() != null) {
             User author = userRepository.selectById(knowledge.getAuthorId());
             if (author != null) {
@@ -425,6 +426,7 @@ public class KnowledgeService {
                 authorName = author.getNickname() != null && !author.getNickname().isEmpty() 
                     ? author.getNickname() 
                     : author.getUsername();
+                authorAvatar = author.getAvatar();
             }
         }
 
@@ -442,6 +444,7 @@ public class KnowledgeService {
                 .tags(knowledge.getTags())
                 .authorId(knowledge.getAuthorId())
                 .authorName(authorName)
+                .authorAvatar(authorAvatar)
                 .viewCount(knowledge.getViewCount())
                 .likeCount(knowledge.getLikeCount())
                 .collectCount(knowledge.getCollectCount())

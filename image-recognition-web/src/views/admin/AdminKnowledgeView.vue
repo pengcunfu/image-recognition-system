@@ -103,6 +103,15 @@
             </div>
           </template>
           
+          <template v-else-if="column.key === 'author'">
+            <div class="author-info" style="display: flex; align-items: center; gap: 8px;">
+              <a-avatar :src="FileAPI.getImageUrl(record.authorAvatar)" size="small">
+                {{ record.authorName ? record.authorName.charAt(0) : 'U' }}
+              </a-avatar>
+              <span class="author-name">{{ record.authorName || '未知用户' }}</span>
+            </div>
+          </template>
+          
           <template v-else-if="column.key === 'stats'">
             <div class="knowledge-stats" style="display: flex; gap: 12px; font-size: 13px; color: #595959;">
               <span><i class="fas fa-eye" style="margin-right: 4px;"></i>{{ record?.viewCount || 0 }}</span>
@@ -456,9 +465,9 @@ const knowledgeColumns = [
   },  
   { 
     title: '作者', 
-    dataIndex: 'authorName', 
-    key: 'authorName',
-    width: 120
+    dataIndex: 'author', 
+    key: 'author',
+    width: 150
   },
   { 
     title: '统计', 

@@ -100,19 +100,22 @@
         </div>
       </a-card>
 
-      <!-- 帖子列表 -->
-      <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
-        <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
-        <div v-else :style="layoutStyle">
-          <div 
-            v-for="post in filteredPosts"
-            :key="post.id"
-            :style="{ 
-              breakInside: 'avoid',
-              marginBottom: '16px',
-              width: '100%'
-            }"
-          >
+      <!-- 主内容区域：左侧帖子列表 + 右侧边栏 -->
+      <div :style="{ display: 'flex', gap: '24px', alignItems: 'flex-start' }">
+        <!-- 左侧：帖子列表 -->
+        <div :style="{ flex: 1, minWidth: 0 }">
+          <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
+            <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
+            <div v-else :style="layoutStyle">
+              <div 
+                v-for="post in filteredPosts"
+                :key="post.id"
+                :style="{ 
+                  breakInside: 'avoid',
+                  marginBottom: '16px',
+                  width: '100%'
+                }"
+              >
             <div 
               :style="{ 
                 borderRadius: '8px', 
@@ -337,16 +340,140 @@
                   </a-button>
                 </div>
               </div>
+              </div>
             </div>
           </div>
-        </div>
-      </a-spin>
+          </a-spin>
 
-      <!-- 加载更多 -->
-      <div v-if="filteredPosts.length > 0" :style="{ textAlign: 'center', marginTop: '16px' }">
-        <a-button @click="loadMore" :loading="loading" size="large" :style="{ minWidth: '200px' }">
-          {{ pagination.current * pagination.pageSize >= pagination.total ? '没有更多了' : '加载更多' }}
-        </a-button>
+          <!-- 加载更多 -->
+          <div v-if="filteredPosts.length > 0" :style="{ textAlign: 'center', marginTop: '16px' }">
+            <a-button @click="loadMore" :loading="loading" size="large" :style="{ minWidth: '200px' }">
+              {{ pagination.current * pagination.pageSize >= pagination.total ? '没有更多了' : '加载更多' }}
+            </a-button>
+          </div>
+        </div>
+
+        <!-- 右侧边栏：热门帖子、活跃用户 -->
+        <div :style="{ width: '320px', flexShrink: '0' }">
+          <!-- 热门帖子 -->
+          <a-card :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', marginBottom: '24px' }">
+            <template #title>
+              <span :style="{ fontSize: '16px', fontWeight: 'bold', color: '#262626', display: 'flex', alignItems: 'center', gap: '8px' }">
+                <i class="fas fa-fire" :style="{ color: '#ff4d4f' }"></i>
+                热门帖子
+              </span>
+            </template>
+            <a-empty v-if="hotPosts.length === 0" description="暂无热门帖子" />
+            <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+              <div 
+                v-for="(post, index) in hotPosts" 
+                :key="post.id"
+                :style="{ 
+                  cursor: 'pointer',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid #f0f0f0',
+                  display: 'flex',
+                  gap: '12px',
+                  alignItems: 'flex-start',
+                  transition: 'all 0.3s'
+                }"
+                @click="viewPostDetail(post)"
+                @mouseenter="(e) => setStyle(e, 'background', '#f5f5f5')"
+                @mouseleave="(e) => setStyle(e, 'background', 'transparent')"
+              >
+                <div :style="{ 
+                  width: '28px', 
+                  height: '28px', 
+                  borderRadius: '50%', 
+                  background: index < 3 ? '#1890ff' : '#f0f0f0',
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: index < 3 ? '#fff' : '#8c8c8c',
+                  flexShrink: '0'
+                }">
+                  {{ index + 1 }}
+                </div>
+                <div :style="{ flex: 1, minWidth: 0 }">
+                  <h4 :style="{ 
+                    margin: '0 0 8px 0', 
+                    fontSize: '14px', 
+                    fontWeight: 'bold', 
+                    color: '#262626',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }">{{ post.title || '无标题' }}</h4>
+                  <div :style="{ display: 'flex', gap: '12px', fontSize: '11px', color: '#8c8c8c' }">
+                    <span :style="{ display: 'flex', alignItems: 'center', gap: '4px' }">
+                      <i class="fas fa-eye"></i>
+                      {{ post.views || 0 }}
+                    </span>
+                    <span :style="{ display: 'flex', alignItems: 'center', gap: '4px' }">
+                      <i class="fas fa-heart"></i>
+                      {{ post.likes || 0 }}
+                    </span>
+                    <span :style="{ display: 'flex', alignItems: 'center', gap: '4px' }">
+                      <i class="fas fa-comment"></i>
+                      {{ post.replies || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a-card>
+
+          <!-- 活跃用户 -->
+          <a-card :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', border: 'none', position: 'sticky', top: '24px' }">
+            <template #title>
+              <span :style="{ fontSize: '16px', fontWeight: 'bold', color: '#262626', display: 'flex', alignItems: 'center', gap: '8px' }">
+                <i class="fas fa-users" :style="{ color: '#1890ff' }"></i>
+                活跃用户
+              </span>
+            </template>
+            <a-empty v-if="activeUsers.length === 0" description="暂无活跃用户" />
+            <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+              <div 
+                v-for="user in activeUsers.slice(0, 5)" 
+                :key="user.id"
+                :style="{ 
+                  cursor: 'pointer',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid #f0f0f0',
+                  transition: 'all 0.3s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }"
+                @mouseenter="(e) => setStyle(e, 'background', '#f5f5f5')"
+                @mouseleave="(e) => setStyle(e, 'background', 'transparent')"
+              >
+                <a-avatar :src="user.avatar" :size="32">
+                  {{ user.name.charAt(0) }}
+                </a-avatar>
+                <div :style="{ flex: 1, minWidth: 0 }">
+                  <h4 :style="{ 
+                    margin: '0 0 4px 0', 
+                    fontSize: '14px', 
+                    fontWeight: 'bold', 
+                    color: '#262626',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }">{{ user.name }}</h4>
+                  <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
+                    <a-tag :color="getLevelColor(user.level)" size="small">{{ user.level }}</a-tag>
+                    <span :style="{ fontSize: '11px', color: '#8c8c8c' }">{{ user.postCount }}帖</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </a-card>
+        </div>
       </div>
   </div>
 </template>
@@ -419,6 +546,19 @@ const categories = ref<CategoryInfo[]>([])
 
 // 标签数据
 const tags = ref<TagInfo[]>([])
+
+// 热门帖子数据
+const hotPosts = ref<ExtendedPost[]>([])
+
+// 活跃用户数据
+interface ActiveUser {
+  id: number
+  name: string
+  avatar: string
+  level: string
+  postCount: number
+}
+const activeUsers = ref<ActiveUser[]>([])
 
 // 总帖子数
 const totalPostsCount = computed(() => {
@@ -764,6 +904,108 @@ function selectTag(tagName: string) {
   loadPosts()
 }
 
+// 加载热门帖子
+async function loadHotPosts() {
+  try {
+    const response = await CommunityAPI.getPosts({
+      page: 1,
+      size: 5,
+      sort: 'hot' // 按热度排序
+    })
+    
+    // 转换数据格式，取前5个最热门的帖子
+    hotPosts.value = response.data.slice(0, 5).map((post: any) => {
+      let images: string[] = []
+      if (post.images) {
+        if (Array.isArray(post.images)) {
+          images = post.images.map((url: string) => ImageUtils.getImageUrl(url))
+        } else if (typeof post.images === 'string') {
+          try {
+            const parsed = JSON.parse(post.images)
+            images = Array.isArray(parsed) ? parsed.map((url: string) => ImageUtils.getImageUrl(url)) : []
+          } catch (e) {
+            images = []
+          }
+        }
+      }
+      
+      return {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        category: post.category,
+        author: {
+          name: post.authorName || '未知用户',
+          avatar: ImageUtils.getImageUrl(post.authorAvatar),
+          level: '用户'
+        },
+        type: post.category || 'discussion',
+        views: post.viewCount || 0,
+        likes: post.likeCount || 0,
+        replies: post.commentCount || 0,
+        createTime: formatTime(post.createTime),
+        isLiked: false,
+        isFavorited: false,
+        tags: post.tags ? post.tags.split(',').filter((t: string) => t.trim()) : [],
+        images
+      }
+    })
+    
+    console.log('热门帖子加载成功:', hotPosts.value.length, '条')
+  } catch (error) {
+    console.error('加载热门帖子失败:', error)
+  }
+}
+
+// 加载活跃用户（模拟数据，实际应该从API获取）
+async function loadActiveUsers() {
+  try {
+    // 这里应该调用获取活跃用户的API
+    // 暂时使用模拟数据
+    activeUsers.value = [
+      {
+        id: 1,
+        name: '技术大牛',
+        avatar: '/api/placeholder/64/64?text=技',
+        level: '专家',
+        postCount: 128
+      },
+      {
+        id: 2,
+        name: 'AI探索者',
+        avatar: '/api/placeholder/64/64?text=AI',
+        level: '资深用户',
+        postCount: 89
+      },
+      {
+        id: 3,
+        name: '图像识别小白',
+        avatar: '/api/placeholder/64/64?text=小',
+        level: '新手',
+        postCount: 45
+      },
+      {
+        id: 4,
+        name: '算法工程师',
+        avatar: '/api/placeholder/64/64?text=算',
+        level: '专家',
+        postCount: 156
+      },
+      {
+        id: 5,
+        name: '深度学习爱好者',
+        avatar: '/api/placeholder/64/64?text=深',
+        level: '资深用户',
+        postCount: 67
+      }
+    ]
+    
+    console.log('活跃用户加载成功:', activeUsers.value.length, '个')
+  } catch (error) {
+    console.error('加载活跃用户失败:', error)
+  }
+}
+
 // 窗口大小变化处理
 function handleResize() {
   windowWidth.value = window.innerWidth
@@ -774,6 +1016,8 @@ onMounted(() => {
   loadCategories()
   loadTags()
   loadPosts()
+  loadHotPosts()
+  loadActiveUsers()
   
   // 添加窗口大小变化监听
   window.addEventListener('resize', handleResize)

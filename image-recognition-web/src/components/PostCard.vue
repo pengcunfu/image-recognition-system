@@ -12,20 +12,62 @@
   >
     <div :style="{ padding: '12px' }">
       <!-- 第一行：作者信息 -->
-      <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', minHeight: '32px' }">
-        <a-avatar :src="post.author.avatar" :size="24">
+      <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', height: '32px' }">
+        <a-avatar :src="post.author.avatar" :size="28">
           {{ post.author.name.charAt(0) }}
         </a-avatar>
-        <div :style="{ flex: 1, minWidth: 0 }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }">
-            <span :style="{ fontWeight: 500, color: '#262626', fontSize: '13px' }">{{ post.author.name }}</span>
-            <a-tag v-if="post.author.level" :color="getLevelColor(post.author.level)" size="small" :style="{ fontSize: '11px', padding: '0 4px', height: '16px', lineHeight: '16px' }">
+        <div :style="{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">
+          <!-- 第一行：姓名和等级标签 -->
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '16px', marginBottom: '2px' }">
+            <span :style="{ 
+              fontWeight: 600, 
+              color: '#262626', 
+              fontSize: '13px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '120px'
+            }">{{ post.author.name }}</span>
+            <a-tag 
+              v-if="post.author.level" 
+              :color="getLevelColor(post.author.level)" 
+              size="small" 
+              :style="{ 
+                fontSize: '10px', 
+                padding: '0 6px', 
+                height: '16px', 
+                lineHeight: '16px',
+                borderRadius: '8px',
+                transform: 'scale(0.9)',
+                transformOrigin: 'left center'
+              }"
+            >
               {{ post.author.level }}
             </a-tag>
           </div>
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px' }">
-            <span :style="{ fontSize: '11px', color: '#999' }">{{ post.createTime }}</span>
-            <a-tag :color="getTypeColor(post.type)" size="small" :style="{ fontSize: '10px', padding: '0 4px', height: '14px', lineHeight: '14px' }">{{ getTypeName(post.type) }}</a-tag>
+          <!-- 第二行：时间和类型标签 -->
+          <div :style="{ display: 'flex', alignItems: 'center', gap: '6px', height: '14px' }">
+            <span :style="{ 
+              fontSize: '11px', 
+              color: '#8c8c8c',
+              lineHeight: '14px'
+            }">{{ post.createTime }}</span>
+            <span :style="{ color: '#d9d9d9', fontSize: '10px' }">•</span>
+            <a-tag 
+              :color="getTypeColor(post.type)" 
+              size="small" 
+              :style="{ 
+                fontSize: '10px', 
+                padding: '0 4px', 
+                height: '14px', 
+                lineHeight: '14px',
+                borderRadius: '6px',
+                transform: 'scale(0.85)',
+                transformOrigin: 'left center'
+              }"
+            >
+              {{ getTypeName(post.type) }}
+            </a-tag>
           </div>
         </div>
       </div>

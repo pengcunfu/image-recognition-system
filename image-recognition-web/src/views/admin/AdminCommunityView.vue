@@ -535,13 +535,8 @@ async function viewPost(post: PostInfo) {
     // 调用API获取完整的帖子详情
     const detail = await AdminAPI.getPostDetail(post.id)
     
-    // 处理图片数据 - 将逗号分隔的字符串转为数组
-    const postDetail = {
-      ...detail,
-      images: detail.images ? detail.images.split(',').filter((img: string) => img.trim()) : []
-    }
-    
-    selectedPost.value = postDetail as any
+    // 后端已经返回解析好的数组,直接使用
+    selectedPost.value = detail as any
     drawerVisible.value = true
   } catch (error: any) {
     console.error('获取帖子详情失败:', error)
@@ -678,31 +673,42 @@ function showAddModal() {
 }
 
 // 编辑帖子
-function editPost(post: PostInfo) {
-  isEditing.value = true
-  formData.id = post.id
-  formData.title = post.title
-  formData.content = post.content
-  formData.category = post.category
-  formData.tags = post.tags || ''
-  formData.status = post.status
-  
-  // 处理图片
-  if (post.images) {
-    const images = post.images.split(',').filter(img => img.trim())
-    imageFileList.value = images.map((url, index) => ({
-      uid: `-${index}`,
-      name: `image-${index}.jpg`,
-      status: 'done',
-      url: url
-    }))
-    formData.images = post.images
-  } else {
-    imageFileList.value = []
-    formData.images = ''
+async function editPost(post: PostInfo) {
+  try {
+    loading.value = true
+    isEditing.value = true
+    
+    // 调用API获取完整的帖子详情
+    const detail = await AdminAPI.getPostDetail(post.id)
+    
+    // 填充表单数据
+    formData.id = detail.id
+    formData.title = detail.title
+    formData.content = detail.content
+    formData.category = detail.category
+    formData.tags = detail.tags || ''
+    formData.status = detail.status
+    
+    // 处理图片 - 后端已经返回解析好的数组,直接使用原始URL
+    if (detail.images && Array.isArray(detail.images) && detail.images.length > 0) {
+      imageFileList.value = detail.images.map((url: string, index: number) => ({
+        uid: `-${index}`,
+        name: `image-${index}.jpg`,
+        status: 'done',
+        url: FileAPI.getImageUrl(url),  // 在这里添加URL前缀
+        response: url  // 保存原始URL用于提交
+      }))
+    } else {
+      imageFileList.value = []
+    }
+    
+    modalVisible.value = true
+  } catch (error: any) {
+    console.error('获取帖子详情失败:', error)
+    message.error(error.message || '获取帖子详情失败')
+  } finally {
+    loading.value = false
   }
-  
-  modalVisible.value = true
 }
 
 // 重置表单

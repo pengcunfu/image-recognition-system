@@ -584,6 +584,27 @@ public class CommunityService {
                 : author.getUsername();
         }
 
+        // 解析图片JSON数组
+        java.util.List<String> imagesList = new java.util.ArrayList<>();
+        if (post.getImages() != null && !post.getImages().isEmpty()) {
+            try {
+                // 尝试解析为JSON数组
+                imagesList = objectMapper.readValue(
+                    post.getImages(), 
+                    objectMapper.getTypeFactory().constructCollectionType(java.util.List.class, String.class)
+                );
+            } catch (JsonProcessingException e) {
+                // 如果解析失败,可能是逗号分隔的字符串(向后兼容)
+                log.warn("图片数据不是JSON格式,尝试按逗号分隔: {}", post.getImages());
+                String[] imageArray = post.getImages().split(",");
+                for (String img : imageArray) {
+                    if (img != null && !img.trim().isEmpty()) {
+                        imagesList.add(img.trim());
+                    }
+                }
+            }
+        }
+
         return CommunityResponse.PostInfo.builder()
                 .id(post.getId())
                 .userId(post.getUserId())
@@ -596,8 +617,8 @@ public class CommunityService {
                 .content(post.getContent())
                 .category(post.getCategory())
                 .tags(post.getTags())
-                .images(post.getImages())
-                .imageUrl(post.getImages())
+                .images(imagesList)
+                .imageUrl(!imagesList.isEmpty() ? imagesList.get(0) : null)
                 .recognitionId(post.getRecognitionId())
                 .recognitionResultId(post.getRecognitionId())
                 .status(post.getStatus())

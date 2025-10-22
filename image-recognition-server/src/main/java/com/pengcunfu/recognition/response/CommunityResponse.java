@@ -32,7 +32,7 @@ public class CommunityResponse {
         private String category;
         private String tags;
         private String imageUrl;
-        private String images;
+        private java.util.List<String> images; // 改为List<String>
         private Long recognitionResultId;
         private Long recognitionId;
         private Integer status;

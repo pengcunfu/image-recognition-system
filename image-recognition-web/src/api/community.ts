@@ -13,7 +13,7 @@ export interface PostInfo {
   authorId: number
   authorName?: string
   authorAvatar?: string
-  images?: string
+  images?: string[]  // 改为数组类型
   viewCount: number
   likeCount: number
   commentCount: number

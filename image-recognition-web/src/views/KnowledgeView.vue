@@ -1,27 +1,26 @@
 ﻿<template>
-  <div :style="{ minHeight: '100vh', background: '#f5f5f5', padding: '40px 0' }">
-    <div :style="{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }">
+  <div :style="{ padding: '24px' }">
+    <div :style="{ maxWidth: '1200px', margin: '0 auto' }">
       <!-- 页面头部 -->
-      <div :style="{ textAlign: 'center', marginBottom: '40px' }">
-        <h1 :style="{ fontSize: '48px', fontWeight: 'bold', margin: '0 0 16px 0', color: '#1890ff' }">
-          <i class="fas fa-book-open" :style="{ marginRight: '16px' }"></i>
+      <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
+        <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 8px 0' }">
+          <i class="fas fa-book-open" :style="{ marginRight: '8px', color: '#1890ff' }"></i>
           知识库
         </h1>
-        <p :style="{ fontSize: '18px', margin: 0, color: '#595959' }">探索丰富的图像识别知识百科</p>
-      </div>
+        <p :style="{ fontSize: '14px', margin: 0, opacity: 0.65 }">探索丰富的图像识别知识百科</p>
+      </a-card>
 
       <!-- 搜索区域 -->
-      <a-card :style="{ borderRadius: '16px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginBottom: '32px', border: 'none' }">
+      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
         <a-input-search
           v-model:value="searchKeyword"
           placeholder="搜索知识内容、标签..."
-          size="large"
           @search="handleSearch"
           :style="{ borderRadius: '8px' }"
         >
           <template #enterButton>
-            <a-button type="primary" size="large" :style="{ borderRadius: '0 8px 8px 0', height: '40px' }">
-              <i class="fas fa-search"></i>
+            <a-button type="primary">
+              <i class="fas fa-search" :style="{ marginRight: '4px' }"></i>
               搜索
             </a-button>
           </template>

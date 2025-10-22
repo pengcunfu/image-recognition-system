@@ -1,33 +1,35 @@
 ﻿<template>
-  <div class="recognition-detail-page">
+  <div :style="{ padding: '24px' }">
     <!-- 返回按钮 -->
-    <div class="back-section">
-      <a-button @click="goBack" size="large">
-        <i class="fas fa-arrow-left"></i>
+    <div :style="{ marginBottom: '16px' }">
+      <a-button @click="goBack">
+        <i class="fas fa-arrow-left" :style="{ marginRight: '8px' }"></i>
         返回
       </a-button>
     </div>
 
     <!-- 识别结果详情 -->
-    <a-card class="result-card">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-row :gutter="24">
         <!-- 图片区域 -->
         <a-col :xs="24" :lg="12">
-          <div class="image-section">
-            <div class="main-image">
-              <img :src="recognition.originalImage" :alt="recognition.result" />
+          <div>
+            <div :style="{ borderRadius: '8px', overflow: 'hidden', marginBottom: '12px' }">
+              <img :src="recognition.originalImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }}" />
             </div>
-            <div v-if="recognition.processedImage" class="processed-image">
-              <h4>处理后图片</h4>
-              <img :src="recognition.processedImage" :alt="recognition.result" />
+            <div v-if="recognition.processedImage">
+              <h4 :style="{ fontSize: '15px', fontWeight: '600', marginBottom: '8px' }">处理后图片</h4>
+              <div :style="{ borderRadius: '8px', overflow: 'hidden' }">
+                <img :src="recognition.processedImage" :alt="recognition.result" :style="{ width: '100%', height: 'auto' }}" />
+              </div>
             </div>
           </div>
         </a-col>
 
         <!-- 结果信息区域 -->
         <a-col :xs="24" :lg="12">
-          <div class="result-info">
-            <div class="result-header">
+          <div>
+            <div :style="{ marginBottom: '16px' }">
               <h1 class="result-title">{{ recognition.result }}</h1>
               <div class="result-meta">
                 <a-tag :color="getCategoryColor(recognition.category)">

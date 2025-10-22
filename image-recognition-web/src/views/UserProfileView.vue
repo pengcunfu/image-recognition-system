@@ -1,12 +1,12 @@
 ﻿<template>
-  <div :style="{ minHeight: '100vh', background: '#f0f2f5', padding: '24px' }">
+  <div :style="{ padding: '24px' }">
     <div :style="{ maxWidth: '1400px', margin: '0 auto' }">
       <!-- 用户信息卡片 -->
-      <a-card :style="{ marginBottom: '24px', borderRadius: '12px' }">
-        <div :style="{ display: 'flex', alignItems: 'center', gap: '24px' }">
+      <a-card :style="{ marginBottom: '16px', borderRadius: '8px' }">
+        <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
           <!-- 头像 -->
           <div :style="{ position: 'relative' }">
-            <a-avatar :size="100" :src="displayUserInfo.avatar">
+            <a-avatar :size="80" :src="displayUserInfo.avatar">
               {{ displayUserInfo.name?.charAt(0) }}
             </a-avatar>
             <a-button 
@@ -22,23 +22,23 @@
           
           <!-- 用户信息 -->
           <div :style="{ flex: 1 }">
-            <h2 :style="{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold' }">
+            <h2 :style="{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: '600' }">
               {{ displayUserInfo.name }}
             </h2>
-            <p :style="{ margin: '0 0 12px 0', color: '#8c8c8c' }">{{ displayUserInfo.bio }}</p>
-            <div :style="{ display: 'flex', gap: '24px', fontSize: '14px', color: '#595959' }">
-              <span><i class="fas fa-calendar"></i> 加入时间: {{ userInfo.joinDate }}</span>
-              <span v-if="displayUserInfo.email"><i class="fas fa-envelope"></i> {{ displayUserInfo.email }}</span>
+            <p :style="{ margin: '0 0 8px 0', fontSize: '13px', opacity: 0.65 }">{{ displayUserInfo.bio }}</p>
+            <div :style="{ display: 'flex', gap: '16px', fontSize: '13px', opacity: 0.65 }">
+              <span><i class="fas fa-calendar" :style="{ marginRight: '4px' }"></i>加入时间: {{ userInfo.joinDate }}</span>
+              <span v-if="displayUserInfo.email"><i class="fas fa-envelope" :style="{ marginRight: '4px' }"></i>{{ displayUserInfo.email }}</span>
             </div>
           </div>
         </div>
       </a-card>
 
       <!-- 主要内容区域 -->
-      <a-row :gutter="24">
+      <a-row :gutter="16">
         <!-- 左侧菜单 -->
         <a-col :xs="24" :sm="6">
-          <a-card :style="{ borderRadius: '12px' }">
+          <a-card :style="{ borderRadius: '8px' }">
             <a-menu 
               v-model:selectedKeys="selectedMenu" 
               mode="inline"
@@ -46,19 +46,19 @@
               @click="handleMenuClick"
             >
               <a-menu-item key="posts">
-                <i class="fas fa-book-open" :style="{ marginRight: '8px' }"></i>
+                <i class="fas fa-book-open" :style="{ marginRight: '6px' }"></i>
                 我的帖子
               </a-menu-item>
               <a-menu-item key="favorites">
-                <i class="fas fa-star" :style="{ marginRight: '8px' }"></i>
+                <i class="fas fa-star" :style="{ marginRight: '6px' }"></i>
                 我的收藏
               </a-menu-item>
               <a-menu-item key="likes">
-                <i class="fas fa-heart" :style="{ marginRight: '8px' }"></i>
+                <i class="fas fa-heart" :style="{ marginRight: '6px' }"></i>
                 我的点赞
               </a-menu-item>
               <a-menu-item key="settings">
-                <i class="fas fa-cog" :style="{ marginRight: '8px' }"></i>
+                <i class="fas fa-cog" :style="{ marginRight: '6px' }"></i>
                 账号设置
               </a-menu-item>
             </a-menu>
@@ -67,10 +67,10 @@
 
         <!-- 右侧内容 -->
         <a-col :xs="24" :sm="18">
-          <a-card :style="{ borderRadius: '12px', minHeight: '500px' }">
+          <a-card :style="{ borderRadius: '8px', minHeight: '400px' }">
             <!-- 我的帖子 -->
             <div v-show="currentView === 'posts'">
-              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">我的帖子</h3>
+              <h3 :style="{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600' }">我的帖子</h3>
               <UserPostList 
                 :posts="userPosts" 
                 @view-post="viewPost"
@@ -83,7 +83,7 @@
 
             <!-- 我的收藏 -->
             <div v-show="currentView === 'favorites'">
-              <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">我的收藏</h3>
+              <h3 :style="{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600' }">我的收藏</h3>
               <a-tabs type="card">
                 <a-tab-pane key="recognition" tab="识别结果">
                   <a-empty v-if="collections.recognitions.length === 0" description="暂无收藏的识别结果" />

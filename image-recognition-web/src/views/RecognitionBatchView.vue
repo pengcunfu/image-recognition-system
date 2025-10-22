@@ -1,30 +1,30 @@
 ﻿<template>
-  <div class="batch-recognition-page">
-    <div class="page-header">
-      <h1>批量识别</h1>
-      <p>一次上传多张图片，批量进行AI智能识别</p>
-    </div>
+  <div :style="{ padding: '24px' }">
+    <!-- 页面标题 -->
+    <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
+      <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 8px 0' }">批量识别</h1>
+      <p :style="{ fontSize: '14px', margin: 0, opacity: 0.65 }">一次上传多张图片，批量进行AI智能识别</p>
+    </a-card>
 
     <!-- 上传区域 -->
-    <a-card class="upload-card">
+    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-upload-dragger
         v-model:fileList="fileList"
         name="images"
         :multiple="true"
         :before-upload="beforeUpload"
         @change="handleFileChange"
-        class="upload-dragger"
         accept="image/*"
       >
-        <div class="upload-content">
-          <div class="upload-icon">
+        <div>
+          <div :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }">
             <i class="fas fa-images"></i>
           </div>
-          <h3>批量上传图片</h3>
-          <p>支持同时上传多张图片，JPG、PNG、GIF 格式，单个文件不超过 10MB</p>
-          <div class="upload-stats">
+          <h3 :style="{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }">批量上传图片</h3>
+          <p :style="{ fontSize: '14px', opacity: 0.65, marginBottom: '12px' }">支持同时上传多张图片，JPG、PNG、GIF 格式，单个文件不超过 10MB</p>
+          <div :style="{ fontSize: '13px', opacity: 0.65 }">
             <span>已选择 {{ fileList.length }} 张图片</span>
-            <span v-if="uploadedCount > 0">已处理 {{ uploadedCount }} 张</span>
+            <span v-if="uploadedCount > 0" :style="{ marginLeft: '12px' }">已处理 {{ uploadedCount }} 张</span>
           </div>
         </div>
       </a-upload-dragger>

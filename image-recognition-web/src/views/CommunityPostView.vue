@@ -67,7 +67,7 @@
         </div>
 
         <!-- 热门标签 -->
-        <div v-if="tags.length > 0" :style="{ marginBottom: '16px', paddingTop: '12px', borderTop: '1px solid #f0f0f0' }">
+        <div v-if="tags.length > 0" :style="{ marginBottom: '16px', paddingTop: '12px' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }">
             <span :style="{ fontSize: '14px', fontWeight: '500', color: '#8c8c8c' }">热门标签:</span>
             <a-tag

@@ -241,7 +241,7 @@ async function loadUserInfo() {
 }
 
 // 监听路由变化，更新选中的菜单项
-watch(() => route.path, (newPath) => {
+watch(() => route.path, (newPath, oldPath) => {
   // 匹配用户相关路由
   const userPaths = ['/user/dashboard', '/user/recognition', '/user/knowledge', '/user/community', '/user/history', '/user/become-vip']
   const vipPaths = ['/user/advanced-recognition', '/user/vip-analytics', '/user/ai-training']
@@ -257,6 +257,11 @@ watch(() => route.path, (newPath) => {
   const matchedPath = userPaths.find(path => newPath.startsWith(path))
   if (matchedPath) {
     selectedKeys.value = [matchedPath]
+  }
+
+  // 如果从成为VIP页面跳转到其他页面，刷新用户信息以更新VIP状态
+  if (oldPath === '/user/become-vip' && newPath !== '/user/become-vip') {
+    loadUserInfo()
   }
 }, { immediate: true })
 

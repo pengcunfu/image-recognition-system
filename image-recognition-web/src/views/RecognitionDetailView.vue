@@ -191,8 +191,8 @@
             border: '1px solid #e8e8e8'
           }"
           @click="viewRelated(related)"
-          @mouseenter="(e) => { e.currentTarget.style.background = '#fafafa'; e.currentTarget.style.borderColor = '#1890ff'; }"
-          @mouseleave="(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e8e8e8'; }"
+          @mouseenter="(e) => { const el = e.currentTarget as HTMLElement; if (el) { el.style.background = '#fafafa'; el.style.borderColor = '#1890ff'; } }"
+          @mouseleave="(e) => { const el = e.currentTarget as HTMLElement; if (el) { el.style.background = 'white'; el.style.borderColor = '#e8e8e8'; } }"
         >
           <img :src="related.thumbnail" :alt="related.result" :style="{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px' }" />
           <div :style="{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">

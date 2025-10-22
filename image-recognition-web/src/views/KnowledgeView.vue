@@ -2,10 +2,7 @@
   <div :style="{ padding: '24px' }">
     <!-- 页面头部 -->
       <a-card :style="{ marginBottom: '16px', borderRadius: '8px', textAlign: 'center' }">
-        <h1 :style="{ fontSize: '24px', fontWeight: '600', margin: '0 0 8px 0' }">
-          <i class="fas fa-book-open" :style="{ marginRight: '8px', color: '#1890ff' }"></i>
-          知识库
-        </h1>
+        <h1 :style="{ fontSize: '28px', fontWeight: '600', margin: '0 0 8px 0' }">知识库</h1>
         <p :style="{ fontSize: '14px', margin: 0, opacity: 0.65 }">探索丰富的图像识别知识百科</p>
       </a-card>
 

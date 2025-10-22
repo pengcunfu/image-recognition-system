@@ -65,14 +65,6 @@
           历史记录
         </a-menu-item>
         
-        <!-- 成为VIP菜单（非VIP用户可见） -->
-        <a-menu-item v-if="!isVipUser" key="/user/become-vip">
-          <template #icon>
-            <CrownOutlined :style="{ color: '#ffd700' }" />
-          </template>
-          <span :style="{ color: '#ffd700', fontWeight: 'bold' }">成为VIP</span>
-        </a-menu-item>
-        
         <!-- VIP专享功能菜单（一级菜单） -->
         <template v-if="isVipUser">
           <a-menu-item key="/user/advanced-recognition">
@@ -133,6 +125,12 @@
                 账号设置
               </a-menu-item>
               <a-menu-divider />
+              <!-- 成为VIP菜单项（仅非VIP用户可见） -->
+              <a-menu-item v-if="!isVipUser" key="become-vip" :style="{ color: '#ffd700', fontWeight: 'bold' }">
+                <CrownOutlined :style="{ color: '#ffd700' }" />
+                成为VIP会员
+              </a-menu-item>
+              <a-menu-divider v-if="!isVipUser" />
               <a-menu-item key="logout">
                 <LogoutOutlined />
                 退出登录
@@ -290,6 +288,10 @@ function handleUserMenuClick({ key }: { key: string }) {
     case 'settings':
       // 跳转到个人中心的设置标签
       router.push({ path: '/user/profile', query: { tab: 'settings' } })
+      break
+    case 'become-vip':
+      // 跳转到成为VIP页面
+      router.push('/user/become-vip')
       break
     case 'logout':
       handleLogout()

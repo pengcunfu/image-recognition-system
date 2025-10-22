@@ -249,8 +249,8 @@ export class AdminAPI {
     title: string
     content: string
     category: string
-    tags?: string
-    images?: string
+    tags?: string[]
+    images?: string[]
     status?: number
   }) {
     return post<number>('/api/admin/community/posts', data)
@@ -263,8 +263,8 @@ export class AdminAPI {
     title?: string
     content?: string
     category?: string
-    tags?: string
-    images?: string
+    tags?: string[]
+    images?: string[]
     status?: number
   }) {
     return put<void>(`/api/admin/community/posts/${postId}`, data)

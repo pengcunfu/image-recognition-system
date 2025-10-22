@@ -725,11 +725,15 @@ async function handleSubmit() {
     
     submitLoading.value = true
     
-    // 收集图片URL
+    // 收集图片URL - 转为数组
     const imageUrls = imageFileList.value
       .filter(file => file.url || file.response)
       .map(file => file.url || file.response)
-    formData.images = imageUrls.join(',')
+    
+    // 处理标签 - 将逗号分隔的字符串转为数组
+    const tagsArray = formData.tags 
+      ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      : []
     
     if (isEditing.value) {
       // 编辑帖子
@@ -737,8 +741,8 @@ async function handleSubmit() {
         title: formData.title,
         content: formData.content,
         category: formData.category,
-        tags: formData.tags,
-        images: formData.images,
+        tags: tagsArray,
+        images: imageUrls,
         status: formData.status
       })
       message.success('帖子更新成功')
@@ -748,8 +752,8 @@ async function handleSubmit() {
         title: formData.title,
         content: formData.content,
         category: formData.category,
-        tags: formData.tags,
-        images: formData.images,
+        tags: tagsArray,
+        images: imageUrls,
         status: formData.status
       })
       message.success('帖子创建成功')

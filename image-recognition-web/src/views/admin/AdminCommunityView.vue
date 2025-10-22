@@ -257,20 +257,28 @@
         
         <div class="post-content" v-html="selectedPost.content"></div>
         
-        <div class="post-images" v-if="selectedPost.images && selectedPost.images.length > 0">
-          <h4>图片附件</h4>
-          <div class="image-grid">
+        <div class="post-images" v-if="selectedPost.images && selectedPost.images.length > 0" :style="{ marginTop: '24px' }">
+          <h4 :style="{ marginBottom: '12px', fontSize: '15px', fontWeight: '500' }">图片附件</h4>
+          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }">
             <img 
               v-for="(image, index) in selectedPost.images" 
               :key="index"
               :src="FileAPI.getImageUrl(image)"
               :alt="`图片${index + 1}`"
+              :style="{ 
+                width: '100%', 
+                height: 'auto', 
+                borderRadius: '8px', 
+                cursor: 'pointer',
+                border: '1px solid #e8e8e8',
+                transition: 'all 0.3s'
+              }"
               @click="previewImage(image)"
             />
           </div>
         </div>
         
-        <div class="post-actions">
+        <div class="post-actions" :style="{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #f0f0f0' }">
           <a-space>
             <a-button 
               v-if="selectedPost.status === 2" 

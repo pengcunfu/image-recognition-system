@@ -400,12 +400,28 @@ public class RecognitionService {
             throw new BusinessException(ErrorCode.INVALID_PARAM, "只能分享识别成功的记录");
         }
 
+        // 将 imageUrl 转换为 JSON 数组格式
+        String imagesJson = null;
+        if (recognition.getImageUrl() != null && !recognition.getImageUrl().isEmpty()) {
+            try {
+                // 创建只包含一张图片的数组
+                java.util.List<String> imageList = new java.util.ArrayList<>();
+                imageList.add(recognition.getImageUrl());
+                imagesJson = objectMapper.writeValueAsString(imageList);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                log.error("转换图片URL为JSON失败", e);
+                // 如果转换失败，使用简单的 JSON 数组格式
+                imagesJson = "[\"" + recognition.getImageUrl() + "\"]";
+            }
+        }
+
         // 创建知识条目
         com.pengcunfu.recognition.entity.Knowledge knowledge = com.pengcunfu.recognition.entity.Knowledge.builder()
                 .category(recognition.getMainCategory() != null ? recognition.getMainCategory() : "其他")
                 .title(recognition.getMainCategory() != null ? recognition.getMainCategory() : "未知")
                 .content(recognition.getDescription() != null ? recognition.getDescription() : "")
                 .coverImage(recognition.getImageUrl())
+                .images(imagesJson)
                 .tags(recognition.getTags())
                 .authorId(userId)
                 .viewCount(0)

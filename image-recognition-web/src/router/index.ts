@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { useUserStore } from '@/stores/user'
 
 // 公共页面组件
 import LoginView from '@/views/LoginView.vue'
@@ -372,44 +373,41 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title as string
   }
   
+  const userStore = useUserStore()
+  
   // 检查是否需要认证
   if (to.meta?.requiresAuth) {
-    // 这里应该检查用户是否已登录
-    // 暂时简化处理，实际项目中应该检查 token 或用户状态
-    const isLoggedIn = localStorage.getItem('userToken') || false
-    
-    if (!isLoggedIn) {
+    // 从user store检查用户是否已登录
+    if (!userStore.isLoggedIn) {
       // 如果未登录，重定向到登录页
       next('/login')
       return
     }
   }
   
-        // 检查VIP权限
-        if (to.meta?.requiresVip) {
-          const userRole = localStorage.getItem('userRole') || '0'
-          // role: 0=普通用户, 1=VIP, 2=管理员
-          if (userRole !== '1' && userRole !== '2') {
-            message.warning('此功能仅限VIP用户使用')
-            next('/user/dashboard')
-            return
-          }
-        }
+  // 检查VIP权限
+  if (to.meta?.requiresVip) {
+    // role: 0=普通用户, 1=管理员
+    // vipLevel: VIP等级
+    if (!userStore.isVip && !userStore.isAdmin) {
+      message.warning('此功能仅限VIP用户使用')
+      next('/user/dashboard')
+      return
+    }
+  }
 
-        // 如果已登录用户访问登录页面，重定向到用户首页
-        if (to.path === '/login' || to.path === '/register' || to.path === '/forgot-password') {
-          const isLoggedIn = localStorage.getItem('userToken') || false
-          if (isLoggedIn) {
-            // 检查用户角色，决定重定向位置 (0=普通用户, 1=VIP, 2=管理员)
-            const userRole = localStorage.getItem('userRole') || '0'
-            if (userRole === '2') {
-              next('/dashboard')
-            } else {
-              next('/user/dashboard')
-            }
-            return
-          }
-        }
+  // 如果已登录用户访问登录页面，重定向到用户首页
+  if (to.path === '/login' || to.path === '/register' || to.path === '/forgot-password') {
+    if (userStore.isLoggedIn) {
+      // 检查用户角色，决定重定向位置
+      if (userStore.isAdmin) {
+        next('/dashboard')
+      } else {
+        next('/user/dashboard')
+      }
+      return
+    }
+  }
   
   next()
 })

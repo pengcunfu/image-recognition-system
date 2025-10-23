@@ -484,6 +484,7 @@ import { message } from 'ant-design-vue'
 import PostPublishModal from '@/components/PostPublishModal.vue'
 import { CommunityAPI, type CreatePostRequest, type CategoryInfo, type TagInfo } from '@/api/community'
 import { ImageUtils } from '@/utils/image'
+import { useUserStore } from '@/stores/user'
 
 // 扩展的帖子类型（用于前端显示）
 interface ExtendedPost {
@@ -509,6 +510,7 @@ interface ExtendedPost {
 }
 
 const router = useRouter()
+const userStore = useUserStore()
 const searchKeyword = ref('')
 const selectedCategory = ref('')
 const selectedTag = ref('')
@@ -524,11 +526,11 @@ const pagination = reactive({
   total: 0
 })
 
-// 当前用户信息（从localStorage或Vuex获取）
-const currentUser = reactive({
-  name: localStorage.getItem('userName') || '用户',
-  avatar: localStorage.getItem('userAvatar') || ''
-})
+// 当前用户信息（从user store获取）
+const currentUser = computed(() => ({
+  name: userStore.userNickname,
+  avatar: userStore.userAvatar
+}))
 
 // 高级搜索条件
 const advancedSearch = reactive({

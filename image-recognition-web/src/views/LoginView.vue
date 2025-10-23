@@ -145,6 +145,7 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
 import { AuthAPI } from '@/api/auth'
+import { useUserStore } from '@/stores/user'
 import { 
   UserOutlined, 
   LockOutlined, 
@@ -154,6 +155,7 @@ import {
 import bgImage from '@/assets/iamges/bg.png'
 
 const router = useRouter()
+const userStore = useUserStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 const captchaId = ref('')
@@ -220,10 +222,18 @@ async function handleLogin() {
     if (result && result.token && result.user) {
       message.success('登录成功')
       
-      // 保存登录状态
-      localStorage.setItem('userToken', result.token)
-      localStorage.setItem('userRole', result.user.role.toString())
-      localStorage.setItem('userInfo', JSON.stringify(result.user))
+      // 使用user store保存登录状态
+      userStore.setLoginInfo(result.token, {
+        id: result.user.id,
+        username: result.user.username,
+        nickname: result.user.nickname,
+        email: result.user.email,
+        phone: result.user.phone,
+        avatar: result.user.avatar,
+        role: result.user.role,
+        vipLevel: result.user.vipLevel,
+        vipExpireTime: result.user.vipExpireTime
+      })
       
       if (formData.rememberMe) {
         localStorage.setItem('rememberedUser', JSON.stringify({
@@ -231,8 +241,8 @@ async function handleLogin() {
         }))
       }
       
-      // 根据用户角色跳转 (0=普通用户, 1=VIP, 2=管理员)
-      const isAdmin = result.user.role === 2
+      // 根据用户角色跳转 (0=普通用户, 1=管理员)
+      const isAdmin = result.user.role === 1
       const redirectPath = isAdmin ? '/dashboard' : '/user/dashboard'
       router.push(redirectPath)
     } else {

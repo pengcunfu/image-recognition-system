@@ -180,9 +180,11 @@ import {
   LogoutOutlined
 } from '@ant-design/icons-vue'
 import { AdminAPI } from '@/api/admin'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const collapsed = ref(false)
 const selectedKeys = ref(['/dashboard'])
 
@@ -244,8 +246,7 @@ function handleUserMenuClick({ key }: { key: string }) {
     router.push('/admin-profile')
   } else if (key === 'logout') {
     // 清除登录状态
-    localStorage.removeItem('userToken')
-    localStorage.removeItem('rememberedUser')
+    userStore.clearUserInfo()
     
     message.success('已退出登录')
     router.push('/login')

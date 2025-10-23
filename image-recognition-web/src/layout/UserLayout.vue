@@ -109,10 +109,10 @@
         
         <a-dropdown>
           <a-button type="text" :style="{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px', padding: isMobile ? '4px' : '4px 15px' }">
-            <a-avatar :src="userInfo.avatar" :size="isMobile ? 32 : 40" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
+            <a-avatar :src="userStore.userAvatar" :size="isMobile ? 32 : 40" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
               {{ getAvatarText() }}
             </a-avatar>
-            <span v-if="!isMobile" :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.nickname || userInfo.username || '用户' }}</span>
+            <span v-if="!isMobile" :style="{ color: 'white', marginLeft: '8px' }">{{ userStore.userNickname }}</span>
           </a-button>
           <template #overlay>
             <a-menu @click="handleUserMenuClick">
@@ -275,53 +275,38 @@ import {
   MenuOutlined
 } from '@ant-design/icons-vue'
 import { UserAPI } from '@/api/user'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const selectedKeys = ref(['/user/dashboard'])
 const drawerVisible = ref(false)
 const isMobile = ref(false)
 
-// 用户信息
-const userInfo = reactive({
-  id: 0,
-  username: '',
-  nickname: '',
-  avatar: '',
-  email: '',
-  role: 0
-})
-
 // 检查是否为VIP用户
-const isVipUser = computed(() => {
-  // 1 = VIP, 根据后端的 UserRole 枚举
-  return userInfo.role === 1
-})
+const isVipUser = computed(() => userStore.isVip)
 
 // 获取头像显示文本
 function getAvatarText() {
-  if (userInfo.nickname) {
-    return userInfo.nickname.charAt(0).toUpperCase()
+  if (userStore.userNickname && userStore.userNickname !== '用户') {
+    return userStore.userNickname.charAt(0).toUpperCase()
   }
-  if (userInfo.username) {
-    return userInfo.username.charAt(0).toUpperCase()
+  if (userStore.userName) {
+    return userStore.userName.charAt(0).toUpperCase()
   }
   return 'U'
 }
 
-// 加载用户信息
+// 加载用户信息（从store获取，如果没有则触发获取）
 async function loadUserInfo() {
-  try {
-    const profile = await UserAPI.getProfile()
-    userInfo.id = profile.id
-    userInfo.username = profile.username
-    userInfo.nickname = profile.nickname || ''
-    userInfo.avatar = profile.avatar || ''
-    userInfo.email = profile.email || ''
-    userInfo.role = profile.role
-  } catch (error) {
-    console.error('加载用户信息失败:', error)
-    // 不显示错误提示，使用默认值
+  if (!userStore.userInfo) {
+    try {
+      await userStore.fetchUserProfile()
+    } catch (error) {
+      console.error('加载用户信息失败:', error)
+      // 不显示错误提示，使用默认值
+    }
   }
 }
 
@@ -405,8 +390,7 @@ function handleUserMenuClick({ key }: { key: string }) {
 
 // 退出登录
 function handleLogout() {
-  localStorage.removeItem('userToken')
-  localStorage.removeItem('rememberedUser')
+  userStore.clearUserInfo()
   message.success('已退出登录')
   router.push('/login')
 }

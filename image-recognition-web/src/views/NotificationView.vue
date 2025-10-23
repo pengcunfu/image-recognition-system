@@ -1,6 +1,6 @@
 <template>
   <div :style="{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }">
-    <a-card title="我的通知" :style="{ maxWidth: '1200px', margin: '0 auto' }">
+    <a-card title="我的通知">
       <template #extra>
         <a-space>
           <a-select

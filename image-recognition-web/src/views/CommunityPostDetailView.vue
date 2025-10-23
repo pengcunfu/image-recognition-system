@@ -458,6 +458,13 @@
         </p>
       </div>
     </a-modal>
+
+    <!-- 帖子编辑模态框 -->
+    <PostEditModal
+      v-model:visible="editModalVisible"
+      :post="editPostData"
+      @success="handleEditSuccess"
+    />
 </template>
 
 <script setup lang="ts">
@@ -468,6 +475,7 @@ import { CommunityAPI } from '@/api/community'
 import { CommentAPI } from '@/api/comments'
 import { ImageUtils } from '@/utils/image'
 import { useUserStore } from '@/stores/user'
+import PostEditModal from './user-profile/PostEditModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -532,6 +540,10 @@ const relatedPosts = ref<any[]>([])
 const imagePreviewVisible = ref(false)
 const previewImageUrl = ref('')
 const previewImageDescription = ref('')
+
+// 帖子编辑
+const editModalVisible = ref(false)
+const editPostData = ref<any>(null)
 
 // 排序后的评论
 const sortedComments = computed(() => {
@@ -809,8 +821,43 @@ function scrollToComments() {
 }
 
 function editPost() {
-  // TODO: 跳转到编辑页面
-  message.info('编辑功能开发中')
+  console.log('编辑帖子:', post.value)
+  
+  // 准备编辑数据，需要将图片从对象数组转换为URL数组
+  const imageUrls = post.value.images.map((img: any) => {
+    // 移除 ImageUtils 处理后的完整URL，提取原始路径
+    const url = img.url || img
+    // 如果URL包含服务器地址，提取路径部分
+    if (typeof url === 'string') {
+      const match = url.match(/\/tos\/[^?]+/)
+      return match ? match[0] : url
+    }
+    return url
+  })
+  
+  editPostData.value = {
+    id: post.value.id,
+    title: post.value.title,
+    category: post.value.type,
+    tags: post.value.tags.join(','),
+    content: post.value.content,
+    image: imageUrls.length > 0 ? imageUrls[0] : undefined,
+    images: imageUrls,
+    status: 1
+  }
+  
+  editModalVisible.value = true
+}
+
+// 编辑成功回调
+async function handleEditSuccess() {
+  message.success('帖子更新成功!')
+  editModalVisible.value = false
+  // 重新加载帖子详情
+  const postId = route.params.id
+  if (postId) {
+    await loadPostDetail(postId as string)
+  }
 }
 
 async function deletePost() {

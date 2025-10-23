@@ -32,6 +32,20 @@ public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
     );
 
     /**
+     * 获取热门帖子（按访问量排序，用于热门帖子展示）
+     */
+    @Select("""
+            SELECT * FROM community_posts
+            WHERE status = #{status}
+            ORDER BY view_count DESC, created_at DESC
+            LIMIT #{limit}
+            """)
+    java.util.List<CommunityPost> findHotPostsByViews(
+            @Param("status") Integer status,
+            @Param("limit") Integer limit
+    );
+
+    /**
      * 分页查询帖子（按最新排序）
      */
     @Select("""

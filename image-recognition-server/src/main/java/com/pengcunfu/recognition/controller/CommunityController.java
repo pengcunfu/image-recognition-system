@@ -182,5 +182,16 @@ public class CommunityController {
         java.util.List<CommunityResponse.PostInfo> related = communityService.getRelatedPosts(id);
         return ApiResponse.success(related);
     }
+
+    /**
+     * 获取热门帖子（按访问量排序）
+     */
+    @GetMapping("/hot-posts")
+    public ApiResponse<java.util.List<CommunityResponse.PostInfo>> getHotPosts(
+            @RequestParam(defaultValue = "5") Integer limit) {
+        log.info("获取热门帖子: limit={}", limit);
+        java.util.List<CommunityResponse.PostInfo> hotPosts = communityService.getHotPosts(limit);
+        return ApiResponse.success(hotPosts);
+    }
 }
 

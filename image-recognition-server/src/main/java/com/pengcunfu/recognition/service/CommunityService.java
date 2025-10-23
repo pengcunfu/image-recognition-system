@@ -683,4 +683,28 @@ public class CommunityService {
                 .map(this::convertToPostInfo)
                 .collect(Collectors.toList());
     }
+
+    /**
+     * 获取热门帖子（按访问量排序）
+     */
+    public java.util.List<CommunityResponse.PostInfo> getHotPosts(Integer limit) {
+        log.info("获取热门帖子: limit={}", limit);
+
+        // 默认获取5条
+        if (limit == null || limit <= 0) {
+            limit = 5;
+        }
+
+        // 查询热门帖子（按访问量排序）
+        java.util.List<CommunityPost> hotPosts = communityPostRepository.findHotPostsByViews(
+                PostStatus.PUBLISHED.getValue(),
+                limit
+        );
+
+        log.info("获取到 {} 条热门帖子", hotPosts.size());
+
+        return hotPosts.stream()
+                .map(this::convertToPostInfo)
+                .collect(Collectors.toList());
+    }
 }

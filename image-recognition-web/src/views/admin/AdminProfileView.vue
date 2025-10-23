@@ -129,29 +129,36 @@ const adminStats = reactive({
 })
 
 // 最近登录记录
-const recentLogins = ref([
-  {
-    id: 1,
-    time: '2025-10-13 14:30',
-    ipAddress: '192.168.1.100',
-    location: '北京市',
-    success: true
-  },
-  {
-    id: 2,
-    time: '2025-10-12 09:15',
-    ipAddress: '192.168.1.100',
-    location: '北京市',
-    success: true
-  },
-  {
-    id: 3,
-    time: '2025-10-11 16:45',
-    ipAddress: '10.0.0.50',
-    location: '上海市',
-    success: false
+const recentLogins = ref<Array<{
+  id: number
+  time: string
+  ipAddress: string
+  location: string
+  success: boolean
+}>>([])
+
+// 加载登录日志
+async function loadLoginLogs() {
+  try {
+    if (adminInfo.id === 0) {
+      return
+    }
+    
+    const logs = await AdminAPI.getUserLoginLogs(adminInfo.id, 5)
+    
+    recentLogins.value = logs.map((log, index) => ({
+      id: index + 1,
+      time: log.time,
+      ipAddress: log.ipAddress,
+      location: log.location || '未知',
+      success: log.success
+    }))
+    
+  } catch (error) {
+    console.error('加载登录日志失败:', error)
+    // 静默失败，不显示错误
   }
-])
+}
 
 // 头像上传相关变量
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -268,9 +275,11 @@ async function loadAdminProfile() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 加载管理员信息
-  loadAdminProfile()
+  await loadAdminProfile()
+  // 加载登录日志
+  await loadLoginLogs()
 })
 </script>
 

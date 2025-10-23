@@ -106,6 +106,18 @@ export interface RecognitionRecordInfo {
 }
 
 /**
+ * 登录日志信息
+ */
+export interface LoginLogInfo {
+  time: string
+  ipAddress: string
+  location: string
+  success: boolean
+  userAgent?: string
+  device?: string
+}
+
+/**
  * 管理后台API模块
  */
 export class AdminAPI {
@@ -212,6 +224,13 @@ export class AdminAPI {
    */
   static resetUserPassword(userId: number, newPassword: string) {
     return post<void>(`/api/admin/users/${userId}/reset-password?newPassword=${encodeURIComponent(newPassword)}`)
+  }
+
+  /**
+   * 获取用户登录日志
+   */
+  static getUserLoginLogs(userId: number, limit: number = 10) {
+    return get<LoginLogInfo[]>(`/api/admin/users/${userId}/login-logs`, { limit })
   }
 
   // ==================== 社区管理 ====================

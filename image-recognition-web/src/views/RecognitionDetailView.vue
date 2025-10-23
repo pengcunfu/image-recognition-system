@@ -218,15 +218,6 @@
         </div>
       </div>
     </a-card>
-
-      <!-- 识别历史 -->
-      <a-card title="识别历史趋势" :style="{ borderRadius: '8px' }">
-        <div :style="{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px' }">
-          <i class="fas fa-chart-line" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
-          <p :style="{ fontSize: '16px', fontWeight: '500', margin: '0 0 8px 0' }">识别历史趋势图表</p>
-          <p :style="{ fontSize: '13px', opacity: 0.65, margin: 0 }">显示最近30天的识别活动情况</p>
-        </div>
-      </a-card>
     </a-spin>
   </div>
 </template>

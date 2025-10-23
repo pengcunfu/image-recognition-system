@@ -326,7 +326,7 @@
                 </a-button>
                 
                 <a-button 
-                  v-if="comment.author === currentUser.name" 
+                  v-if="comment.userId === currentUserId && currentUserId > 0" 
                   type="text" 
                   @click="deleteComment(comment)" 
                   size="small" 
@@ -506,7 +506,8 @@ const post = ref({
 // 交互状态
 const isLiked = ref(false)
 const isBookmarked = ref(false)
-const isAuthor = computed(() => post.value.author === currentUser.name)
+const currentUserId = Number(localStorage.getItem('userId') || '0')
+const isAuthor = computed(() => post.value.authorId === currentUserId && currentUserId > 0)
 
 // 评论相关
 const comments = ref<any[]>([])
@@ -606,6 +607,9 @@ async function loadPostDetail(postId: string | number) {
     }
     
     console.log('转换后的帖子数据:', post.value)
+    console.log('当前用户ID:', currentUserId)
+    console.log('帖子作者ID:', post.value.authorId)
+    console.log('是否为作者:', isAuthor.value)
     
     // 加载评论
     await loadComments(postData.id)
@@ -661,6 +665,7 @@ async function loadComments(postId: number) {
     // 转换评论数据
     comments.value = response.data.map((comment: any) => ({
       id: comment.id,
+      userId: comment.userId,
       author: comment.username || '未知用户',
       authorAvatar: comment.avatar || '',
       authorLevel: '用户',

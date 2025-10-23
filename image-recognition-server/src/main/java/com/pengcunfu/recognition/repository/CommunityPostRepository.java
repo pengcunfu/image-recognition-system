@@ -21,12 +21,14 @@ public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
             SELECT * FROM community_posts
             WHERE status = #{status}
             ${categoryCondition}
+            ${tagCondition}
             ORDER BY like_count DESC, view_count DESC
             """)
     Page<CommunityPost> findPostsByHot(
             Page<CommunityPost> page,
             @Param("status") Integer status,
-            @Param("categoryCondition") String categoryCondition
+            @Param("categoryCondition") String categoryCondition,
+            @Param("tagCondition") String tagCondition
     );
 
     /**
@@ -36,12 +38,14 @@ public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
             SELECT * FROM community_posts
             WHERE status = #{status}
             ${categoryCondition}
+            ${tagCondition}
             ORDER BY is_top DESC, created_at DESC
             """)
     Page<CommunityPost> findPostsByLatest(
             Page<CommunityPost> page,
             @Param("status") Integer status,
-            @Param("categoryCondition") String categoryCondition
+            @Param("categoryCondition") String categoryCondition,
+            @Param("tagCondition") String tagCondition
     );
 
     /**

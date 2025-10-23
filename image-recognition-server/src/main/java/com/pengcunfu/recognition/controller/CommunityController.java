@@ -30,14 +30,15 @@ public class CommunityController {
     @GetMapping("/posts")
     public ApiResponse<PageResponse<CommunityResponse.PostInfo>> getPosts(
             CommunityRequest.QueryPostRequest request) {
-        log.info("获取帖子列表: page={}, size={}, category={}", 
-            request.getPage(), request.getSize(), request.getCategory());
+        log.info("获取帖子列表: page={}, size={}, category={}, tag={}", 
+            request.getPage(), request.getSize(), request.getCategory(), request.getTag());
         PageResponse<CommunityResponse.PostInfo> response = 
             communityService.getPosts(
                 request.getPage(), 
                 request.getSize(), 
                 request.getCategory(), 
-                request.getKeyword()
+                request.getTag(),
+                request.getSort()
             );
         return ApiResponse.success(response);
     }

@@ -92,8 +92,8 @@ public class CommunityService {
      * 获取帖子列表
      */
     public PageResponse<CommunityResponse.PostInfo> getPosts(
-            Integer page, Integer size, String category, String sort) {
-        log.info("获取帖子列表: page={}, size={}, category={}, sort={}", page, size, category, sort);
+            Integer page, Integer size, String category, String tag, String sort) {
+        log.info("获取帖子列表: page={}, size={}, category={}, tag={}, sort={}", page, size, category, tag, sort);
 
         Page<CommunityPost> pageRequest = new Page<>(page, size);
         
@@ -103,15 +103,22 @@ public class CommunityService {
             categoryCondition = "AND category = '" + category + "'";
         }
 
+        // 构建标签条件（使用LIKE查询，因为tags是逗号分隔的字符串）
+        String tagCondition = "";
+        if (tag != null && !tag.isEmpty()) {
+            // 使用LIKE查询标签，考虑逗号分隔的情况
+            tagCondition = "AND (tags = '" + tag + "' OR tags LIKE '" + tag + ",%' OR tags LIKE '%," + tag + ",%' OR tags LIKE '%," + tag + "')";
+        }
+
         // 根据排序方式查询
         Page<CommunityPost> pageResult;
         if ("hot".equals(sort)) {
             pageResult = communityPostRepository.findPostsByHot(
-                    pageRequest, PostStatus.PUBLISHED.getValue(), categoryCondition
+                    pageRequest, PostStatus.PUBLISHED.getValue(), categoryCondition, tagCondition
             );
         } else {
             pageResult = communityPostRepository.findPostsByLatest(
-                    pageRequest, PostStatus.PUBLISHED.getValue(), categoryCondition
+                    pageRequest, PostStatus.PUBLISHED.getValue(), categoryCondition, tagCondition
             );
         }
 

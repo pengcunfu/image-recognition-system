@@ -160,6 +160,17 @@ public class RecognitionController {
     }
 
     /**
+     * 分享识别结果到知识库
+     */
+    @PostMapping("/{id}/share-to-knowledge")
+    public ApiResponse<Long> shareToKnowledge(@PathVariable Long id) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("分享识别结果到知识库: userId={}, recognitionId={}", userId, id);
+        Long knowledgeId = recognitionService.shareToKnowledge(userId, id);
+        return ApiResponse.success(knowledgeId);
+    }
+
+    /**
      * 批量图像识别（上传多个文件）
      */
     @PostMapping("/batch-recognize")

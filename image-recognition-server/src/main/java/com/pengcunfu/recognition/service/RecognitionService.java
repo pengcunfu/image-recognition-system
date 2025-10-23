@@ -44,6 +44,7 @@ public class RecognitionService {
     private final UserRepository userRepository;
     private final RateLimitService rateLimitService;
     private final DoubaoUtil doubaoUtil;
+    private final com.pengcunfu.recognition.repository.KnowledgeRepository knowledgeRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // 提示词缓存
@@ -374,6 +375,53 @@ public class RecognitionService {
                 .limit(3)
                 .map(this::convertToRecognitionInfo)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 分享识别结果到知识库
+     */
+    @Transactional
+    public Long shareToKnowledge(Long userId, Long recognitionId) {
+        log.info("分享识别结果到知识库: userId={}, recognitionId={}", userId, recognitionId);
+
+        // 获取识别记录
+        RecognitionResult recognition = recognitionResultRepository.selectById(recognitionId);
+        if (recognition == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "识别记录不存在");
+        }
+
+        // 验证权限
+        if (!recognition.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权分享此识别记录");
+        }
+
+        // 检查识别状态
+        if (recognition.getStatus() != RecognitionStatus.SUCCESS.getValue()) {
+            throw new BusinessException(ErrorCode.INVALID_PARAM, "只能分享识别成功的记录");
+        }
+
+        // 创建知识条目
+        com.pengcunfu.recognition.entity.Knowledge knowledge = com.pengcunfu.recognition.entity.Knowledge.builder()
+                .category(recognition.getMainCategory() != null ? recognition.getMainCategory() : "其他")
+                .title(recognition.getMainCategory() != null ? recognition.getMainCategory() : "未知")
+                .content(recognition.getDescription() != null ? recognition.getDescription() : "")
+                .coverImage(recognition.getImageUrl())
+                .tags(recognition.getTags())
+                .authorId(userId)
+                .viewCount(0)
+                .likeCount(0)
+                .collectCount(0)
+                .commentCount(0)
+                .status(com.pengcunfu.recognition.enums.KnowledgeStatus.PENDING.getValue()) // 待审核
+                .build();
+
+        // 保存到知识库
+        knowledgeRepository.insert(knowledge);
+
+        log.info("识别结果已分享到知识库: userId={}, recognitionId={}, knowledgeId={}", 
+                userId, recognitionId, knowledge.getId());
+
+        return knowledge.getId();
     }
 
     /**

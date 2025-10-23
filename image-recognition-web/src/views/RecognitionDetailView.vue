@@ -457,8 +457,16 @@ function toggleFavorite() {
   message.success(isFavorited.value ? '已添加到收藏' : '已从收藏移除')
 }
 
-function shareResult() {
-  message.info('分享功能开发中')
+async function shareResult() {
+  try {
+    const knowledgeId = await RecognitionAPI.shareToKnowledge(recognition.value.id)
+    message.success('已成功分享到知识库，等待审核')
+    console.log('分享成功，知识ID:', knowledgeId)
+  } catch (error: any) {
+    console.error('分享失败:', error)
+    const errorMsg = error.response?.data?.message || error.message || '分享失败'
+    message.error(errorMsg)
+  }
 }
 
 function downloadImage() {

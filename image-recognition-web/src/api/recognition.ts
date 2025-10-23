@@ -1,4 +1,4 @@
-import { get, del, upload } from '@/utils/request'
+import { get, del, upload,post } from '@/utils/request'
 import type { PageResponse } from './types'
 
 /**
@@ -106,6 +106,13 @@ export class RecognitionAPI {
    */
   static getRelated(id: number) {
     return get<RecognitionInfo[]>(`/api/recognition/${id}/related`)
+  }
+
+  /**
+   * 分享识别结果到知识库
+   */
+  static shareToKnowledge(id: number) {
+    return post<number>(`/api/recognition/${id}/share-to-knowledge`)
   }
 }
 

@@ -1,6 +1,5 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
-    <div :style="{ maxWidth: '1400px', margin: '0 auto' }">
       <!-- 用户信息卡片 -->
       <a-card :style="{ marginBottom: '16px', borderRadius: '8px' }">
         <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
@@ -248,7 +247,6 @@
           </a-card>
         </a-col>
       </a-row>
-    </div>
 
     <!-- 头像上传模态框 -->
     <AvatarUploadModal

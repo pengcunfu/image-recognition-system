@@ -8,8 +8,10 @@
       </a-button>
     </div>
 
-    <!-- 识别结果详情 -->
-    <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
+    <!-- 加载状态 -->
+    <a-spin :spinning="loading" tip="加载中...">
+      <!-- 识别结果详情 -->
+      <a-card :style="{ borderRadius: '8px', marginBottom: '16px' }">
       <a-row :gutter="24">
         <!-- 图片区域 -->
         <a-col :xs="24" :lg="12">
@@ -206,14 +208,15 @@
       </div>
     </a-card>
 
-    <!-- 识别历史 -->
-    <a-card title="识别历史趋势" :style="{ borderRadius: '8px' }">
-      <div :style="{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px' }">
-        <i class="fas fa-chart-line" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
-        <p :style="{ fontSize: '16px', fontWeight: '500', margin: '0 0 8px 0' }">识别历史趋势图表</p>
-        <p :style="{ fontSize: '13px', opacity: 0.65, margin: 0 }">显示最近30天的识别活动情况</p>
-      </div>
-    </a-card>
+      <!-- 识别历史 -->
+      <a-card title="识别历史趋势" :style="{ borderRadius: '8px' }">
+        <div :style="{ textAlign: 'center', padding: '40px 20px', background: '#fafafa', borderRadius: '8px' }">
+          <i class="fas fa-chart-line" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
+          <p :style="{ fontSize: '16px', fontWeight: '500', margin: '0 0 8px 0' }">识别历史趋势图表</p>
+          <p :style="{ fontSize: '13px', opacity: 0.65, margin: 0 }">显示最近30天的识别活动情况</p>
+        </div>
+      </a-card>
+    </a-spin>
   </div>
 </template>
 
@@ -221,32 +224,51 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
+import { RecognitionAPI, type RecognitionInfo } from '@/api/recognition'
+import { ImageUtils } from '@/utils/image'
 
 const route = useRoute()
 const router = useRouter()
 
 // 识别详情数据
-const recognition = ref({
-  id: 1,
-  result: '金毛寻回犬',
-  category: '动物·犬类',
-  confidence: 95,
-  time: '2小时前',
-  originalImage: '/api/placeholder/400/300',
-  processedImage: '/api/placeholder/400/300',
-  model: 'ResNet-50 深度神经网络',
-  processTime: '2.847s',
-  imageSize: '1920x1080',
-  fileSize: '2.5MB',
+interface RecognitionDetail {
+  id: number
+  result: string
+  category: string
+  confidence: number
+  time: string
+  originalImage: string
+  processedImage?: string
+  model: string
+  processTime: string
+  imageSize: string
+  fileSize: string
+  format: string
+  engine: string
+  alternatives: Array<{ name: string; confidence: number }>
+  tags: string[]
+}
+
+const recognition = ref<RecognitionDetail>({
+  id: 0,
+  result: '',
+  category: '',
+  confidence: 0,
+  time: '',
+  originalImage: '',
+  processedImage: '',
+  model: '豆包大模型',
+  processTime: '0s',
+  imageSize: '0x0',
+  fileSize: '0MB',
   format: 'JPEG',
-  engine: 'TensorFlow 2.0',
-  alternatives: [
-    { name: '拉布拉多犬', confidence: 78 },
-    { name: '萨摩耶犬', confidence: 65 },
-    { name: '边境牧羊犬', confidence: 52 }
-  ],
-  tags: ['宠物', '犬类', '金毛', '温顺', '大型犬']
+  engine: '豆包AI引擎',
+  alternatives: [],
+  tags: []
 })
+
+// 加载状态
+const loading = ref(false)
 
 // 相关识别记录
 const relatedRecognitions = ref([
@@ -298,32 +320,92 @@ function goBack() {
   }
 }
 
-function loadRecognitionDetail(recognitionId: string | number) {
-  // 这里应该调用API获取识别详情
-  console.log('Loading recognition detail for ID:', recognitionId)
-  
-  // 模拟根据ID加载不同的数据
-  const mockData = {
-    1: {
-      result: '金毛寻回犬',
-      category: '动物·犬类',
-      confidence: 95
-    },
-    2: {
-      result: '玫瑰花',
-      category: '植物·花卉',
-      confidence: 88
-    },
-    3: {
-      result: '苹果',
-      category: '食物·水果',
-      confidence: 92
+async function loadRecognitionDetail(recognitionId: string | number) {
+  try {
+    loading.value = true
+    console.log('Loading recognition detail for ID:', recognitionId)
+    
+    const data = await RecognitionAPI.getDetail(Number(recognitionId))
+    console.log('识别详情数据:', data)
+    
+    // 解析结果JSON
+    let alternatives: Array<{ name: string; confidence: number }> = []
+    let tags: string[] = []
+    
+    if (data.resultJson) {
+      try {
+        const resultData = JSON.parse(data.resultJson)
+        // 从结果中提取备选项（如果有的话）
+        if (resultData.alternatives && Array.isArray(resultData.alternatives)) {
+          alternatives = resultData.alternatives.map((alt: any) => ({
+            name: alt.name || alt.label || '未知',
+            confidence: Math.round((alt.confidence || alt.score || 0) * 100)
+          }))
+        }
+      } catch (e) {
+        console.warn('解析结果JSON失败:', e)
+      }
     }
+    
+    // 解析标签
+    if (data.tags) {
+      tags = data.tags.split(',').filter((t: string) => t.trim())
+    }
+    
+    // 格式化文件大小
+    const formatFileSize = (bytes: number): string => {
+      if (!bytes) return '0 B'
+      if (bytes < 1024) return bytes + ' B'
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
+      return (bytes / 1024 / 1024).toFixed(2) + ' MB'
+    }
+    
+    // 转换数据
+    recognition.value = {
+      id: data.id,
+      result: data.objectName || data.category || '未知',
+      category: data.category || '其他',
+      confidence: Math.round(data.confidence * 100),
+      time: formatTime(data.createdAt),
+      originalImage: ImageUtils.getImageUrl(data.imageUrl),
+      processedImage: undefined, // 暂时没有处理后的图片
+      model: '豆包大模型',
+      processTime: data.processingTime ? `${(data.processingTime / 1000).toFixed(3)}s` : '未知',
+      imageSize: data.imageWidth && data.imageHeight ? `${data.imageWidth}x${data.imageHeight}` : '未知',
+      fileSize: formatFileSize(data.imageSize || 0),
+      format: data.imageName ? data.imageName.split('.').pop()?.toUpperCase() || 'JPEG' : 'JPEG',
+      engine: '豆包AI引擎',
+      alternatives,
+      tags
+    }
+  } catch (error) {
+    console.error('加载识别详情失败:', error)
+    message.error('加载识别详情失败')
+  } finally {
+    loading.value = false
   }
+}
+
+// 格式化时间
+function formatTime(timeStr: string): string {
+  const time = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - time.getTime()
   
-  const data = mockData[recognitionId as keyof typeof mockData]
-  if (data) {
-    Object.assign(recognition.value, data)
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) {
+    return '刚刚'
+  } else if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 30) {
+    return `${days}天前`
+  } else {
+    return time.toLocaleDateString()
   }
 }
 
@@ -366,8 +448,16 @@ function reRecognize() {
   message.info('重新识别功能开发中')
 }
 
-function deleteRecord() {
-  message.info('删除记录功能开发中')
+async function deleteRecord() {
+  try {
+    await RecognitionAPI.deleteRecognition(recognition.value.id)
+    message.success('删除成功')
+    // 返回历史记录页面
+    router.push('/user/history')
+  } catch (error) {
+    console.error('删除记录失败:', error)
+    message.error('删除失败')
+  }
 }
 
 function searchByTag(tag: string) {

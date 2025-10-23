@@ -1,5 +1,6 @@
 import type { Directive, DirectiveBinding } from 'vue'
-import { AuthUtils } from '@/utils/auth'
+import { useUserStore } from '@/stores/user'
+import { UserRole } from '@/constants/role'
 
 /**
  * 权限指令
@@ -12,31 +13,31 @@ import { AuthUtils } from '@/utils/auth'
 
 type PermissionRole = 'admin' | 'vip' | 'user'
 
-// 角色权重，用于判断权限等级
-const ROLE_WEIGHT: Record<PermissionRole, number> = {
-  user: 1,
-  vip: 2,
-  admin: 3
+// 角色值映射（字符串到数字）
+const ROLE_VALUE: Record<PermissionRole, number> = {
+  user: UserRole.USER,    // 0
+  vip: UserRole.VIP,      // 1
+  admin: UserRole.ADMIN   // 2
 }
 
 /**
  * 检查用户是否有指定权限
  */
 function hasPermission(requiredRoles: PermissionRole | PermissionRole[]): boolean {
-  const userInfo = AuthUtils.getUserInfo()
-  const userRole = (userInfo?.role || 'user').toLowerCase() as PermissionRole
+  const userStore = useUserStore()
+  const userRoleValue = userStore.userInfo?.role ?? UserRole.USER
 
   // 如果是数组，只要满足其中一个角色即可
   if (Array.isArray(requiredRoles)) {
     return requiredRoles.some(role => {
       const required = role.toLowerCase() as PermissionRole
-      return ROLE_WEIGHT[userRole] >= ROLE_WEIGHT[required]
+      return userRoleValue >= ROLE_VALUE[required]
     })
   }
 
   // 单个角色判断
   const required = requiredRoles.toLowerCase() as PermissionRole
-  return ROLE_WEIGHT[userRole] >= ROLE_WEIGHT[required]
+  return userRoleValue >= ROLE_VALUE[required]
 }
 
 export const vPermission: Directive = {
@@ -86,8 +87,13 @@ export function checkPermission(requiredRoles: PermissionRole | PermissionRole[]
  * 获取当前用户角色
  */
 export function getCurrentRole(): PermissionRole {
-  const userInfo = AuthUtils.getUserInfo()
-  return (userInfo?.role || 'user').toLowerCase() as PermissionRole
+  const userStore = useUserStore()
+  const roleValue = userStore.userInfo?.role ?? UserRole.USER
+  
+  // 将数字角色值转换为字符串
+  if (roleValue === UserRole.ADMIN) return 'admin'
+  if (roleValue === UserRole.VIP) return 'vip'
+  return 'user'
 }
 
 export default vPermission

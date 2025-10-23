@@ -43,7 +43,9 @@
         <a-col :xs="24" :lg="12">
           <a-card title="上传的图片" :style="{ borderRadius: '8px', marginBottom: '16px', height: '100%' }">
             <div :style="{ textAlign: 'center', padding: '24px' }">
-              <img :src="previewUrl" alt="上传的图片" :style="{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px' }" />
+              <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '8px', overflow: 'hidden', background: '#f5f5f5' }">
+                <img :src="previewUrl" alt="上传的图片" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain' }" />
+              </div>
             </div>
           </a-card>
         </a-col>
@@ -173,7 +175,7 @@
           :style="{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
           @click="loadHistoryResult(item)"
         >
-          <div :style="{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }">
+          <div :style="{ width: '192px', height: '108px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }">
             <img :src="item.thumbnail" :alt="item.result" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
           </div>
           <div :style="{ flex: 1, minWidth: 0 }">

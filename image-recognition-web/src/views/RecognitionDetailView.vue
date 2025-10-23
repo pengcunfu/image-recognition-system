@@ -94,6 +94,17 @@
               </div>
             </div>
 
+            <!-- 识别描述 -->
+            <div v-if="recognition.description" :style="{ padding: '16px', borderRadius: '8px', background: '#f6ffed', border: '1px solid #b7eb8f', marginBottom: '16px' }">
+              <h4 :style="{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '500', color: '#52c41a' }">
+                <i class="fas fa-lightbulb" :style="{ marginRight: '6px' }"></i>
+                识别描述
+              </h4>
+              <p :style="{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#262626' }">
+                {{ recognition.description }}
+              </p>
+            </div>
+
             <!-- 操作按钮 -->
             <div :style="{ display: 'flex', gap: '8px', flexWrap: 'wrap' }">
               <a-button type="primary" @click="viewKnowledge">
@@ -247,6 +258,7 @@ interface RecognitionDetail {
   engine: string
   alternatives: Array<{ name: string; confidence: number }>
   tags: string[]
+  description?: string
 }
 
 const recognition = ref<RecognitionDetail>({
@@ -361,7 +373,8 @@ async function loadRecognitionDetail(recognitionId: string | number) {
       format: data.imageName ? data.imageName.split('.').pop()?.toUpperCase() || 'JPEG' : 'JPEG',
       engine: '豆包AI引擎',
       alternatives,
-      tags
+      tags,
+      description: data.description
     }
 
     // 加载相关识别记录

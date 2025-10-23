@@ -52,7 +52,7 @@
               :style="{ cursor: 'pointer', fontSize: '14px', padding: '4px 12px' }"
               @click="selectCategory('')"
             >
-              全部 ({{ totalPostsCount }})
+              全部
             </a-tag>
             <a-tag
               v-for="category in categories"
@@ -61,7 +61,7 @@
               :style="{ cursor: 'pointer', fontSize: '14px', padding: '4px 12px' }"
               @click="selectCategory(category.name)"
             >
-              {{ category.name }} ({{ category.count }})
+              {{ category.name }}
             </a-tag>
           </div>
         </div>

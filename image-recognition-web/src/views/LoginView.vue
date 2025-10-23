@@ -241,8 +241,8 @@ async function handleLogin() {
         }))
       }
       
-      // 根据用户角色跳转 (0=普通用户, 1=管理员)
-      const isAdmin = result.user.role === 1
+      // 根据用户角色跳转 (0=普通用户, 1=VIP, 2=管理员)
+      const isAdmin = result.user.role === 2
       const redirectPath = isAdmin ? '/dashboard' : '/user/dashboard'
       router.push(redirectPath)
     } else {

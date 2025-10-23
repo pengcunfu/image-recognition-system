@@ -30,7 +30,7 @@ export const useUserStore = defineStore('user', () => {
     if (!userInfo.value?.vipExpireTime) return false
     return new Date(userInfo.value.vipExpireTime) > new Date()
   })
-  const isAdmin = computed(() => userInfo.value?.role === 1)
+  const isAdmin = computed(() => userInfo.value?.role === 2)
 
   // 初始化：从localStorage加载token（仅token）
   function initFromStorage() {

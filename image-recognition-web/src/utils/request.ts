@@ -1,7 +1,8 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
 import { message } from 'ant-design-vue'
-import { AuthUtils } from './auth'
 import { loadingManager } from '@/directives/loading'
+import { useUserStore } from '@/stores/user'
+import router from '@/router'
 
 // 导出baseURL供其他模块使用
 export const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
@@ -34,8 +35,9 @@ const instance: AxiosInstance = axios.create({
 // 设置请求拦截器
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 添加认证token
-    const token = AuthUtils.getToken()
+    // 添加认证token（从 Pinia store 获取）
+    const userStore = useUserStore()
+    const token = userStore.token
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -93,9 +95,18 @@ instance.interceptors.response.use(
       // 直接使用服务端返回的错误消息
       const errorMessage = data?.message || `请求失败 (HTTP ${status})`
 
-      // 如果是401未授权，执行跳转登录逻辑
+      // 如果是401未授权，清除登录状态并跳转登录页
       if (status === 401) {
-        AuthUtils.handleUnauthorized()
+        const userStore = useUserStore()
+        userStore.clearUserInfo()
+        
+        const currentPath = router.currentRoute.value.fullPath
+        if (currentPath !== '/login') {
+          router.push({
+            path: '/login',
+            query: { redirect: currentPath }
+          })
+        }
       }
 
       // 显示错误消息

@@ -314,8 +314,10 @@ import {
 } from '@ant-design/icons-vue'
 import { UserAPI } from '@/api/user'
 import VipAPI from '@/api/vip'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 // 用户余额
 const userBalance = ref(0)
@@ -383,8 +385,8 @@ async function handlePurchase(planType: number) {
     // 刷新用户信息（包括余额和角色）
     await loadUserInfo()
     
-    // 更新localStorage中的用户角色，以便立即生效
-    localStorage.setItem('userRole', '1') // 1 = VIP
+    // 刷新 user store 中的用户信息，更新VIP状态
+    await userStore.fetchUserProfile()
     
     // 延迟跳转到用户中心
     setTimeout(() => {

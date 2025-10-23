@@ -2,9 +2,6 @@
 export { default as request, baseURL } from './request'
 export type { ApiResponse, RequestConfig } from './request'
 
-// 导出认证工具
-export { AuthUtils, default as authUtils } from './auth'
-
 // 导出图像处理工具
 export { ImageUtils, default as imageUtils } from './image'
 

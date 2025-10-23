@@ -23,15 +23,31 @@ public class NotificationResponse {
         private Long id;
         private Long userId;
         private Integer type;
+        private String typeName;
         private String title;
         private String content;
+        private String data; // JSON格式的附加数据
         private String linkUrl;
         private Long senderId;
         private String senderName;
         private String senderAvatar;
         private Integer isRead;
-        private Long relatedId; // 兼容字段
         private LocalDateTime readTime;
         private LocalDateTime createdAt;
+    }
+
+    /**
+     * 未读统计
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UnreadCount {
+        private Long total;
+        private Long system;
+        private Long comment;
+        private Long like;
+        private Long collect;
     }
 }

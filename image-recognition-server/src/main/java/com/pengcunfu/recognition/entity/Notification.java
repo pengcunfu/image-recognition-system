@@ -44,6 +44,11 @@ public class Notification {
     private String content;
 
     /**
+     * 附加数据(JSON格式)
+     */
+    private String data;
+
+    /**
      * 跳转链接
      */
     private String linkUrl;

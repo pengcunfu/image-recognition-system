@@ -15,7 +15,13 @@ import org.apache.ibatis.annotations.Update;
 public interface NotificationRepository extends BaseMapper<Notification> {
 
     /**
-     * 分页查询用户通知（带已读状态过滤）
+     * 获取用户未读通知数量
+     */
+    @Select("SELECT COUNT(*) FROM notifications WHERE user_id = #{userId} AND is_read = 0")
+    Long countUnread(@Param("userId") Long userId);
+
+    /**
+     * 分页查询用户通知
      */
     @Select("""
             <script>
@@ -27,45 +33,21 @@ public interface NotificationRepository extends BaseMapper<Notification> {
             ORDER BY created_at DESC
             </script>
             """)
-    Page<Notification> findByUserIdAndReadStatus(
+    Page<Notification> findByUserId(
             Page<Notification> page,
             @Param("userId") Long userId,
             @Param("isRead") Integer isRead
     );
 
     /**
-     * 统计未读通知数量
+     * 标记所有通知为已读
      */
-    @Select("""
-            SELECT COUNT(*) FROM notifications
-            WHERE user_id = #{userId} AND is_read = 0
-            """)
-    long countUnreadByUserId(@Param("userId") Long userId);
+    @Update("UPDATE notifications SET is_read = 1, read_time = NOW() WHERE user_id = #{userId} AND is_read = 0")
+    int markAllAsRead(@Param("userId") Long userId);
 
     /**
-     * 批量标记用户所有未读通知为已读
+     * 删除用户所有通知
      */
-    @Update("""
-            UPDATE notifications
-            SET is_read = 1, read_time = #{readTime}
-            WHERE user_id = #{userId} AND is_read = 0
-            """)
-    int markAllAsReadByUserId(
-            @Param("userId") Long userId,
-            @Param("readTime") String readTime
-    );
-
-    /**
-     * 查询用户的通知（验证权限）
-     */
-    @Select("""
-            SELECT * FROM notifications
-            WHERE id = #{notificationId} AND user_id = #{userId}
-            LIMIT 1
-            """)
-    Notification findByIdAndUserId(
-            @Param("notificationId") Long notificationId,
-            @Param("userId") Long userId
-    );
+    @Update("DELETE FROM notifications WHERE user_id = #{userId}")
+    int deleteAllByUserId(@Param("userId") Long userId);
 }
-

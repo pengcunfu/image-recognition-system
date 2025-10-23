@@ -1,7 +1,6 @@
 package com.pengcunfu.recognition.controller;
 
 import com.pengcunfu.recognition.annotation.Role;
-import com.pengcunfu.recognition.request.NotificationRequest;
 import com.pengcunfu.recognition.response.ApiResponse;
 import com.pengcunfu.recognition.response.NotificationResponse;
 import com.pengcunfu.recognition.response.PageResponse;
@@ -10,6 +9,7 @@ import com.pengcunfu.recognition.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * 通知控制器
@@ -18,59 +18,65 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-@Role("USER")
 public class NotificationController {
 
     private final NotificationService notificationService;
 
     /**
-     * 获取通知列表
+     * 建立SSE连接
      */
-    @GetMapping
-    public ApiResponse<PageResponse<NotificationResponse.NotificationInfo>> getNotifications(
-            NotificationRequest.QueryNotificationRequest request) {
+    @Role("USER")
+    @GetMapping("/stream")
+    public SseEmitter stream() {
         Long userId = SecurityContextHolder.getCurrentUserId();
-        log.info("获取通知列表: userId={}, page={}, size={}", 
-            userId, request.getPage(), request.getSize());
-        PageResponse<NotificationResponse.NotificationInfo> response = 
-            notificationService.getUserNotifications(
-                userId, 
-                request.getPage(), 
-                request.getSize(), 
-                request.getUnreadOnly()
-            );
-        return ApiResponse.success(response);
+        log.info("用户建立SSE连接: userId={}", userId);
+        return notificationService.createConnection(userId);
     }
 
     /**
      * 获取未读通知数量
      */
+    @Role("USER")
     @GetMapping("/unread-count")
     public ApiResponse<Long> getUnreadCount() {
         Long userId = SecurityContextHolder.getCurrentUserId();
-        log.info("获取未读通知数量: userId={}", userId);
         Long count = notificationService.getUnreadCount(userId);
         return ApiResponse.success(count);
     }
 
     /**
-     * 标记通知为已读
+     * 获取通知列表
      */
-    @PostMapping("/{id}/read")
-    public ApiResponse<Void> markAsRead(@PathVariable Long id) {
+    @Role("USER")
+    @GetMapping
+    public ApiResponse<PageResponse<NotificationResponse.NotificationInfo>> getNotifications(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Integer isRead) {
         Long userId = SecurityContextHolder.getCurrentUserId();
-        log.info("标记通知已读: userId={}, notificationId={}", userId, id);
-        notificationService.markAsRead(userId, id);
+        PageResponse<NotificationResponse.NotificationInfo> response = 
+            notificationService.getNotifications(userId, page, size, isRead);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 标记为已读
+     */
+    @Role("USER")
+    @PutMapping("/{notificationId}/read")
+    public ApiResponse<Void> markAsRead(@PathVariable Long notificationId) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        notificationService.markAsRead(userId, notificationId);
         return ApiResponse.success();
     }
 
     /**
-     * 标记所有通知为已读
+     * 全部标记为已读
      */
-    @PostMapping("/read-all")
+    @Role("USER")
+    @PutMapping("/read-all")
     public ApiResponse<Void> markAllAsRead() {
         Long userId = SecurityContextHolder.getCurrentUserId();
-        log.info("标记所有通知已读: userId={}", userId);
         notificationService.markAllAsRead(userId);
         return ApiResponse.success();
     }
@@ -78,12 +84,11 @@ public class NotificationController {
     /**
      * 删除通知
      */
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteNotification(@PathVariable Long id) {
+    @Role("USER")
+    @DeleteMapping("/{notificationId}")
+    public ApiResponse<Void> deleteNotification(@PathVariable Long notificationId) {
         Long userId = SecurityContextHolder.getCurrentUserId();
-        log.info("删除通知: userId={}, notificationId={}", userId, id);
-        notificationService.deleteNotification(userId, id);
+        notificationService.deleteNotification(userId, notificationId);
         return ApiResponse.success();
     }
 }
-

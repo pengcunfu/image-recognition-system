@@ -104,7 +104,7 @@
       <div :style="{ display: 'flex', gap: '24px', alignItems: 'flex-start' }">
         <!-- 左侧：帖子列表 -->
         <div :style="{ flex: 1, minWidth: 0 }">
-          <a-spin :spinning="loading && postsData.length === 0" tip="加载中...">
+          <a-spin :spinning="loading && postsData.length === 0">
             <a-empty v-if="!loading && filteredPosts.length === 0" description="暂无帖子数据" />
             <div v-else :style="layoutStyle">
               <div 

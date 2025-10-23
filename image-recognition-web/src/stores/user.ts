@@ -33,21 +33,6 @@ export const useUserStore = defineStore('user', () => {
   })
   const isAdmin = computed(() => userInfo.value?.role === UserRole.ADMIN)
 
-  // 初始化：从localStorage加载token（仅token）
-  function initFromStorage() {
-    const storedToken = localStorage.getItem('token')
-    if (storedToken) {
-      token.value = storedToken
-      // 有token但没有用户信息时，自动获取用户信息
-      if (!userInfo.value) {
-        fetchUserProfile().catch(() => {
-          // 如果获取失败，清除token
-          clearUserInfo()
-        })
-      }
-    }
-  }
-
   // 获取用户详细信息
   async function fetchUserProfile() {
     try {
@@ -77,9 +62,6 @@ export const useUserStore = defineStore('user', () => {
     token.value = authToken
     isLoggedIn.value = true
     
-    // 只保存token到localStorage
-    localStorage.setItem('token', authToken)
-    
     if (user) {
       userInfo.value = user
     } else {
@@ -99,9 +81,6 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     token.value = ''
     isLoggedIn.value = false
-    
-    // 只清除token
-    localStorage.removeItem('token')
   }
 
   // 更新用户头像
@@ -140,7 +119,6 @@ export const useUserStore = defineStore('user', () => {
     isAdmin,
     
     // 方法
-    initFromStorage,
     fetchUserProfile,
     setLoginInfo,
     setUserInfo,
@@ -149,5 +127,7 @@ export const useUserStore = defineStore('user', () => {
     updateNickname,
     updateUserInfo
   }
+}, {
+  persist: true
 })
 

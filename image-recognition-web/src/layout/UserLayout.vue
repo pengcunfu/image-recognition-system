@@ -298,15 +298,13 @@ function getAvatarText() {
   return 'U'
 }
 
-// 加载用户信息（从store获取，如果没有则触发获取）
+// 刷新用户信息（用于更新用户状态，如VIP状态）
 async function loadUserInfo() {
-  if (!userStore.userInfo) {
-    try {
-      await userStore.fetchUserProfile()
-    } catch (error) {
-      console.error('加载用户信息失败:', error)
-      // 不显示错误提示，使用默认值
-    }
+  try {
+    await userStore.fetchUserProfile()
+  } catch (error) {
+    console.error('加载用户信息失败:', error)
+    // 不显示错误提示
   }
 }
 
@@ -395,9 +393,8 @@ function handleLogout() {
   router.push('/login')
 }
 
-// 组件挂载时加载用户信息和检测屏幕尺寸
+// 组件挂载时检测屏幕尺寸
 onMounted(() => {
-  loadUserInfo()
   checkMobile()
   window.addEventListener('resize', checkMobile)
 })

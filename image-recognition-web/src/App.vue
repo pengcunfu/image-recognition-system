@@ -7,10 +7,14 @@ import { useUserStore } from '@/stores/user'
 
 const userStore = useUserStore()
 
-// 初始化用户信息
+// 初始化：如果有 token 但没有完整用户信息，则自动获取
 onMounted(() => {
-  // 从localStorage加载token并获取用户信息
-  userStore.initFromStorage()
+  if (userStore.token && !userStore.userInfo) {
+    userStore.fetchUserProfile().catch(() => {
+      // 如果获取失败（token 可能已过期），清除登录状态
+      userStore.clearUserInfo()
+    })
+  }
 })
 </script>
 

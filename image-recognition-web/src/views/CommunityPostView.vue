@@ -9,7 +9,8 @@
           <p :style="{ margin: '0 0 16px 0', fontSize: '14px', opacity: 0.65 }">分享交流您的图像识别经验和见解</p>
           
           <!-- 搜索和发布按钮 -->
-          <div :style="{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }">
+          <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }">
+            <div :style="{ width: '160px' }"></div>
             <a-input-search
               v-model:value="searchKeyword"
               placeholder="搜索帖子内容、作者..."
@@ -25,7 +26,7 @@
                 </a-button>
               </template>
             </a-input-search>
-            <a-button type="primary" size="large" @click="openPublishModal">
+            <a-button type="primary" size="large" @click="openPublishModal" :style="{ width: '160px' }">
               <i class="fas fa-edit"></i>
               我要发布
             </a-button>
@@ -78,14 +79,24 @@
               全部
             </a-tag>
             <a-tag
-              v-for="tag in tags.slice(0, 15)"
+              v-for="tag in showAllTags ? tags : tags.slice(0, 20)"
               :key="tag.name"
               :color="selectedTag === tag.name ? 'orange' : 'default'"
               :style="{ cursor: 'pointer', fontSize: '13px', padding: '2px 10px' }"
               @click="selectTag(tag.name)"
             >
-              # {{ tag.name }} ({{ tag.count }})
+              # {{ tag.name }}
             </a-tag>
+            <a-button 
+              v-if="tags.length > 20"
+              type="link" 
+              size="small"
+              @click="showAllTags = !showAllTags"
+              :style="{ fontSize: '12px', padding: '0 8px' }"
+            >
+              {{ showAllTags ? '收起' : `更多 (${tags.length - 20}+)` }}
+              <i :class="showAllTags ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" :style="{ marginLeft: '4px' }"></i>
+            </a-button>
           </div>
         </div>
         
@@ -517,6 +528,7 @@ const selectedTag = ref('')
 const loading = ref(false)
 const publishModalVisible = ref(false)
 const showAdvancedSearch = ref(false)
+const showAllTags = ref(false)
 const windowWidth = ref(window.innerWidth || 1200)
 
 // 分页参数
@@ -575,6 +587,7 @@ async function loadPosts() {
       page: pagination.current,
       size: pagination.pageSize,
       category: selectedCategory.value || undefined,
+      tag: selectedTag.value || undefined,
       sort: 'latest'
     })
     
@@ -655,11 +668,11 @@ function formatTime(timeStr: string): string {
   }
 }
 
-// 筛选后的帖子（客户端筛选）
+// 筛选后的帖子（客户端筛选仅用于关键词搜索）
 const filteredPosts = computed(() => {
   let result = postsData.value
 
-  // 按关键词搜索
+  // 按关键词搜索（客户端筛选）
   if (searchKeyword.value) {
     const keyword = searchKeyword.value.toLowerCase()
     result = result.filter(post => 
@@ -670,12 +683,7 @@ const filteredPosts = computed(() => {
     )
   }
 
-  // 按标签筛选
-  if (selectedTag.value) {
-    result = result.filter(post => 
-      post.tags.some(tag => tag === selectedTag.value)
-    )
-  }
+  // 分类和标签筛选已由后端处理，不需要在前端再次筛选
 
   return result
 })
@@ -887,7 +895,7 @@ async function loadTags() {
 // 选择分类
 function selectCategory(categoryName: string) {
   selectedCategory.value = categoryName
-  selectedTag.value = '' // 清除标签选择
+  // 不清除标签选择，支持同时筛选
   pagination.current = 1
   loadPosts()
 }
@@ -895,6 +903,7 @@ function selectCategory(categoryName: string) {
 // 选择标签
 function selectTag(tagName: string) {
   selectedTag.value = tagName
+  // 不清除分类选择，支持同时筛选
   pagination.current = 1
   loadPosts()
 }

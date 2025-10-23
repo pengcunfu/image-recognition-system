@@ -40,7 +40,8 @@ import AiTrainingView from '@/views/AiTrainingView.vue'
 import BecomeVipView from '@/views/BecomeVipView.vue'
 
 // 通知消息组件
-import NotificationView from '@/views/NotificationView.vue'
+import AdminNotifications from '@/views/admin/AdminNotifications.vue'
+import UserNotifications from '@/views/user-profile/UserNotifications.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -246,7 +247,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: '',
         name: 'AdminNotifications',
-        component: NotificationView,
+        component: AdminNotifications,
         meta: {
           title: '我的消息 - 智能图像识别系统'
         }
@@ -398,7 +399,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'notifications',
         name: 'UserNotifications',
-        component: NotificationView,
+        component: UserNotifications,
         meta: {
           title: '我的消息 - 智能图像识别系统'
         }

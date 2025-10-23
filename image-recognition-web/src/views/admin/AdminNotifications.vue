@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }">
+  <div>
     <a-card title="我的通知">
       <template #extra>
         <a-space>

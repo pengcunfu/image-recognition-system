@@ -196,6 +196,8 @@ import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { UserAPI, type UserStats } from '@/api/user'
 import { RecognitionAPI, type RecognitionInfo } from '@/api/recognition'
+import { KnowledgeAPI, type KnowledgeInfo } from '@/api/knowledge'
+import { CommunityAPI, type PostInfo } from '@/api/community'
 import { ImageUtils } from '@/utils/image'
 
 const router = useRouter()
@@ -231,51 +233,23 @@ interface RecentRecognition {
 const recentRecognitions = ref<RecentRecognition[]>([])
 
 // 推荐知识
-const recommendedKnowledge = ref([
-  {
-    id: 1,
-    title: '犬类品种识别指南',
-    description: '学习如何识别不同的犬类品种',
-    icon: 'fas fa-dog'
-  },
-  {
-    id: 2,
-    title: '植物识别技巧',
-    description: '掌握植物识别的基本方法',
-    icon: 'fas fa-leaf'
-  },
-  {
-    id: 3,
-    title: '食物营养分析',
-    description: '了解食物的营养成分',
-    icon: 'fas fa-apple-alt'
-  }
-])
+interface RecommendedKnowledge {
+  id: number
+  title: string
+  description: string
+  icon: string
+}
+const recommendedKnowledge = ref<RecommendedKnowledge[]>([])
 
 // 社区热门
-const hotCommunityPosts = ref([
-  {
-    id: 1,
-    title: '如何提高图像识别的准确率？',
-    author: '李四',
-    likes: 24,
-    replies: 12
-  },
-  {
-    id: 2,
-    title: '分享一些有趣的识别结果',
-    author: '王五',
-    likes: 18,
-    replies: 8
-  },
-  {
-    id: 3,
-    title: '讨论：AI识别的未来发展',
-    author: '赵六',
-    likes: 31,
-    replies: 15
-  }
-])
+interface HotPost {
+  id: number
+  title: string
+  author: string
+  likes: number
+  replies: number
+}
+const hotCommunityPosts = ref<HotPost[]>([])
 
 // 功能导航
 const features = ref([
@@ -427,11 +401,71 @@ function formatTime(timeStr: string): string {
   }
 }
 
+// 加载推荐知识
+async function loadRecommendedKnowledge() {
+  try {
+    const response = await KnowledgeAPI.getKnowledgeList({
+      page: 1,
+      size: 3
+    })
+    
+    console.log('推荐知识:', response)
+    
+    // 定义分类图标映射
+    const categoryIcons: Record<string, string> = {
+      '动物': 'fas fa-paw',
+      '植物': 'fas fa-leaf',
+      '食物': 'fas fa-apple-alt',
+      '物品': 'fas fa-box',
+      '场景': 'fas fa-image',
+      '其他': 'fas fa-book'
+    }
+    
+    // 转换数据格式
+    recommendedKnowledge.value = response.data.map((item: KnowledgeInfo) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description || item.content.substring(0, 30) + '...',
+      icon: categoryIcons[item.category] || 'fas fa-book'
+    }))
+  } catch (error) {
+    console.error('加载推荐知识失败:', error)
+    // 静默失败，使用空数组
+  }
+}
+
+// 加载社区热门帖子
+async function loadHotCommunityPosts() {
+  try {
+    const response = await CommunityAPI.getPosts({
+      page: 1,
+      size: 3,
+      sort: 'hot'
+    })
+    
+    console.log('社区热门帖子:', response)
+    
+    // 转换数据格式
+    hotCommunityPosts.value = response.data.map((item: PostInfo) => ({
+      id: item.id,
+      title: item.title,
+      author: item.authorName || '未知用户',
+      likes: item.likeCount,
+      replies: item.commentCount
+    }))
+  } catch (error) {
+    console.error('加载社区热门帖子失败:', error)
+    // 静默失败，使用空数组
+  }
+}
+
 // 组件挂载时加载用户信息和统计数据
 onMounted(() => {
   loadUserInfo()
   loadStats()
   loadRecentRecognitions()
+  loadRecommendedKnowledge()
+  loadHotCommunityPosts()
 })
 </script>
 

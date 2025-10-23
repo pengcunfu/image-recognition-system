@@ -86,12 +86,12 @@
               </div>
 
               <!-- 操作按钮 -->
-              <div :style="{ display: 'flex', gap: '12px', flexWrap: 'wrap' }">
-                <a-button type="primary" @click="viewKnowledge">
+              <div :style="{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: recognitionResult.description ? '24px' : '0' }">
+                <a-button type="primary" @click="viewDetail">
                   <template #icon>
-                    <i class="fas fa-book"></i>
+                    <i class="fas fa-info-circle"></i>
                   </template>
-                  查看百科
+                  查看详情
                 </a-button>
                 <a-button @click="addToFavorites">
                   <template #icon>
@@ -105,6 +105,17 @@
                   </template>
                   分享
                 </a-button>
+              </div>
+
+              <!-- 识别描述 -->
+              <div v-if="recognitionResult.description" :style="{ padding: '16px', borderRadius: '8px', background: '#f6ffed', border: '1px solid #b7eb8f' }">
+                <h4 :style="{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: '500', color: '#52c41a' }">
+                  <i class="fas fa-lightbulb" :style="{ marginRight: '6px' }"></i>
+                  识别描述
+                </h4>
+                <p :style="{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: '#262626' }">
+                  {{ recognitionResult.description }}
+                </p>
               </div>
             </div>
           </a-card>
@@ -389,13 +400,13 @@ function formatRelativeTime(dateTime: any): string {
   }
 }
 
-// 查看知识库
-function viewKnowledge() {
-  if (recognitionResult.value?.name) {
-    // 跳转到知识库搜索页面，带上识别结果作为搜索关键词
-    router.push(`/user/knowledge?search=${encodeURIComponent(recognitionResult.value.name)}`)
+// 查看详情
+function viewDetail() {
+  if (recognitionResult.value?.id) {
+    // 跳转到识别详情页面
+    router.push(`/user/recognition/${recognitionResult.value.id}`)
   } else {
-    router.push('/user/knowledge')
+    message.warning('识别结果ID不存在')
   }
 }
 

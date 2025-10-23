@@ -79,7 +79,7 @@
           <template v-if="column.key === 'name'">
             <div class="knowledge-title">
               <div class="title-with-image" style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 120px; height: 67.5px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #f5f5f5; display: flex; align-items: center; justify-content: center;">
                   <img 
                     v-if="getFirstImage(record?.images)" 
                     :src="getFirstImage(record?.images)" 

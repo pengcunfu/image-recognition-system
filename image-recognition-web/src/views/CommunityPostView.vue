@@ -211,7 +211,6 @@
                   margin: '0 12px 12px 12px',
                   borderRadius: '8px'
                 }"
-                @click.stop="previewImage(post.images, 0)"
               >
                 <img 
                   :src="post.images[0]" 
@@ -847,12 +846,6 @@ function sharePost(post: any) {
   }).catch(() => {
     message.info(`分享链接：${shareUrl}`)
   })
-}
-
-function previewImage(images: string[], index: number) {
-  // 可以使用图片预览组件
-  console.log('预览图片:', images, index)
-  message.info(`预览图片 ${index + 1}`)
 }
 
 async function loadMore() {

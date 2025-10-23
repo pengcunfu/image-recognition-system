@@ -1,5 +1,6 @@
 package com.pengcunfu.recognition.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengcunfu.recognition.constant.ErrorCode;
 import com.pengcunfu.recognition.constant.JwtConstants;
 import com.pengcunfu.recognition.entity.User;
@@ -20,9 +21,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 认证服务
@@ -88,10 +95,8 @@ public class AuthService {
         // 清除登录失败记录
         rateLimitService.clearLoginFailCount(username);
 
-            // 更新最后登录时间
-        LocalDateTime now = LocalDateTime.now();
-        String lastLoginTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-        userRepository.updateLastLoginTime(user.getId(), lastLoginTime);
+        // 记录登录日志
+        recordLoginLog(user, true);
 
         // 生成 Token
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
@@ -340,6 +345,138 @@ public class AuthService {
         userRepository.updateById(user);
 
         log.info("密码重置成功: email={}, userId={}", email, user.getId());
+    }
+
+    /**
+     * 记录登录日志
+     */
+    private void recordLoginLog(User user, boolean success) {
+        try {
+            // 获取请求信息
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes == null) {
+                log.warn("无法获取请求信息，跳过登录日志记录");
+                return;
+            }
+
+            HttpServletRequest request = attributes.getRequest();
+            
+            // 获取 IP 地址
+            String ipAddress = getClientIpAddress(request);
+            
+            // 获取 User-Agent
+            String userAgent = request.getHeader("User-Agent");
+            
+            // 简单解析设备类型
+            String device = parseDevice(userAgent);
+            
+            // 创建登录日志对象
+            Map<String, Object> loginLogEntry = new LinkedHashMap<>();
+            loginLogEntry.put("time", LocalDateTime.now());
+            loginLogEntry.put("ipAddress", ipAddress);
+            loginLogEntry.put("location", "未知"); // TODO: 可以集成IP定位服务
+            loginLogEntry.put("success", success);
+            loginLogEntry.put("userAgent", userAgent != null ? userAgent.substring(0, Math.min(userAgent.length(), 200)) : "");
+            loginLogEntry.put("device", device);
+            
+            // 解析现有登录日志
+            List<Map<String, Object>> loginLogs = new ArrayList<>();
+            if (user.getLoginLogs() != null && !user.getLoginLogs().isEmpty()) {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                    loginLogs = objectMapper.readValue(
+                        user.getLoginLogs(),
+                        objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class)
+                    );
+                } catch (Exception e) {
+                    log.error("解析现有登录日志失败: userId={}", user.getId(), e);
+                }
+            }
+            
+            // 添加新日志到列表开头
+            loginLogs.add(0, loginLogEntry);
+            
+            // 只保留最近20条记录
+            if (loginLogs.size() > 20) {
+                loginLogs = loginLogs.subList(0, 20);
+            }
+            
+            // 序列化为 JSON
+            ObjectMapper objectMapper = new ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            String loginLogsJson = objectMapper.writeValueAsString(loginLogs);
+            
+            // 更新用户登录信息
+            user.setLoginLogs(loginLogsJson);
+            user.setLoginCount(user.getLoginCount() != null ? user.getLoginCount() + 1 : 1);
+            user.setLastLoginTime(LocalDateTime.now());
+            user.setLoginIp(ipAddress);
+            
+            userRepository.updateById(user);
+            
+            log.info("登录日志记录成功: userId={}, ip={}, success={}", user.getId(), ipAddress, success);
+            
+        } catch (Exception e) {
+            log.error("记录登录日志失败: userId={}", user.getId(), e);
+            // 不影响登录流程，静默失败
+        }
+    }
+    
+    /**
+     * 获取客户端真实IP地址
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        
+        // 处理多个IP的情况，取第一个
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        
+        return ip != null ? ip : "未知";
+    }
+    
+    /**
+     * 解析设备类型
+     */
+    private String parseDevice(String userAgent) {
+        if (userAgent == null || userAgent.isEmpty()) {
+            return "未知设备";
+        }
+        
+        userAgent = userAgent.toLowerCase();
+        
+        if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {
+            if (userAgent.contains("android")) {
+                return "Android手机";
+            } else if (userAgent.contains("iphone")) {
+                return "iPhone";
+            }
+            return "移动设备";
+        } else if (userAgent.contains("ipad")) {
+            return "iPad";
+        } else if (userAgent.contains("windows")) {
+            return "Windows电脑";
+        } else if (userAgent.contains("mac")) {
+            return "Mac电脑";
+        } else if (userAgent.contains("linux")) {
+            return "Linux电脑";
+        }
+        
+        return "未知设备";
     }
 
     /**

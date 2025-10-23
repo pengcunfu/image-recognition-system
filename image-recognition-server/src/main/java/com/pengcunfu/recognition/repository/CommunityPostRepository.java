@@ -189,5 +189,22 @@ public interface CommunityPostRepository extends BaseMapper<CommunityPost> {
             Page<CommunityPost> page,
             @Param("userId") Long userId
     );
+
+    /**
+     * 查询同分类的相关帖子（排除当前帖子，按创建时间倒序）
+     */
+    @Select("""
+            SELECT * FROM community_posts
+            WHERE category = #{category}
+            AND id != #{excludeId}
+            AND status = #{status}
+            ORDER BY created_at DESC
+            LIMIT 3
+            """)
+    java.util.List<CommunityPost> findRelatedPostsByCategory(
+            @Param("category") String category,
+            @Param("excludeId") Long excludeId,
+            @Param("status") Integer status
+    );
 }
 

@@ -151,6 +151,13 @@ export class CommunityAPI {
   static getMyPosts(params: { page?: number; size?: number }) {
     return get<PageResponse<PostInfo>>('/api/community/my-posts', params)
   }
+
+  /**
+   * 获取相关推荐帖子
+   */
+  static getRelatedPosts(id: number) {
+    return get<PostInfo[]>(`/api/community/posts/${id}/related`)
+  }
 }
 
 // 导出默认实例

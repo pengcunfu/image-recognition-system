@@ -652,4 +652,28 @@ public class CommunityService {
                 .pages((int) pageResult.getPages())
                 .build();
     }
+
+    /**
+     * 获取相关推荐帖子（同分类）
+     */
+    public java.util.List<CommunityResponse.PostInfo> getRelatedPosts(Long postId) {
+        log.info("获取相关推荐帖子: postId={}", postId);
+
+        // 获取当前帖子
+        CommunityPost currentPost = communityPostRepository.selectById(postId);
+        if (currentPost == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "帖子不存在");
+        }
+
+        // 获取同分类的帖子（排除当前帖子，最多3条）
+        java.util.List<CommunityPost> relatedPosts = communityPostRepository.findRelatedPostsByCategory(
+                currentPost.getCategory(),
+                postId,
+                PostStatus.PUBLISHED.getValue()
+        );
+
+        return relatedPosts.stream()
+                .map(this::convertToPostInfo)
+                .collect(Collectors.toList());
+    }
 }

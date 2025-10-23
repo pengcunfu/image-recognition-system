@@ -171,5 +171,15 @@ public class CommunityController {
         PageResponse<CommunityResponse.PostInfo> response = communityService.getPostsByAuthor(userId, page, size);
         return ApiResponse.success(response);
     }
+
+    /**
+     * 获取相关推荐帖子
+     */
+    @GetMapping("/posts/{id}/related")
+    public ApiResponse<java.util.List<CommunityResponse.PostInfo>> getRelatedPosts(@PathVariable Long id) {
+        log.info("获取相关推荐帖子: id={}", id);
+        java.util.List<CommunityResponse.PostInfo> related = communityService.getRelatedPosts(id);
+        return ApiResponse.success(related);
+    }
 }
 

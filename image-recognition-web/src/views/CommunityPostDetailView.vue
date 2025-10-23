@@ -639,27 +639,24 @@ async function loadPostDetail(postId: string | number) {
 // 加载相关推荐帖子
 async function loadRelatedPosts(postId: number) {
   try {
-    // 使用普通帖子列表API获取最新帖子作为相关推荐
-    const response = await CommunityAPI.getPosts({
-      page: 1,
-      size: 3,
-      sort: 'latest'
-    })
+    // 使用相关推荐API获取同分类的帖子
+    const relatedData = await CommunityAPI.getRelatedPosts(postId)
     
-    relatedPosts.value = response.data
-      .filter((p: any) => p.id !== postId)
-      .slice(0, 3)
-      .map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        excerpt: p.content ? p.content.substring(0, 50) + '...' : '',
-        author: p.authorName || '未知用户',
-        createTime: formatTime(p.createdAt),
-        likes: p.likeCount,
-        thumbnail: '/api/placeholder/80/60'
-      }))
+    console.log('相关推荐数据:', relatedData)
+    
+    relatedPosts.value = relatedData.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      excerpt: p.content ? p.content.substring(0, 50) + '...' : '',
+      author: p.authorName || '未知用户',
+      createTime: formatTime(p.createdAt),
+      likes: p.likeCount,
+      thumbnail: p.images && p.images.length > 0 ? ImageUtils.getImageUrl(p.images[0]) : '/api/placeholder/80/60'
+    }))
   } catch (error) {
     console.error('加载相关推荐失败:', error)
+    // 失败时显示空列表
+    relatedPosts.value = []
   }
 }
 

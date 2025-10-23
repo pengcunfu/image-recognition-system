@@ -13,8 +13,8 @@ services:
     volumes:
       - ~/image-recognition-data/mysql/data:/var/lib/mysql
       - ~/image-recognition-data/mysql/logs:/var/log/mysql
-      - ./image-recognition-server/my.cnf:/etc/mysql/conf.d/my.cnf:ro
-      - ./image-recognition-server/image_recognition.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./docker/mysql/image_recognition.sql:/docker-entrypoint-initdb.d/init.sql:ro
     command: --default-authentication-plugin=mysql_native_password
     networks:
       - image-recognition-network
@@ -38,21 +38,26 @@ services:
   backend:
     build:
       context: ./image-recognition-server
-      dockerfile: Dockerfile
+      dockerfile: ../docker/Dockerfile.backend
     container_name: image-recognition-backend
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: docker-remote
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: image_recognition
       MYSQL_USER: root
       MYSQL_PASSWORD: 123456
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_PASSWORD: 
-      DOUBAO_API_KEY: your_doubao_api_key
-      JWT_SECRET: your_jwt_secret_key
-      VOLCENGINE_ACCESS_KEY_ID: your_volcengine_access_key
-      VOLCENGINE_SECRET_ACCESS_KEY: your_volcengine_secret_key
+      DOUBAO_API_KEY: ${DOUBAO_API_KEY:-your_doubao_api_key}
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key}
+      VOLCENGINE_ACCESS_KEY_ID: ${VOLCENGINE_ACCESS_KEY_ID:-your_volcengine_access_key}
+      VOLCENGINE_SECRET_ACCESS_KEY: ${VOLCENGINE_SECRET_ACCESS_KEY:-your_volcengine_secret_key}
       TZ: Asia/Shanghai
     ports:
-      - "8080:8080"
+      - "9094:9094"
     volumes:
       - ~/image-recognition-data/backend/logs:/app/logs
       - ~/image-recognition-data/backend/uploads:/app/uploads
@@ -67,7 +72,7 @@ services:
   frontend:
     build:
       context: ./image-recognition-web
-      dockerfile: Dockerfile
+      dockerfile: ../docker/Dockerfile.frontend
     container_name: image-recognition-frontend
     restart: unless-stopped
     environment:

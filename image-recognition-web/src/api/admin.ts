@@ -97,12 +97,22 @@ export interface RecognitionRecordInfo {
   userId: number
   username?: string
   imageUrl: string
+  imageName?: string
+  imageSize?: number
+  imageWidth?: number
+  imageHeight?: number
   mainCategory?: string
+  category?: string
+  objectName?: string
   confidence?: number
   recognitionType: number
   status: number
   processingTime?: number
-  createTime: string
+  resultJson?: string
+  tags?: string
+  description?: string
+  errorMessage?: string
+  createdAt: string
 }
 
 /**
@@ -541,7 +551,7 @@ export class AdminAPI {
    * 批量删除识别记录
    */
   static batchDeleteRecognitionRecords(recordIds: number[]) {
-    return post<void>('/api/admin/recognition/records/batch-delete', { ids: recordIds })
+    return post<void>('/api/admin/recognition/records/batch-delete', recordIds)
   }
 
   // ==================== 管理员个人资料 ====================
@@ -609,7 +619,7 @@ export class AdminAPI {
    * 删除文件
    */
   static deleteFile(url: string) {
-    return del<void>('/api/admin/files', { url })
+    return del<void>('/api/admin/files', { params: { url } })
   }
 
   /**
@@ -620,7 +630,7 @@ export class AdminAPI {
       successCount: number
       failCount: number
       failedFiles: string[]
-    }>('/api/admin/files/batch', { urls })
+    }>('/api/admin/files/batch', { data: { urls } })
   }
 
   /**

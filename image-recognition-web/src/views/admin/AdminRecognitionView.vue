@@ -312,6 +312,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { message, Modal } from 'ant-design-vue'
 import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
+import { AdminAPI, type RecognitionRecordInfo } from '@/api/admin'
 
 // 响应式数据
 const loading = ref(false)
@@ -391,161 +393,130 @@ const alternativeColumns = [
   { title: '置信度', dataIndex: 'confidence', key: 'confidence', width: 100 }
 ]
 
-// 模拟识别记录数据
-const recognitionRecords = ref([
-  {
-    id: 1,
-    username: '张三',
-    userAvatar: '',
-    isVip: true,
-    imageUrl: '/images/cat-sample.jpg',
-    imageName: 'cat-photo.jpg',
-    imageSize: '2.3MB',
-    imageDimensions: '1920x1080',
-    imageFormat: 'JPEG',
-    type: 'single',
-    result: '猫',
-    confidence: 96.8,
-    status: 'success',
-    duration: 1250,
-    modelVersion: 'v2.1.0',
-    createTime: '2025-01-15 14:30:25',
-    ipAddress: '192.168.1.100',
-    deviceInfo: 'Chrome 120.0 / Windows 10',
-    alternativeResults: [
-      { rank: 1, result: '猫', confidence: 96.8 },
-      { rank: 2, result: '小猫', confidence: 89.2 },
-      { rank: 3, result: '宠物猫', confidence: 85.6 }
-    ]
-  },
-  {
-    id: 2,
-    username: '李四',
-    userAvatar: '',
-    isVip: false,
-    imageUrl: '/images/dog-sample.jpg',
-    imageName: 'dog-image.png',
-    imageSize: '1.8MB',
-    imageDimensions: '1600x1200',
-    imageFormat: 'PNG',
-    type: 'single',
-    result: '金毛犬',
-    confidence: 92.4,
-    status: 'success',
-    duration: 980,
-    modelVersion: 'v2.1.0',
-    createTime: '2025-01-15 14:25:10',
-    ipAddress: '192.168.1.101',
-    deviceInfo: 'Safari 17.0 / macOS 14',
-    alternativeResults: [
-      { rank: 1, result: '金毛犬', confidence: 92.4 },
-      { rank: 2, result: '拉布拉多', confidence: 78.9 },
-      { rank: 3, result: '大型犬', confidence: 65.3 }
-    ]
-  },
-  {
-    id: 3,
-    username: '王五',
-    userAvatar: '',
-    isVip: true,
-    imageUrl: '/images/flower-sample.jpg',
-    imageName: 'flower.jpg',
-    imageSize: '3.1MB',
-    imageDimensions: '2048x1536',
-    imageFormat: 'JPEG',
-    type: 'batch',
-    result: '玫瑰花',
-    confidence: 88.7,
-    status: 'success',
-    duration: 2100,
-    modelVersion: 'v2.1.0',
-    createTime: '2025-01-15 14:20:45',
-    ipAddress: '192.168.1.102',
-    deviceInfo: 'Chrome 120.0 / Android 12',
-    alternativeResults: [
-      { rank: 1, result: '玫瑰花', confidence: 88.7 },
-      { rank: 2, result: '红玫瑰', confidence: 82.1 },
-      { rank: 3, result: '花朵', confidence: 75.4 }
-    ]
-  },
-  {
-    id: 4,
-    username: '赵六',
-    userAvatar: '',
-    isVip: false,
-    imageUrl: '/images/error-sample.jpg',
-    imageName: 'blurry-image.jpg',
-    imageSize: '0.8MB',
-    imageDimensions: '800x600',
-    imageFormat: 'JPEG',
-    type: 'api',
-    result: '识别失败',
-    confidence: 0,
-    status: 'failed',
-    duration: 500,
-    modelVersion: 'v2.1.0',
-    createTime: '2025-01-15 14:15:30',
-    ipAddress: '192.168.1.103',
-    deviceInfo: 'API Client v1.0',
-    feedback: {
-      type: '结果错误',
-      content: '图片太模糊，无法正确识别',
-      time: '2025-01-15 14:16:00'
-    }
-  },
-  {
-    id: 5,
-    username: '钱七',
-    userAvatar: '',
-    isVip: true,
-    imageUrl: '/images/processing-sample.jpg',
-    imageName: 'large-image.png',
-    imageSize: '5.2MB',
-    imageDimensions: '4096x3072',
-    imageFormat: 'PNG',
-    type: 'single',
-    result: '处理中...',
-    confidence: 0,
-    status: 'processing',
-    duration: 0,
-    modelVersion: 'v2.1.0',
-    createTime: '2025-01-15 14:35:15',
-    ipAddress: '192.168.1.104',
-    deviceInfo: 'Firefox 121.0 / Linux'
-  }
-])
+// 识别记录数据
+const recognitionRecords = ref<any[]>([])
 
-// 过滤后的识别记录列表
+// 加载识别记录
+async function loadRecognitionRecords() {
+  loading.value = true
+  try {
+    const params: any = {
+      page: pagination.current,
+      size: pagination.pageSize
+    }
+
+    // 添加筛选条件
+    if (filterStatus.value) {
+      // 将状态映射为后端接受的值
+      const statusMap: Record<string, number> = {
+        'success': 1,
+        'failed': 2,
+        'processing': 0
+      }
+      params.status = statusMap[filterStatus.value]
+    }
+
+    if (searchKeyword.value) {
+      params.keyword = searchKeyword.value
+    }
+
+    const response = await AdminAPI.getRecognitionRecords(params)
+    
+    // 转换后端数据为前端需要的格式
+    recognitionRecords.value = response.data.map((record: RecognitionRecordInfo) => {
+      // 解析resultJson获取详细结果
+      let resultData: any = {}
+      try {
+        if (record.resultJson) {
+          resultData = JSON.parse(record.resultJson)
+        }
+      } catch (e) {
+        console.warn('Failed to parse resultJson:', e)
+      }
+
+      // 确定识别结果显示
+      let result = record.mainCategory || record.category || record.objectName || '未知'
+      if (record.status === 2) {
+        result = record.errorMessage || '识别失败'
+      } else if (record.status === 0) {
+        result = '处理中...'
+      }
+
+      // 计算置信度（转换为百分比）
+      const confidence = record.confidence ? Number(record.confidence) : 0
+
+      // 确定状态
+      let status = 'success'
+      if (record.status === 0) status = 'processing'
+      else if (record.status === 2) status = 'failed'
+
+      // 确定类型
+      let type = 'single'
+      if (record.recognitionType === 1) type = 'batch'
+      else if (record.recognitionType === 2) type = 'api'
+
+      // 格式化文件大小
+      const formatSize = (bytes?: number) => {
+        if (!bytes) return '0 B'
+        const k = 1024
+        const sizes = ['B', 'KB', 'MB', 'GB']
+        const i = Math.floor(Math.log(bytes) / Math.log(k))
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+      }
+
+      return {
+        id: record.id,
+        userId: record.userId,
+        username: record.username || `用户${record.userId}`,
+        userAvatar: '',
+        isVip: false,
+        imageUrl: record.imageUrl,
+        imageName: record.imageName || '未知文件',
+        imageSize: formatSize(record.imageSize),
+        imageDimensions: record.imageWidth && record.imageHeight 
+          ? `${record.imageWidth}x${record.imageHeight}` 
+          : '未知',
+        imageFormat: record.imageName?.split('.').pop()?.toUpperCase() || 'JPEG',
+        type,
+        result,
+        confidence,
+        status,
+        duration: record.processingTime || 0,
+        modelVersion: 'v2.1.0',
+        createTime: dayjs(record.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+        ipAddress: '未知',
+        deviceInfo: '未知',
+        alternativeResults: resultData.alternatives || [],
+        tags: record.tags,
+        description: record.description
+      }
+    })
+
+    pagination.total = response.total
+  } catch (error: any) {
+    console.error('加载识别记录失败:', error)
+    message.error(error.message || '加载识别记录失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 过滤后的识别记录列表（现在主要在后端过滤）
 const filteredRecognitions = computed(() => {
   let result = recognitionRecords.value
 
-  // 类型筛选
+  // 类型筛选（前端补充筛选）
   if (filterType.value) {
     result = result.filter(record => record.type === filterType.value)
   }
 
-  // 状态筛选
-  if (filterStatus.value) {
-    result = result.filter(record => record.status === filterStatus.value)
-  }
-
-  // 日期范围筛选
+  // 日期范围筛选（前端补充筛选）
   if (dateRange.value && dateRange.value.length === 2) {
     const [start, end] = dateRange.value
     result = result.filter(record => {
       const recordDate = new Date(record.createTime)
       return recordDate >= start.toDate() && recordDate <= end.toDate()
     })
-  }
-
-  // 关键词搜索
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(record => 
-      record.username.toLowerCase().includes(keyword) ||
-      record.result.toLowerCase().includes(keyword) ||
-      record.imageName.toLowerCase().includes(keyword)
-    )
   }
 
   return result
@@ -622,16 +593,19 @@ function getConfidenceClass(confidence: number) {
 // 处理筛选变化
 function handleFilterChange() {
   pagination.current = 1
+  loadRecognitionRecords()
 }
 
 // 处理日期变化
 function handleDateChange() {
   pagination.current = 1
+  // 日期筛选在前端处理
 }
 
 // 处理搜索
 function handleSearch() {
   pagination.current = 1
+  loadRecognitionRecords()
 }
 
 // 处理重置
@@ -641,12 +615,14 @@ function handleReset() {
   dateRange.value = null
   searchKeyword.value = ''
   pagination.current = 1
+  loadRecognitionRecords()
 }
 
 // 处理表格变化
 function handleTableChange(pag: any) {
   pagination.current = pag.current
   pagination.pageSize = pag.pageSize
+  loadRecognitionRecords()
 }
 
 // 查看详情
@@ -714,17 +690,21 @@ function exportRecord(record: any) {
 }
 
 // 删除记录
-function deleteRecord(record: any) {
+async function deleteRecord(record: any) {
   Modal.confirm({
     title: '确认删除',
     content: `确定要删除识别记录 #${record.id} 吗？此操作不可恢复！`,
     okType: 'danger',
-    onOk() {
-      const index = recognitionRecords.value.findIndex(r => r.id === record.id)
-      if (index > -1) {
-        recognitionRecords.value.splice(index, 1)
+    async onOk() {
+      try {
+        await AdminAPI.deleteRecognitionRecord(record.id)
         message.success('识别记录已删除')
         drawerVisible.value = false
+        // 重新加载数据
+        loadRecognitionRecords()
+      } catch (error: any) {
+        console.error('删除识别记录失败:', error)
+        message.error(error.message || '删除识别记录失败')
       }
     }
   })
@@ -732,7 +712,7 @@ function deleteRecord(record: any) {
 
 // 组件挂载
 onMounted(() => {
-  pagination.total = recognitionRecords.value.length
+  loadRecognitionRecords()
 })
 </script>
 

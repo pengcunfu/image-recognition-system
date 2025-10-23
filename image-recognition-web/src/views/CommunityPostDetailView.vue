@@ -232,7 +232,7 @@
         <!-- 发表评论 -->
         <div :style="{ marginBottom: '16px', padding: '12px', background: '#fafafa', borderRadius: '8px' }">
           <div :style="{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }">
-            <a-avatar :src="currentUser.avatar" :size="32">
+            <a-avatar :src="ImageUtils.getImageUrl(currentUser.avatar)" :size="32">
               {{ currentUser.name.charAt(0) }}
             </a-avatar>
             <span :style="{ fontSize: '14px', fontWeight: '500' }">{{ currentUser.name }}</span>
@@ -283,7 +283,7 @@
               borderBottom: '1px solid #f0f0f0' 
             }"
           >
-            <a-avatar :src="comment.authorAvatar" :size="32">
+            <a-avatar :src="ImageUtils.getImageUrl(comment.authorAvatar)" :size="32">
               {{ comment.author.charAt(0) }}
             </a-avatar>
             
@@ -359,7 +359,7 @@
                   :key="reply.id"
                   :style="{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'flex-start' }"
                 >
-                  <a-avatar :src="reply.authorAvatar" :size="24">
+                  <a-avatar :src="ImageUtils.getImageUrl(reply.authorAvatar)" :size="24">
                     {{ reply.author.charAt(0) }}
                   </a-avatar>
                   <div :style="{ flex: 1 }">
@@ -489,7 +489,7 @@ const router = useRouter()
 // 当前用户信息（从localStorage获取）
 const currentUser = reactive({
   name: localStorage.getItem('userName') || '用户',
-  avatar: ImageUtils.getImageUrl(localStorage.getItem('userAvatar')),
+  avatar: localStorage.getItem('userAvatar') || '',
   level: '资深用户'
 })
 
@@ -674,11 +674,11 @@ async function loadComments(postId: number) {
     
     console.log('评论数据:', response)
     
-    // 转换评论数据 - 使用 ImageUtils
+    // 转换评论数据
     comments.value = response.data.map((comment: any) => ({
       id: comment.id,
       author: comment.username || '未知用户',
-      authorAvatar: ImageUtils.getImageUrl(comment.userAvatar),
+      authorAvatar: comment.userAvatar || '',
       authorLevel: '用户',
       isAuthor: comment.userId === post.value.id,
       createTime: formatTime(comment.createTime),
@@ -931,7 +931,7 @@ async function submitReply(comment: any) {
     comment.replies.push({
       id: newReply.id,
       author: newReply.username || currentUser.name,
-      authorAvatar: ImageUtils.getImageUrl(newReply.userAvatar) || currentUser.avatar,
+      authorAvatar: newReply.userAvatar || currentUser.avatar,
       createTime: '刚刚',
       content: replyContent.value
     })

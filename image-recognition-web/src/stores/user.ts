@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { UserAPI } from '@/api/user'
+import { UserRole } from '@/constants/role'
 
 export interface UserInfo {
   id: number
@@ -30,7 +31,7 @@ export const useUserStore = defineStore('user', () => {
     if (!userInfo.value?.vipExpireTime) return false
     return new Date(userInfo.value.vipExpireTime) > new Date()
   })
-  const isAdmin = computed(() => userInfo.value?.role === 2)
+  const isAdmin = computed(() => userInfo.value?.role === UserRole.ADMIN)
 
   // 初始化：从localStorage加载token（仅token）
   function initFromStorage() {

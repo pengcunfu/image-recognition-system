@@ -146,6 +146,7 @@ import { message } from 'ant-design-vue'
 import type { FormInstance, Rule } from 'ant-design-vue/es/form'
 import { AuthAPI } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
+import { UserRole } from '@/constants/role'
 import { 
   UserOutlined, 
   LockOutlined, 
@@ -242,7 +243,7 @@ async function handleLogin() {
       }
       
       // 根据用户角色跳转 (0=普通用户, 1=VIP, 2=管理员)
-      const isAdmin = result.user.role === 2
+      const isAdmin = result.user.role === UserRole.ADMIN
       const redirectPath = isAdmin ? '/dashboard' : '/user/dashboard'
       router.push(redirectPath)
     } else {

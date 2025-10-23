@@ -93,14 +93,18 @@
           <template #extra>
             <a-button type="link" @click="viewAllHistory">查看全部</a-button>
           </template>
-          <div :style="{ display: 'flex', flexDirection: 'column', gap: '16px' }">
+          <div v-if="recentRecognitions.length === 0" :style="{ textAlign: 'center', padding: '32px 0', opacity: 0.65 }">
+            <i class="fas fa-inbox" :style="{ fontSize: '48px', marginBottom: '16px', display: 'block' }"></i>
+            <div>暂无识别记录</div>
+          </div>
+          <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '16px' }">
             <div 
               v-for="item in recentRecognitions" 
               :key="item.id"
               :style="{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
               @click="viewRecognitionDetail(item)"
             >
-              <div :style="{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }">
+              <div :style="{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#f5f5f5' }">
                 <img :src="item.thumbnail" :alt="item.result" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
               </div>
               <div :style="{ flex: 1, minWidth: 0 }">
@@ -191,6 +195,8 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { UserAPI, type UserStats } from '@/api/user'
+import { RecognitionAPI, type RecognitionInfo } from '@/api/recognition'
+import { ImageUtils } from '@/utils/image'
 
 const router = useRouter()
 
@@ -215,29 +221,14 @@ const stats = reactive<UserStats>({
 })
 
 // 最近识别记录
-const recentRecognitions = ref([
-  {
-    id: 1,
-    result: '金毛犬',
-    confidence: 95,
-    time: '2小时前',
-    thumbnail: '/api/placeholder/60/60'
-  },
-  {
-    id: 2,
-    result: '玫瑰花',
-    confidence: 88,
-    time: '1天前',
-    thumbnail: '/api/placeholder/60/60'
-  },
-  {
-    id: 3,
-    result: '苹果',
-    confidence: 92,
-    time: '2天前',
-    thumbnail: '/api/placeholder/60/60'
-  }
-])
+interface RecentRecognition {
+  id: number
+  result: string
+  confidence: number
+  time: string
+  thumbnail: string
+}
+const recentRecognitions = ref<RecentRecognition[]>([])
 
 // 推荐知识
 const recommendedKnowledge = ref([
@@ -389,10 +380,58 @@ async function loadStats() {
   }
 }
 
+// 加载最近识别记录
+async function loadRecentRecognitions() {
+  try {
+    const response = await RecognitionAPI.getHistory({
+      page: 1,
+      size: 3
+    })
+    
+    console.log('最近识别记录:', response)
+    
+    // 转换数据格式
+    recentRecognitions.value = response.data.map((item: RecognitionInfo) => ({
+      id: item.id,
+      result: item.objectName || item.category || '未知',
+      confidence: Math.round(item.confidence * 100),
+      time: formatTime(item.createdAt),
+      thumbnail: ImageUtils.getImageUrl(item.imageUrl)
+    }))
+  } catch (error) {
+    console.error('加载最近识别记录失败:', error)
+    // 静默失败，使用空数组
+  }
+}
+
+// 格式化时间
+function formatTime(timeStr: string): string {
+  const time = new Date(timeStr)
+  const now = new Date()
+  const diff = now.getTime() - time.getTime()
+  
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+  
+  if (minutes < 1) {
+    return '刚刚'
+  } else if (minutes < 60) {
+    return `${minutes}分钟前`
+  } else if (hours < 24) {
+    return `${hours}小时前`
+  } else if (days < 30) {
+    return `${days}天前`
+  } else {
+    return time.toLocaleDateString()
+  }
+}
+
 // 组件挂载时加载用户信息和统计数据
 onMounted(() => {
   loadUserInfo()
   loadStats()
+  loadRecentRecognitions()
 })
 </script>
 

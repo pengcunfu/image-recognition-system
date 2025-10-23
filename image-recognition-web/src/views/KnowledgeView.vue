@@ -37,19 +37,13 @@
                 <a-spin :spinning="loading && knowledgeData.length === 0">
                   <a-empty v-if="!loading && knowledgeData.length === 0" description="暂无知识条目" />
                   <div v-else :style="{ 
-                    columnCount: 'auto',
-                    columnWidth: '280px',
-                    columnGap: '16px',
-                    columnFill: 'balance'
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '16px'
                   }">
                     <div 
                       v-for="item in knowledgeData" 
                       :key="item.id"
-                      :style="{ 
-                        breakInside: 'avoid',
-                        marginBottom: '16px',
-                        width: '100%'
-                      }"
                     >
                       <div 
                         :style="{ 
@@ -133,19 +127,13 @@
                 <a-spin :spinning="loading && getKnowledgeByCategory(cat).length === 0">
                   <a-empty v-if="!loading && getKnowledgeByCategory(cat).length === 0" description="暂无知识条目" />
                   <div v-else :style="{ 
-                    columnCount: 'auto',
-                    columnWidth: '280px',
-                    columnGap: '16px',
-                    columnFill: 'balance'
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: '16px'
                   }">
                     <div 
                       v-for="item in getKnowledgeByCategory(cat)" 
                       :key="item.id"
-                      :style="{ 
-                        breakInside: 'avoid',
-                        marginBottom: '16px',
-                        width: '100%'
-                      }"
                     >
                       <div 
                         :style="{ 

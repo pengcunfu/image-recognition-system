@@ -121,11 +121,6 @@
               <div 
                 v-for="post in filteredPosts"
                 :key="post.id"
-                :style="{ 
-                  breakInside: 'avoid',
-                  marginBottom: '16px',
-                  width: '100%'
-                }"
               >
             <div 
               :style="{ 
@@ -688,12 +683,12 @@ const filteredPosts = computed(() => {
   return result
 })
 
-// 响应式瀑布流布局样式 - 与知识库保持一致
+// 响应式网格布局样式
 const layoutStyle = computed(() => {
   return {
-    columnCount: 'auto' as const,
-    columnWidth: '280px',
-    columnGap: '16px',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '16px',
     width: '100%'
   }
 })

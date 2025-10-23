@@ -326,7 +326,7 @@
                 </a-button>
                 
                 <a-button 
-                  v-if="comment.userId === currentUserId && currentUserId > 0" 
+                  v-if="comment.userId === userStore.userId && userStore.userId > 0" 
                   type="text" 
                   @click="deleteComment(comment)" 
                   size="small" 
@@ -467,16 +467,19 @@ import { message } from 'ant-design-vue'
 import { CommunityAPI } from '@/api/community'
 import { CommentAPI } from '@/api/comments'
 import { ImageUtils } from '@/utils/image'
+import { useUserStore } from '@/stores/user'
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 
-// 当前用户信息（从localStorage获取）
-const currentUser = reactive({
-  name: localStorage.getItem('userName') || '用户',
-  avatar: localStorage.getItem('userAvatar') || '',
+// 当前用户信息（从store获取）
+const currentUser = computed(() => ({
+  id: userStore.userId,
+  name: userStore.userNickname,
+  avatar: userStore.userAvatar,
   level: '资深用户'
-})
+}))
 
 // 加载状态
 const loading = ref(false)
@@ -506,8 +509,7 @@ const post = ref({
 // 交互状态
 const isLiked = ref(false)
 const isBookmarked = ref(false)
-const currentUserId = Number(localStorage.getItem('userId') || '0')
-const isAuthor = computed(() => post.value.authorId === currentUserId && currentUserId > 0)
+const isAuthor = computed(() => post.value.authorId === userStore.userId && userStore.userId > 0)
 
 // 评论相关
 const comments = ref<any[]>([])
@@ -607,7 +609,7 @@ async function loadPostDetail(postId: string | number) {
     }
     
     console.log('转换后的帖子数据:', post.value)
-    console.log('当前用户ID:', currentUserId)
+    console.log('当前用户ID:', userStore.userId)
     console.log('帖子作者ID:', post.value.authorId)
     console.log('是否为作者:', isAuthor.value)
     
@@ -904,8 +906,8 @@ async function submitReply(comment: any) {
     }
     comment.replies.push({
       id: newReply.id,
-      author: newReply.username || currentUser.name,
-      authorAvatar: newReply.avatar || currentUser.avatar,
+      author: newReply.username || currentUser.value.name,
+      authorAvatar: newReply.avatar || currentUser.value.avatar,
       createTime: '刚刚',
       content: replyContent.value
     })

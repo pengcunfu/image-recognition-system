@@ -501,6 +501,7 @@ const post = ref({
   id: 0,
   title: '',
   author: '',
+  authorId: 0,
   authorAvatar: '',
   authorLevel: '',
   isVip: false,
@@ -602,12 +603,13 @@ async function loadPostDetail(postId: string | number) {
       id: postData.id,
       title: postData.title,
       author: postData.authorName || '未知用户',
+      authorId: postData.authorId,
       authorAvatar: ImageUtils.getImageUrl(postData.authorAvatar),
       authorLevel: '用户', // 可以根据用户角色设置
       isVip: false, // 需要从用户信息判断
       type: postData.category || 'discussion',
-      createTime: formatTime(postData.createTime),
-      lastEditTime: postData.updateTime ? formatTime(postData.updateTime) : '',
+      createTime: formatTime(postData.createdAt),
+      lastEditTime: postData.updatedAt ? formatTime(postData.updatedAt) : '',
       views: postData.viewCount,
       likes: postData.likeCount,
       comments: postData.commentCount,
@@ -652,7 +654,7 @@ async function loadRelatedPosts(postId: number) {
         title: p.title,
         excerpt: p.content ? p.content.substring(0, 50) + '...' : '',
         author: p.authorName || '未知用户',
-        createTime: formatTime(p.createTime),
+        createTime: formatTime(p.createdAt),
         likes: p.likeCount,
         thumbnail: '/api/placeholder/80/60'
       }))
@@ -678,10 +680,10 @@ async function loadComments(postId: number) {
     comments.value = response.data.map((comment: any) => ({
       id: comment.id,
       author: comment.username || '未知用户',
-      authorAvatar: comment.userAvatar || '',
+      authorAvatar: comment.avatar || '',
       authorLevel: '用户',
-      isAuthor: comment.userId === post.value.id,
-      createTime: formatTime(comment.createTime),
+      isAuthor: comment.userId === post.value.authorId,
+      createTime: formatTime(comment.createdAt),
       content: comment.content,
       likes: comment.likeCount || 0,
       isLiked: comment.isLiked || false,
@@ -931,7 +933,7 @@ async function submitReply(comment: any) {
     comment.replies.push({
       id: newReply.id,
       author: newReply.username || currentUser.name,
-      authorAvatar: newReply.userAvatar || currentUser.avatar,
+      authorAvatar: newReply.avatar || currentUser.avatar,
       createTime: '刚刚',
       content: replyContent.value
     })

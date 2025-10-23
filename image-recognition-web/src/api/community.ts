@@ -22,8 +22,6 @@ export interface PostInfo {
   status: number
   createdAt: string
   updatedAt?: string
-  createTime: string
-  updateTime: string
 }
 
 /**

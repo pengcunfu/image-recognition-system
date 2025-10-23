@@ -12,11 +12,11 @@ export interface CommentInfo {
   parentId?: number
   userId: number
   username: string
-  userAvatar?: string
+  avatar?: string
   likeCount: number
   isLiked: boolean
-  createTime: string
-  updateTime: string
+  createdAt: string
+  updatedAt?: string
   replies?: CommentInfo[]
 }
 

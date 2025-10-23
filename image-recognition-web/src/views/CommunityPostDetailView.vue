@@ -489,7 +489,7 @@ const router = useRouter()
 // 当前用户信息（从localStorage获取）
 const currentUser = reactive({
   name: localStorage.getItem('userName') || '用户',
-  avatar: localStorage.getItem('userAvatar') || '',
+  avatar: ImageUtils.getImageUrl(localStorage.getItem('userAvatar')),
   level: '资深用户'
 })
 

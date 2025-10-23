@@ -149,6 +149,17 @@ public class RecognitionController {
     }
 
     /**
+     * 获取相关识别记录（同分类）
+     */
+    @GetMapping("/{id}/related")
+    public ApiResponse<java.util.List<RecognitionResponse.RecognitionInfo>> getRelatedRecognitions(@PathVariable Long id) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取相关识别记录: userId={}, id={}", userId, id);
+        java.util.List<RecognitionResponse.RecognitionInfo> related = recognitionService.getRelatedRecognitions(userId, id);
+        return ApiResponse.success(related);
+    }
+
+    /**
      * 批量图像识别（上传多个文件）
      */
     @PostMapping("/batch-recognize")

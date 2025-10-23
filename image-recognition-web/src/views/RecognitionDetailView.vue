@@ -271,29 +271,14 @@ const recognition = ref<RecognitionDetail>({
 const loading = ref(false)
 
 // 相关识别记录
-const relatedRecognitions = ref([
-  {
-    id: 2,
-    result: '拉布拉多犬',
-    confidence: 92,
-    time: '1天前',
-    thumbnail: '/api/placeholder/100/100'
-  },
-  {
-    id: 3,
-    result: '边境牧羊犬',
-    confidence: 88,
-    time: '2天前',
-    thumbnail: '/api/placeholder/100/100'
-  },
-  {
-    id: 4,
-    result: '萨摩耶犬',
-    confidence: 85,
-    time: '3天前',
-    thumbnail: '/api/placeholder/100/100'
-  }
-])
+interface RelatedRecognition {
+  id: number
+  result: string
+  confidence: number
+  time: string
+  thumbnail: string
+}
+const relatedRecognitions = ref<RelatedRecognition[]>([])
 
 // 状态
 const isFavorited = ref(false)
@@ -378,11 +363,34 @@ async function loadRecognitionDetail(recognitionId: string | number) {
       alternatives,
       tags
     }
+
+    // 加载相关识别记录
+    await loadRelatedRecognitions(Number(recognitionId))
   } catch (error) {
     console.error('加载识别详情失败:', error)
     message.error('加载识别详情失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 加载相关识别记录
+async function loadRelatedRecognitions(recognitionId: number) {
+  try {
+    const related = await RecognitionAPI.getRelated(recognitionId)
+    console.log('相关识别记录:', related)
+
+    // 转换数据格式
+    relatedRecognitions.value = related.map((item: RecognitionInfo) => ({
+      id: item.id,
+      result: item.objectName || item.category || '未知',
+      confidence: Math.round(item.confidence * 100),
+      time: formatTime(item.createdAt),
+      thumbnail: ImageUtils.getImageUrl(item.imageUrl)
+    }))
+  } catch (error) {
+    console.error('加载相关识别记录失败:', error)
+    // 静默失败，不显示错误提示
   }
 }
 

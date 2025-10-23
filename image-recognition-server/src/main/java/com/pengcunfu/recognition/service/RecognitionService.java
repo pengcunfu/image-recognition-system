@@ -348,6 +348,33 @@ public class RecognitionService {
     }
 
     /**
+     * 获取相关识别记录（同分类）
+     */
+    public List<RecognitionResponse.RecognitionInfo> getRelatedRecognitions(Long userId, Long id) {
+        log.info("获取相关识别记录: userId={}, id={}", userId, id);
+
+        // 获取当前识别记录
+        RecognitionResult current = recognitionResultRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "识别记录不存在"));
+
+        // 验证权限
+        if (!current.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权访问此识别记录");
+        }
+
+        // 获取同分类的识别记录（排除当前记录，最多3条）
+        List<RecognitionResult> related = recognitionResultRepository.findByUserIdAndMainCategoryAndIdNotOrderByCreatedAtDesc(
+                userId, current.getMainCategory(), id
+        );
+
+        // 限制返回数量为3条
+        return related.stream()
+                .limit(3)
+                .map(this::convertToRecognitionInfo)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 转换为识别信息 DTO
      */
     private RecognitionResponse.RecognitionInfo convertToRecognitionInfo(RecognitionResult result) {

@@ -108,5 +108,22 @@ public interface RecognitionResultRepository extends BaseMapper<RecognitionResul
             WHERE user_id = #{userId} AND confidence IS NOT NULL
             """)
     Double getAverageConfidenceByUserId(@Param("userId") Long userId);
+
+    /**
+     * 查询同分类的识别记录（排除指定ID）
+     */
+    @Select("""
+            SELECT * FROM recognition_results
+            WHERE user_id = #{userId}
+              AND main_category = #{mainCategory}
+              AND id != #{excludeId}
+            ORDER BY created_at DESC
+            LIMIT 3
+            """)
+    java.util.List<RecognitionResult> findByUserIdAndMainCategoryAndIdNotOrderByCreatedAtDesc(
+            @Param("userId") Long userId,
+            @Param("mainCategory") String mainCategory,
+            @Param("excludeId") Long excludeId
+    );
 }
 

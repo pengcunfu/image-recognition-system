@@ -100,6 +100,13 @@ export class RecognitionAPI {
   static getStats() {
     return get<RecognitionStats>('/api/recognition/stats')
   }
+
+  /**
+   * 获取相关识别记录（同分类）
+   */
+  static getRelated(id: number) {
+    return get<RecognitionInfo[]>(`/api/recognition/${id}/related`)
+  }
 }
 
 // 导出默认实例

@@ -581,6 +581,78 @@ export class AdminAPI {
   }) {
     return put<void>('/api/admin/profile/password', data)
   }
+
+  // ==================== 文件管理 ====================
+
+  /**
+   * 获取文件列表
+   */
+  static getFiles(params: {
+    page: number
+    size: number
+    type?: string
+    keyword?: string
+  }) {
+    return get<PageResponse<FileInfo>>('/api/admin/files', params)
+  }
+
+  /**
+   * 上传文件
+   */
+  static uploadFile(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return post<string>('/api/admin/files/upload', formData)
+  }
+
+  /**
+   * 删除文件
+   */
+  static deleteFile(url: string) {
+    return del<void>('/api/admin/files', { url })
+  }
+
+  /**
+   * 批量删除文件
+   */
+  static batchDeleteFiles(urls: string[]) {
+    return del<{
+      successCount: number
+      failCount: number
+      failedFiles: string[]
+    }>('/api/admin/files/batch', { urls })
+  }
+
+  /**
+   * 获取文件统计信息
+   */
+  static getFileStats() {
+    return get<FileStats>('/api/admin/files/stats')
+  }
+}
+
+/**
+ * 文件信息
+ */
+export interface FileInfo {
+  name: string
+  path: string
+  url: string
+  type: string
+  size: number
+  sizeFormatted: string
+  modifiedTime: string
+  inUse: boolean
+  usedBy: string[]
+}
+
+/**
+ * 文件统计信息
+ */
+export interface FileStats {
+  imageCount: number
+  totalSize: number
+  totalSizeFormatted: string
 }
 
 // 导出默认实例

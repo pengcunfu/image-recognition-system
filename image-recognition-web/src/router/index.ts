@@ -18,6 +18,7 @@ import KnowledgeManagementView from '@/views/admin/AdminKnowledgeView.vue'
 import VipManagementView from '@/views/admin/AdminVipsView.vue'
 import RecognitionManagementView from '@/views/admin/AdminRecognitionView.vue'
 import AdminProfileView from '@/views/admin/AdminProfileView.vue'
+import AdminFileView from '@/views/admin/AdminFileView.vue'
 
 // 用户组件
 import UserLayout from '@/layout/UserLayout.vue'
@@ -193,6 +194,24 @@ const routes: Array<RouteRecordRaw> = [
         component: RecognitionManagementView,
         meta: {
           title: '识别记录管理 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
+  {
+    path: '/file-management',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'FileManagement',
+        component: AdminFileView,
+        meta: {
+          title: '文件管理 - 智能图像识别系统'
         }
       }
     ]

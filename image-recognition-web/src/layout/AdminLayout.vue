@@ -153,6 +153,13 @@
             </template>
             识别记录
           </a-menu-item>
+          
+          <a-menu-item key="/file-management">
+            <template #icon>
+              <FolderOpenOutlined />
+            </template>
+            文件管理
+          </a-menu-item>
         </a-menu>
       </a-layout-sider>
       
@@ -182,7 +189,8 @@ import {
   CameraOutlined, 
   ShoppingCartOutlined,
   LogoutOutlined,
-  BellOutlined
+  BellOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons-vue'
 import { AdminAPI } from '@/api/admin'
 import { useUserStore } from '@/stores/user'

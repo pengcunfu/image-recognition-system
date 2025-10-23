@@ -911,14 +911,11 @@ function selectTag(tagName: string) {
 // 加载热门帖子
 async function loadHotPosts() {
   try {
-    const response = await CommunityAPI.getPosts({
-      page: 1,
-      size: 5,
-      sort: 'hot' // 按热度排序
-    })
+    // 使用专门的热门帖子接口（按访问量排序）
+    const response = await CommunityAPI.getHotPosts(5)
     
-    // 转换数据格式，取前5个最热门的帖子
-    hotPosts.value = response.data.slice(0, 5).map((post: any) => {
+    // 转换数据格式
+    hotPosts.value = response.map((post: any) => {
       let images: string[] = []
       if (post.images) {
         if (Array.isArray(post.images)) {

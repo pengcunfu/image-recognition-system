@@ -60,6 +60,7 @@ export interface GetPostsParams {
   page?: number
   size?: number
   category?: string
+  tag?: string
   keyword?: string
   sort?: 'latest' | 'hot' | 'top'
 }
@@ -157,6 +158,13 @@ export class CommunityAPI {
    */
   static getRelatedPosts(id: number) {
     return get<PostInfo[]>(`/api/community/posts/${id}/related`)
+  }
+
+  /**
+   * 获取热门帖子（按访问量排序）
+   */
+  static getHotPosts(limit: number = 5) {
+    return get<PostInfo[]>('/api/community/hot-posts', { limit })
   }
 }
 

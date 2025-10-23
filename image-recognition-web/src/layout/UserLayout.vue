@@ -365,7 +365,7 @@ function handleUserMenuClick({ key }: { key: string }) {
       router.push('/user/profile')
       break
     case 'notifications':
-      router.push('/user/notifications')
+      router.push({ path: '/user/profile', query: { tab: 'notifications' } })
       break
     case 'posts':
       // 跳转到个人中心的帖子标签

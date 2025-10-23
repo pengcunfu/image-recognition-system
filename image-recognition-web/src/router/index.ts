@@ -41,7 +41,6 @@ import BecomeVipView from '@/views/BecomeVipView.vue'
 
 // 通知消息组件
 import AdminNotifications from '@/views/admin/AdminNotifications.vue'
-import UserNotifications from '@/views/user-profile/UserNotifications.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -393,15 +392,6 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: 'AI模型训练 - 智能图像识别系统',
           requiresVip: true
-        }
-      },
-      // 用户通知消息页面
-      {
-        path: 'notifications',
-        name: 'UserNotifications',
-        component: UserNotifications,
-        meta: {
-          title: '我的消息 - 智能图像识别系统'
         }
       }
     ]

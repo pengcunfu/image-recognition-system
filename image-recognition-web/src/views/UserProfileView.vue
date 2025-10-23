@@ -56,6 +56,10 @@
                 <i class="fas fa-heart" :style="{ marginRight: '6px' }"></i>
                 我的点赞
               </a-menu-item>
+              <a-menu-item key="notifications">
+                <i class="fas fa-bell" :style="{ marginRight: '6px' }"></i>
+                我的消息
+              </a-menu-item>
               <a-menu-item key="settings">
                 <i class="fas fa-cog" :style="{ marginRight: '6px' }"></i>
                 账号设置
@@ -236,6 +240,11 @@
               </a-tabs>
             </div>
 
+            <!-- 我的消息 -->
+            <div v-show="currentView === 'notifications'">
+              <UserNotifications />
+            </div>
+
             <!-- 设置 -->
             <div v-show="currentView === 'settings'">
               <h3 :style="{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: 'bold' }">账号设置</h3>
@@ -275,6 +284,7 @@ import UserPostList from './user-profile/UserPostList.vue'
 import UserSettings from './user-profile/UserSettings.vue'
 import AvatarUploadModal from './user-profile/AvatarUploadModal.vue'
 import PostEditModal from './user-profile/PostEditModal.vue'
+import UserNotifications from './user-profile/UserNotifications.vue'
 import { FileAPI } from '@/api/file'
 import { UserAPI } from '@/api/user'
 import { CommunityAPI } from '@/api/community'

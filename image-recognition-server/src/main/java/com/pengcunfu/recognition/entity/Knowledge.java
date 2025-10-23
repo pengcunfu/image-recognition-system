@@ -84,6 +84,16 @@ public class Knowledge {
     private Integer status;
 
     /**
+     * 是否置顶: 0-否, 1-是
+     */
+    private Integer isTop;
+
+    /**
+     * 是否推荐: 0-否, 1-是
+     */
+    private Integer isFeatured;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

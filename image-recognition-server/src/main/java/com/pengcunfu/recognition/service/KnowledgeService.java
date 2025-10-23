@@ -262,6 +262,44 @@ public class KnowledgeService {
     }
 
     /**
+     * 置顶/取消置顶知识条目
+     */
+    @Transactional
+    public void toggleTop(Long knowledgeId, Integer isTop) {
+        log.info("切换知识置顶状态: knowledgeId={}, isTop={}", knowledgeId, isTop);
+
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        knowledge.setIsTop(isTop);
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("知识置顶状态已更新: knowledgeId={}, isTop={}", knowledgeId, isTop);
+    }
+
+    /**
+     * 推荐/取消推荐知识条目
+     */
+    @Transactional
+    public void toggleFeatured(Long knowledgeId, Integer isFeatured) {
+        log.info("切换知识推荐状态: knowledgeId={}, isFeatured={}", knowledgeId, isFeatured);
+
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        knowledge.setIsFeatured(isFeatured);
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("知识推荐状态已更新: knowledgeId={}, isFeatured={}", knowledgeId, isFeatured);
+    }
+
+    /**
      * 删除知识条目
      */
     @Transactional
@@ -490,6 +528,8 @@ public class KnowledgeService {
                 .isLiked(isLiked)
                 .isCollected(isCollected)
                 .status(knowledge.getStatus())
+                .isTop(knowledge.getIsTop())
+                .isFeatured(knowledge.getIsFeatured())
                 .createdAt(knowledge.getCreatedAt())
                 .updatedAt(knowledge.getUpdatedAt())
                 .build();

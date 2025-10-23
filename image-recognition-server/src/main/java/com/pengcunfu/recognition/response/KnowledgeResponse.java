@@ -41,6 +41,8 @@ public class KnowledgeResponse {
         private Boolean isLiked;
         private Boolean isCollected;
         private Integer status;
+        private Integer isTop;
+        private Integer isFeatured;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }
@@ -69,6 +71,8 @@ public class KnowledgeResponse {
         private Boolean isLiked;
         private Boolean isCollected;
         private Integer status;
+        private Integer isTop;
+        private Integer isFeatured;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }

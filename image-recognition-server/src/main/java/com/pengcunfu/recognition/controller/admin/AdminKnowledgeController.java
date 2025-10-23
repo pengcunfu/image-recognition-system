@@ -109,6 +109,30 @@ public class AdminKnowledgeController {
     }
 
     /**
+     * 置顶/取消置顶知识条目
+     */
+    @PutMapping("/{knowledgeId}/top")
+    public ApiResponse<Void> toggleKnowledgeTop(
+            @PathVariable Long knowledgeId,
+            @RequestParam Integer isTop) {
+        log.info("切换知识置顶状态: knowledgeId={}, isTop={}", knowledgeId, isTop);
+        knowledgeService.toggleTop(knowledgeId, isTop);
+        return ApiResponse.success();
+    }
+
+    /**
+     * 推荐/取消推荐知识条目
+     */
+    @PutMapping("/{knowledgeId}/featured")
+    public ApiResponse<Void> toggleKnowledgeFeatured(
+            @PathVariable Long knowledgeId,
+            @RequestParam Integer isFeatured) {
+        log.info("切换知识推荐状态: knowledgeId={}, isFeatured={}", knowledgeId, isFeatured);
+        knowledgeService.toggleFeatured(knowledgeId, isFeatured);
+        return ApiResponse.success();
+    }
+
+    /**
      * 删除知识条目
      */
     @DeleteMapping("/{knowledgeId}")

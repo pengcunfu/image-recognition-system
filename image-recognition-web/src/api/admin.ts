@@ -360,6 +360,20 @@ export class AdminAPI {
   }
 
   /**
+   * 置顶/取消置顶知识条目
+   */
+  static toggleKnowledgeTop(knowledgeId: number, isTop: number) {
+    return put<void>(`/api/admin/knowledge/${knowledgeId}/top?isTop=${isTop}`)
+  }
+
+  /**
+   * 推荐/取消推荐知识条目
+   */
+  static toggleKnowledgeFeatured(knowledgeId: number, isFeatured: number) {
+    return put<void>(`/api/admin/knowledge/${knowledgeId}/featured?isFeatured=${isFeatured}`)
+  }
+
+  /**
    * 删除知识条目
    */
   static deleteKnowledge(knowledgeId: number) {

@@ -89,9 +89,13 @@
                   <i v-else class="fas fa-image" style="font-size: 24px; color: #d9d9d9;"></i>
                 </div>
                 <div class="title-content" style="flex: 1; min-width: 0;">
-                  <a @click="viewKnowledge(record)" class="title-link" style="display: block; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #1890ff; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    {{ record?.name || '' }}
-                  </a>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <a @click="viewKnowledge(record)" class="title-link" style="font-size: 14px; font-weight: 500; color: #1890ff; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;">
+                      {{ record?.name || '' }}
+                    </a>
+                    <a-tag v-if="record?.isTop" color="red" size="small">置顶</a-tag>
+                    <a-tag v-if="record?.isFeatured" color="orange" size="small">推荐</a-tag>
+                  </div>
                   <div class="knowledge-meta" style="display: flex; align-items: center; gap: 8px;">
                     <a-tag :color="getCategoryColor(record?.category || '')" size="small">
                       {{ record?.category || '未知分类' }}
@@ -146,6 +150,19 @@
                     </a-menu-item>
                     <a-menu-item key="reject" v-if="record?.status !== 2">
                       审核拒绝
+                    </a-menu-item>
+                    <a-menu-divider v-if="record?.status === 1" />
+                    <a-menu-item key="top" v-if="record?.status === 1 && !record?.isTop">
+                      置顶
+                    </a-menu-item>
+                    <a-menu-item key="untop" v-if="record?.status === 1 && record?.isTop">
+                      取消置顶
+                    </a-menu-item>
+                    <a-menu-item key="feature" v-if="record?.status === 1 && !record?.isFeatured">
+                      推荐
+                    </a-menu-item>
+                    <a-menu-item key="unfeature" v-if="record?.status === 1 && record?.isFeatured">
+                      取消推荐
                     </a-menu-item>
                     <a-menu-item key="duplicate">
                       复制
@@ -672,6 +689,18 @@ function handleAction(action: string, knowledge: any) {
     case 'reject':
       rejectKnowledge(knowledge)
       break
+    case 'top':
+      toggleTop(knowledge)
+      break
+    case 'untop':
+      toggleTop(knowledge)
+      break
+    case 'feature':
+      toggleFeatured(knowledge)
+      break
+    case 'unfeature':
+      toggleFeatured(knowledge)
+      break
     case 'duplicate':
       duplicateKnowledge(knowledge)
       break
@@ -716,6 +745,32 @@ function rejectKnowledge(knowledge: any) {
       }
     }
   })
+}
+
+// 切换置顶状态
+async function toggleTop(knowledge: any) {
+  const newTopState = knowledge.isTop ? 0 : 1
+  try {
+    await AdminAPI.toggleKnowledgeTop(knowledge.id, newTopState)
+    message.success(newTopState ? '知识已置顶' : '已取消置顶')
+    loadKnowledgeItems() // 重新加载数据
+  } catch (error: any) {
+    console.error('置顶操作失败:', error)
+    message.error(error.message || '置顶操作失败')
+  }
+}
+
+// 切换推荐状态
+async function toggleFeatured(knowledge: any) {
+  const newFeaturedState = knowledge.isFeatured ? 0 : 1
+  try {
+    await AdminAPI.toggleKnowledgeFeatured(knowledge.id, newFeaturedState)
+    message.success(newFeaturedState ? '知识已推荐' : '已取消推荐')
+    loadKnowledgeItems() // 重新加载数据
+  } catch (error: any) {
+    console.error('推荐操作失败:', error)
+    message.error(error.message || '推荐操作失败')
+  }
 }
 
 // 复制知识

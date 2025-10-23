@@ -89,6 +89,26 @@ public class AdminKnowledgeController {
     }
 
     /**
+     * 审核通过知识条目
+     */
+    @PutMapping("/{knowledgeId}/approve")
+    public ApiResponse<Void> approveKnowledge(@PathVariable Long knowledgeId) {
+        log.info("审核通过知识条目: knowledgeId={}", knowledgeId);
+        knowledgeService.approveKnowledge(knowledgeId);
+        return ApiResponse.success();
+    }
+
+    /**
+     * 审核拒绝知识条目
+     */
+    @PutMapping("/{knowledgeId}/reject")
+    public ApiResponse<Void> rejectKnowledge(@PathVariable Long knowledgeId) {
+        log.info("审核拒绝知识条目: knowledgeId={}", knowledgeId);
+        knowledgeService.rejectKnowledge(knowledgeId);
+        return ApiResponse.success();
+    }
+
+    /**
      * 删除知识条目
      */
     @DeleteMapping("/{knowledgeId}")

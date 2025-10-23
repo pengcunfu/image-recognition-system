@@ -346,6 +346,20 @@ export class AdminAPI {
   }
 
   /**
+   * 审核通过知识条目
+   */
+  static approveKnowledge(knowledgeId: number) {
+    return put<void>(`/api/admin/knowledge/${knowledgeId}/approve`)
+  }
+
+  /**
+   * 审核拒绝知识条目
+   */
+  static rejectKnowledge(knowledgeId: number) {
+    return put<void>(`/api/admin/knowledge/${knowledgeId}/reject`)
+  }
+
+  /**
    * 删除知识条目
    */
   static deleteKnowledge(knowledgeId: number) {

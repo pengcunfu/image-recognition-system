@@ -224,6 +224,44 @@ public class KnowledgeService {
     }
 
     /**
+     * 审核通过知识条目
+     */
+    @Transactional
+    public void approveKnowledge(Long knowledgeId) {
+        log.info("审核通过知识条目: knowledgeId={}", knowledgeId);
+
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        knowledge.setStatus(KnowledgeStatus.PUBLISHED.getValue());
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("知识条目审核通过: knowledgeId={}", knowledgeId);
+    }
+
+    /**
+     * 审核拒绝知识条目
+     */
+    @Transactional
+    public void rejectKnowledge(Long knowledgeId) {
+        log.info("审核拒绝知识条目: knowledgeId={}", knowledgeId);
+
+        Knowledge knowledge = knowledgeRepository.selectById(knowledgeId);
+
+        if (knowledge == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "知识条目不存在");
+        }
+
+        knowledge.setStatus(KnowledgeStatus.REJECTED.getValue());
+        knowledgeRepository.updateById(knowledge);
+
+        log.info("知识条目审核拒绝: knowledgeId={}", knowledgeId);
+    }
+
+    /**
      * 删除知识条目
      */
     @Transactional

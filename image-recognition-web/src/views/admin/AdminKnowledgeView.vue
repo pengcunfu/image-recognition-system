@@ -122,11 +122,11 @@
           
           <template v-else-if="column.key === 'status'">
             <a-tag 
-              :color="record?.status === 1 ? 'success' : 'warning'"
+              :color="record?.status === 1 ? 'success' : record?.status === 2 ? 'error' : 'warning'"
               class="status-tag"
             >
-              <i :class="record?.status === 1 ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
-              {{ record?.status === 1 ? '已发布' : '草稿' }}
+              <i :class="record?.status === 1 ? 'fas fa-check-circle' : record?.status === 2 ? 'fas fa-times-circle' : 'fas fa-clock'"></i>
+              {{ record?.status === 1 ? '已发布' : record?.status === 2 ? '已拒绝' : '待审核' }}
             </a-tag>
           </template>
           
@@ -141,11 +141,11 @@
                     <a-menu-item key="view">
                       查看详情
                     </a-menu-item>
-                    <a-menu-item key="publish" v-if="record?.status !== 1">
-                      发布
+                    <a-menu-item key="approve" v-if="record?.status !== 1">
+                      审核通过
                     </a-menu-item>
-                    <a-menu-item key="unpublish" v-if="record?.status === 1">
-                      撤回
+                    <a-menu-item key="reject" v-if="record?.status !== 2">
+                      审核拒绝
                     </a-menu-item>
                     <a-menu-item key="duplicate">
                       复制
@@ -666,11 +666,11 @@ function handleAction(action: string, knowledge: any) {
     case 'view':
       viewKnowledge(knowledge)
       break
-    case 'publish':
-      publishKnowledge(knowledge)
+    case 'approve':
+      approveKnowledge(knowledge)
       break
-    case 'unpublish':
-      unpublishKnowledge(knowledge)
+    case 'reject':
+      rejectKnowledge(knowledge)
       break
     case 'duplicate':
       duplicateKnowledge(knowledge)
@@ -681,45 +681,38 @@ function handleAction(action: string, knowledge: any) {
   }
 }
 
-// 发布知识
-function publishKnowledge(knowledge: any) {
+// 审核通过知识
+function approveKnowledge(knowledge: any) {
   Modal.confirm({
-    title: '确认发布',
-    content: `确定要发布知识"${knowledge.title || knowledge.name}"吗？`,
+    title: '确认审核通过',
+    content: `确定要审核通过知识"${knowledge.title || knowledge.name}"吗？`,
     async onOk() {
       try {
-        await AdminAPI.updateKnowledge(knowledge.id, { 
-          title: knowledge.title || knowledge.name,
-          content: knowledge.content,
-          category: knowledge.category
-        })
-        message.success('知识已发布')
+        await AdminAPI.approveKnowledge(knowledge.id)
+        message.success('知识已审核通过，状态已更新为"已发布"')
         loadKnowledgeItems() // 重新加载数据
       } catch (error: any) {
-        console.error('发布知识失败:', error)
-        message.error(error.message || '发布失败')
+        console.error('审核通过失败:', error)
+        message.error(error.message || '审核通过失败')
       }
     }
   })
 }
 
-// 撤回知识
-function unpublishKnowledge(knowledge: any) {
+// 审核拒绝知识
+function rejectKnowledge(knowledge: any) {
   Modal.confirm({
-    title: '确认撤回',
-    content: `确定要撤回知识"${knowledge.title || knowledge.name}"吗？`,
+    title: '确认审核拒绝',
+    content: `确定要审核拒绝知识"${knowledge.title || knowledge.name}"吗？`,
+    okType: 'danger',
     async onOk() {
       try {
-        await AdminAPI.updateKnowledge(knowledge.id, {
-          title: knowledge.title || knowledge.name,
-          content: knowledge.content,
-          category: knowledge.category
-        })
-        message.success('知识已撤回')
+        await AdminAPI.rejectKnowledge(knowledge.id)
+        message.success('知识已审核拒绝')
         loadKnowledgeItems() // 重新加载数据
       } catch (error: any) {
-        console.error('撤回知识失败:', error)
-        message.error(error.message || '撤回失败')
+        console.error('审核拒绝失败:', error)
+        message.error(error.message || '审核拒绝失败')
       }
     }
   })

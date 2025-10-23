@@ -56,29 +56,6 @@
             <i class="fas fa-bookmark" :style="{ marginRight: '4px' }"></i>
             {{ isBookmarked ? '已收藏' : '收藏' }}
           </a-button>
-          
-          <a-button @click="shareKnowledge" size="small">
-            <i class="fas fa-share" :style="{ marginRight: '4px' }"></i>
-            分享
-          </a-button>
-          
-          <a-dropdown>
-            <a-button size="small">
-              <i class="fas fa-ellipsis-h"></i>
-            </a-button>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="printKnowledge">
-                  <i class="fas fa-print" :style="{ marginRight: '8px' }"></i>
-                  打印
-                </a-menu-item>
-                <a-menu-item @click="reportKnowledge">
-                  <i class="fas fa-flag" :style="{ marginRight: '8px' }"></i>
-                  举报
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
         </div>
       </div>
     </a-card>
@@ -689,25 +666,6 @@ async function toggleBookmark() {
     console.error('收藏操作失败:', error)
     message.error(error.message || '操作失败，请重试')
   }
-}
-
-function shareKnowledge() {
-  // 复制分享链接到剪贴板
-  const shareUrl = `${window.location.origin}/user/knowledge/${knowledge.value.id}`
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    message.success('分享链接已复制到剪贴板')
-  }).catch(() => {
-    message.info(`分享链接：${shareUrl}`)
-  })
-}
-
-function printKnowledge() {
-  window.print()
-}
-
-function reportKnowledge() {
-  // 举报功能暂未实现，显示提示信息
-  message.info('举报功能开发中，敬请期待')
 }
 
 function previewImage(imageUrl: string, description: string = '') {

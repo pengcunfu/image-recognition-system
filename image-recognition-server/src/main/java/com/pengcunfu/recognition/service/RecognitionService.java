@@ -354,8 +354,10 @@ public class RecognitionService {
         log.info("获取相关识别记录: userId={}, id={}", userId, id);
 
         // 获取当前识别记录
-        RecognitionResult current = recognitionResultRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "识别记录不存在"));
+        RecognitionResult current = recognitionResultRepository.selectById(id);
+        if (current == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "识别记录不存在");
+        }
 
         // 验证权限
         if (!current.getUserId().equals(userId)) {

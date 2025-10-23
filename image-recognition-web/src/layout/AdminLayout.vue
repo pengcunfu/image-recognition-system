@@ -64,6 +64,10 @@
                 <UserOutlined style="margin-right: 8px;" />
                 个人信息
               </a-menu-item>
+              <a-menu-item key="notifications">
+                <BellOutlined style="margin-right: 8px;" />
+                我的消息
+              </a-menu-item>
               <a-menu-divider />
               <a-menu-item key="logout">
                 <LogoutOutlined style="margin-right: 8px;" />
@@ -177,7 +181,8 @@ import {
   CrownOutlined, 
   CameraOutlined, 
   ShoppingCartOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  BellOutlined
 } from '@ant-design/icons-vue'
 import { AdminAPI } from '@/api/admin'
 import { useUserStore } from '@/stores/user'
@@ -244,6 +249,8 @@ function toggleSidebar() {
 function handleUserMenuClick({ key }: { key: string }) {
   if (key === 'profile') {
     router.push('/admin-profile')
+  } else if (key === 'notifications') {
+    router.push('/notifications')
   } else if (key === 'logout') {
     // 清除登录状态
     userStore.clearUserInfo()

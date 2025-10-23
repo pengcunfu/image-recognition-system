@@ -120,6 +120,10 @@
                 <UserOutlined />
                 个人中心
               </a-menu-item>
+              <a-menu-item key="notifications">
+                <BellOutlined />
+                我的消息
+              </a-menu-item>
               <a-menu-item key="posts">
                 <BookOutlined />
                 我的帖子
@@ -272,7 +276,8 @@ import {
   HeartOutlined, 
   LikeOutlined,
   LogoutOutlined,
-  MenuOutlined
+  MenuOutlined,
+  BellOutlined
 } from '@ant-design/icons-vue'
 import { UserAPI } from '@/api/user'
 import { useUserStore } from '@/stores/user'
@@ -358,6 +363,9 @@ function handleUserMenuClick({ key }: { key: string }) {
   switch (key) {
     case 'profile':
       router.push('/user/profile')
+      break
+    case 'notifications':
+      router.push('/notifications')
       break
     case 'posts':
       // 跳转到个人中心的帖子标签

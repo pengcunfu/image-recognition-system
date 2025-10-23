@@ -34,7 +34,7 @@
           <a-card :loading="loading && categories.length === 0" :style="{ borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: '32px', border: 'none' }">
             <a-tabs v-model:activeKey="activeCategory" @change="handleCategoryChange" :style="{ marginTop: '-8px' }">
               <a-tab-pane key="" tab="全部">
-                <a-spin :spinning="loading && knowledgeData.length === 0" tip="加载中...">
+                <a-spin :spinning="loading && knowledgeData.length === 0">
                   <a-empty v-if="!loading && knowledgeData.length === 0" description="暂无知识条目" />
                   <div v-else :style="{ 
                     columnCount: 'auto',
@@ -130,7 +130,7 @@
                 :key="cat" 
                 :tab="cat"
               >
-                <a-spin :spinning="loading && getKnowledgeByCategory(cat).length === 0" tip="加载中...">
+                <a-spin :spinning="loading && getKnowledgeByCategory(cat).length === 0">
                   <a-empty v-if="!loading && getKnowledgeByCategory(cat).length === 0" description="暂无知识条目" />
                   <div v-else :style="{ 
                     columnCount: 'auto',

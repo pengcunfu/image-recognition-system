@@ -36,25 +36,17 @@
           </div>
 
           <!-- 操作按钮 -->
-          <a-dropdown>
+          <a-dropdown v-if="isAuthor">
             <a-button type="text">
               <i class="fas fa-ellipsis-h"></i>
             </a-button>
             <template #overlay>
               <a-menu>
-                <a-menu-item @click="sharePost">
-                  <i class="fas fa-share" :style="{ marginRight: '8px' }"></i>
-                  分享
-                </a-menu-item>
-                <a-menu-item @click="reportPost">
-                  <i class="fas fa-flag" :style="{ marginRight: '8px' }"></i>
-                  举报
-                </a-menu-item>
-                <a-menu-item v-if="isAuthor" @click="editPost">
+                <a-menu-item @click="editPost">
                   <i class="fas fa-edit" :style="{ marginRight: '8px' }"></i>
                   编辑
                 </a-menu-item>
-                <a-menu-item v-if="isAuthor" @click="deletePost" danger>
+                <a-menu-item @click="deletePost" danger>
                   <i class="fas fa-trash" :style="{ marginRight: '8px' }"></i>
                   删除
                 </a-menu-item>
@@ -333,23 +325,16 @@
                   回复
                 </a-button>
                 
-                <a-dropdown>
-                  <a-button type="text" size="small" :style="{ padding: '0' }">
-                    <i class="fas fa-ellipsis-h"></i>
-                  </a-button>
-                  <template #overlay>
-                    <a-menu>
-                      <a-menu-item @click="reportComment(comment)">
-                        <i class="fas fa-flag" :style="{ marginRight: '8px' }"></i>
-                        举报
-                      </a-menu-item>
-                      <a-menu-item v-if="comment.author === currentUser.name" @click="deleteComment(comment)" danger>
-                        <i class="fas fa-trash" :style="{ marginRight: '8px' }"></i>
-                        删除
-                      </a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
+                <a-button 
+                  v-if="comment.author === currentUser.name" 
+                  type="text" 
+                  @click="deleteComment(comment)" 
+                  size="small" 
+                  :style="{ padding: '0', color: '#ff4d4f' }"
+                >
+                  <i class="fas fa-trash" :style="{ marginRight: '4px' }"></i>
+                  删除
+                </a-button>
               </div>
               
               <!-- 回复列表 -->
@@ -816,21 +801,6 @@ function scrollToComments() {
   }
 }
 
-function sharePost() {
-  // 复制分享链接
-  const shareUrl = `${window.location.origin}/user/community/post/${post.value.id}`
-  navigator.clipboard.writeText(shareUrl).then(() => {
-    message.success('分享链接已复制到剪贴板')
-  }).catch(() => {
-    message.info(`分享链接：${shareUrl}`)
-  })
-}
-
-function reportPost() {
-  // 举报功能暂未实现
-  message.info('举报功能开发中，敬请期待')
-}
-
 function editPost() {
   // TODO: 跳转到编辑页面
   message.info('编辑功能开发中')
@@ -941,11 +911,6 @@ async function submitReply(comment: any) {
     console.error('回复发表失败:', error)
     message.error('回复发表失败')
   }
-}
-
-function reportComment(comment: any) {
-  // TODO: 实现举报功能
-  message.info('举报功能开发中')
 }
 
 async function deleteComment(comment: any) {

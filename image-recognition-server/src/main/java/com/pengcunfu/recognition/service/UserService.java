@@ -326,6 +326,47 @@ public class UserService {
     }
 
     /**
+     * 获取用户登录日志
+     */
+    public java.util.List<UserResponse.LoginLog> getUserLoginLogs(Long userId, Integer limit) {
+        log.info("获取用户登录日志: userId={}, limit={}", userId, limit);
+
+        User user = userRepository.selectById(userId);
+
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        // 解析JSON格式的登录日志
+        if (user.getLoginLogs() == null || user.getLoginLogs().isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            
+            java.util.List<UserResponse.LoginLog> allLogs = objectMapper.readValue(
+                user.getLoginLogs(),
+                objectMapper.getTypeFactory().constructCollectionType(
+                    java.util.List.class, 
+                    UserResponse.LoginLog.class
+                )
+            );
+            
+            // 如果指定了limit，返回最近的N条记录
+            if (limit != null && limit > 0 && allLogs.size() > limit) {
+                return allLogs.subList(0, limit);
+            }
+            
+            return allLogs;
+        } catch (Exception e) {
+            log.error("解析登录日志失败: userId={}", userId, e);
+            return new java.util.ArrayList<>();
+        }
+    }
+
+    /**
      * 转换为用户信息 DTO
      */
     private UserResponse.UserInfo convertToUserInfo(User user) {

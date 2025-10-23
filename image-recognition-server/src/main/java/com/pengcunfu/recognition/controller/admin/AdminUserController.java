@@ -91,5 +91,17 @@ public class AdminUserController {
         userService.resetUserPassword(userId, newPassword);
         return ApiResponse.success();
     }
+
+    /**
+     * 获取用户登录日志
+     */
+    @GetMapping("/{userId}/login-logs")
+    public ApiResponse<java.util.List<UserResponse.LoginLog>> getUserLoginLogs(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "10") Integer limit) {
+        log.info("获取用户登录日志: userId={}, limit={}", userId, limit);
+        java.util.List<UserResponse.LoginLog> logs = userService.getUserLoginLogs(userId, limit);
+        return ApiResponse.success(logs);
+    }
 }
 

@@ -138,4 +138,20 @@ public class UserResponse {
         private Integer likeCount;
         private LocalDateTime createdAt;
     }
+
+    /**
+     * 登录日志
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoginLog {
+        private LocalDateTime time;
+        private String ipAddress;
+        private String location;
+        private Boolean success;
+        private String userAgent;
+        private String device;
+    }
 }

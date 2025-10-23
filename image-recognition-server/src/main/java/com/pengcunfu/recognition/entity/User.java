@@ -89,6 +89,16 @@ public class User {
     private String loginIp;
 
     /**
+     * 登录次数
+     */
+    private Integer loginCount;
+
+    /**
+     * 登录日志(JSON格式)
+     */
+    private String loginLogs;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

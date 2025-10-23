@@ -126,46 +126,53 @@
 
       <!-- 推荐内容 -->
       <a-col :xs="24" :lg="12">
-        <a-card title="推荐内容" :style="{ borderRadius: '8px', height: '100%' }">
-          <a-tabs>
-            <a-tab-pane key="knowledge" tab="知识推荐">
-              <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
-                <div 
-                  v-for="item in recommendedKnowledge" 
-                  :key="item.id"
-                  :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
-                  @click="viewKnowledge(item)"
-                >
-                  <div :style="{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '18px', flexShrink: 0 }">
-                    <i :class="item.icon"></i>
-                  </div>
-                  <div :style="{ flex: 1, minWidth: 0 }">
-                    <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '6px' }">{{ item.title }}</div>
-                    <div :style="{ fontSize: '13px', opacity: '0.65', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }">{{ item.description }}</div>
-                  </div>
+        <a-card :style="{ borderRadius: '8px', height: '100%' }">
+          <template #title>
+            <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
+              <span>推荐内容</span>
+              <a-radio-group v-model:value="recommendTab" button-style="solid" size="small">
+                <a-radio-button value="knowledge">知识推荐</a-radio-button>
+                <a-radio-button value="community">社区推荐</a-radio-button>
+              </a-radio-group>
+            </div>
+          </template>
+          
+          <!-- 知识推荐 -->
+          <div v-if="recommendTab === 'knowledge'" :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+            <div 
+              v-for="item in recommendedKnowledge" 
+              :key="item.id"
+              :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
+              @click="viewKnowledge(item)"
+            >
+              <div :style="{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '18px', flexShrink: 0 }">
+                <i :class="item.icon"></i>
+              </div>
+              <div :style="{ flex: 1, minWidth: 0 }">
+                <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '6px' }">{{ item.title }}</div>
+                <div :style="{ fontSize: '13px', opacity: '0.65', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }">{{ item.description }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 社区推荐 -->
+          <div v-else :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
+            <div 
+              v-for="item in hotCommunityPosts" 
+              :key="item.id"
+              :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
+              @click="viewPost(item)"
+            >
+              <div :style="{ flex: 1 }">
+                <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '8px' }">{{ item.title }}</div>
+                <div :style="{ display: 'flex', gap: '16px', fontSize: '13px', opacity: '0.65' }">
+                  <span>{{ item.author }}</span>
+                  <span>{{ item.likes }} 点赞</span>
+                  <span>{{ item.replies }} 回复</span>
                 </div>
               </div>
-            </a-tab-pane>
-            <a-tab-pane key="community" tab="社区热门">
-              <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
-                <div 
-                  v-for="item in hotCommunityPosts" 
-                  :key="item.id"
-                  :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
-                  @click="viewPost(item)"
-                >
-                  <div :style="{ flex: 1 }">
-                    <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '8px' }">{{ item.title }}</div>
-                    <div :style="{ display: 'flex', gap: '16px', fontSize: '13px', opacity: '0.65' }">
-                      <span>{{ item.author }}</span>
-                      <span>{{ item.likes }} 点赞</span>
-                      <span>{{ item.replies }} 回复</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </a-tab-pane>
-          </a-tabs>
+            </div>
+          </div>
         </a-card>
       </a-col>
     </a-row>
@@ -201,6 +208,9 @@ import { CommunityAPI, type PostInfo } from '@/api/community'
 import { ImageUtils } from '@/utils/image'
 
 const router = useRouter()
+
+// 推荐内容标签页
+const recommendTab = ref<'knowledge' | 'community'>('knowledge')
 
 // 用户信息
 const userInfo = reactive({

@@ -207,7 +207,11 @@
           @mouseenter="(e) => { const el = e.currentTarget as HTMLElement; if (el) { el.style.background = '#fafafa'; el.style.borderColor = '#1890ff'; } }"
           @mouseleave="(e) => { const el = e.currentTarget as HTMLElement; if (el) { el.style.background = 'white'; el.style.borderColor = '#e8e8e8'; } }"
         >
-          <img :src="related.thumbnail" :alt="related.result" :style="{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '6px' }" />
+          <div :style="{ width: '128px', flexShrink: 0 }">
+            <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '6px', overflow: 'hidden', background: '#f5f5f5' }">
+              <img :src="related.thumbnail" :alt="related.result" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+            </div>
+          </div>
           <div :style="{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }">
             <h4 :style="{ margin: '0 0 8px 0', fontSize: '15px', fontWeight: '600' }">{{ related.result }}</h4>
             <div :style="{ display: 'flex', gap: '12px', fontSize: '13px', opacity: 0.65 }">

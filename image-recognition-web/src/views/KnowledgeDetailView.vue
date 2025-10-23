@@ -20,8 +20,10 @@
       <!-- 知识头部 -->
       <div :style="{ display: 'flex', justifyContent: 'space-between', gap: '16px', marginBottom: '16px' }">
         <div :style="{ display: 'flex', gap: '16px', flex: 1 }">
-          <div :style="{ width: '300px', flexShrink: 0 }">
-            <img :src="knowledge.image || '/api/placeholder/300/225'" :alt="knowledge.title" :style="{ width: '100%', height: 'auto', borderRadius: '8px' }" />
+          <div :style="{ width: '320px', flexShrink: 0 }">
+            <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '8px', overflow: 'hidden', background: '#f5f5f5' }">
+              <img :src="knowledge.image || '/api/placeholder/300/225'" :alt="knowledge.title" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+            </div>
           </div>
           <div :style="{ flex: 1 }">
             <h1 :style="{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: '600' }">{{ knowledge.title }}</h1>
@@ -77,8 +79,10 @@
               :key="feature.id"
               :style="{ display: 'flex', gap: '12px', padding: '12px', borderRadius: '8px', background: '#fafafa' }"
             >
-              <div :style="{ width: '80px', height: '80px', flexShrink: 0, borderRadius: '8px', overflow: 'hidden' }">
-                <img :src="feature.image" :alt="feature.name" :style="{ width: '100%', height: '100%', objectFit: 'cover' }" />
+              <div :style="{ width: '96px', flexShrink: 0 }">
+                <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '8px', overflow: 'hidden', background: '#f0f0f0' }">
+                  <img :src="feature.image" :alt="feature.name" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+                </div>
               </div>
               <div :style="{ flex: 1 }">
                 <h4 :style="{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '500' }">{{ feature.name }}</h4>
@@ -102,14 +106,16 @@
                 <p :style="{ margin: 0, fontSize: '13px', opacity: 0.65, lineHeight: '1.6' }">{{ tip.description }}</p>
                 <div v-if="tip.examples" :style="{ marginTop: '12px' }">
                   <h5 :style="{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '500' }">示例：</h5>
-                  <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }">
+                  <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '8px' }">
                     <div 
                       v-for="(example, exIndex) in tip.examples" 
                       :key="exIndex"
                       :style="{ cursor: 'pointer', borderRadius: '6px', overflow: 'hidden', transition: 'all 0.3s ease', border: '1px solid #e8e8e8' }"
                       @click="previewImage(example.image, example.description)"
                     >
-                      <img :src="example.image" :alt="example.description" :style="{ width: '100%', height: '100px', objectFit: 'cover' }" />
+                      <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', overflow: 'hidden' }">
+                        <img :src="example.image" :alt="example.description" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+                      </div>
                       <span :style="{ display: 'block', padding: '6px', fontSize: '12px', textAlign: 'center', background: '#fff' }">{{ example.description }}</span>
                     </div>
                   </div>
@@ -121,16 +127,18 @@
 
         <!-- 相关图片 -->
         <a-card v-if="knowledge.gallery" title="相关图片" :style="{ borderRadius: '8px', marginBottom: '16px' }">
-          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }">
+          <div :style="{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }">
             <div 
               v-for="(image, index) in knowledge.gallery" 
               :key="index"
-              :style="{ position: 'relative', cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', transition: 'all 0.3s ease' }"
+              :style="{ cursor: 'pointer', borderRadius: '8px', overflow: 'hidden', transition: 'all 0.3s ease' }"
               @click="previewImage(image.url, image.description)"
             >
-              <img :src="image.url" :alt="image.description" :style="{ width: '100%', height: '160px', objectFit: 'cover' }" />
-              <div :style="{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px', background: 'rgba(0,0,0,0.6)', color: 'white' }">
-                <span :style="{ fontSize: '13px' }">{{ image.description }}</span>
+              <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', overflow: 'hidden' }">
+                <img :src="image.url" :alt="image.description" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+                <div :style="{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '12px', background: 'rgba(0,0,0,0.6)', color: 'white' }">
+                  <span :style="{ fontSize: '13px' }">{{ image.description }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -279,7 +287,11 @@
               :style="{ display: 'flex', gap: '12px', padding: '12px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', border: '1px solid #f0f0f0' }"
               @click="viewRelated(related)"
             >
-              <img :src="related.image || '/api/placeholder/80/60'" :alt="related.title" :style="{ width: '80px', height: '60px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 }" />
+              <div :style="{ width: '128px', flexShrink: 0 }">
+                <div :style="{ position: 'relative', width: '100%', paddingBottom: '56.25%', borderRadius: '6px', overflow: 'hidden', background: '#f5f5f5' }">
+                  <img :src="related.image || '/api/placeholder/80/60'" :alt="related.title" :style="{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }" />
+                </div>
+              </div>
               <div :style="{ flex: 1, minWidth: 0 }">
                 <h4 :style="{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: '500', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }">{{ related.title }}</h4>
                 <p :style="{ margin: '0 0 8px 0', fontSize: '13px', opacity: '0.65', lineHeight: '1.4', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }">{{ related.description }}</p>

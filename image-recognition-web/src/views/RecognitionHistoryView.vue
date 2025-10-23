@@ -145,7 +145,7 @@
                 :style="{ borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s ease', border: '1px solid #d9d9d9' }"
                 @click="viewDetail(item)"
               >
-                <div :style="{ position: 'relative', paddingBottom: '100%', overflow: 'hidden' }">
+                <div :style="{ position: 'relative', paddingBottom: '56.25%', overflow: 'hidden' }">
                   <img :src="item.thumbnail" :alt="item.result" :style="{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover' }" />
                   <div class="image-overlay" :style="{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', opacity: 0, transition: 'opacity 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }">
                     <div :style="{ display: 'flex', gap: '8px' }">

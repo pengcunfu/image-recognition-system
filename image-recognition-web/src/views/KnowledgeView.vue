@@ -71,7 +71,7 @@
                         <div :style="{ 
                           position: 'relative', 
                           width: '100%', 
-                          paddingBottom: '66.67%',
+                          paddingBottom: '56.25%',
                           background: '#f5f5f5',
                           overflow: 'hidden'
                         }">
@@ -167,7 +167,7 @@
                         <div :style="{ 
                           position: 'relative', 
                           width: '100%', 
-                          paddingBottom: '66.67%',
+                          paddingBottom: '56.25%',
                           background: '#f5f5f5',
                           overflow: 'hidden'
                         }">

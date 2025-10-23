@@ -3,7 +3,7 @@
     <!-- Header -->
     <a-layout-header :style="{ 
       background: '#001529', 
-      padding: '0 24px', 
+      padding: isMobile ? '0 16px' : '0 24px', 
       display: 'flex', 
       alignItems: 'center', 
       justifyContent: 'space-between', 
@@ -19,15 +19,27 @@
         display: 'flex', 
         alignItems: 'center', 
         gap: '12px', 
-        fontSize: '20px', 
+        fontSize: isMobile ? '16px' : '20px', 
         fontWeight: 'bold', 
-        color: 'white' 
+        color: 'white',
+        whiteSpace: 'nowrap',
+        flexShrink: 0
       }">
-        <span>智能图像识别系统</span>
+        <!-- 移动端汉堡菜单按钮 -->
+        <a-button 
+          v-if="isMobile" 
+          type="text" 
+          @click="drawerVisible = true"
+          :style="{ color: 'white', padding: '4px 8px', flexShrink: 0 }"
+        >
+          <MenuOutlined :style="{ fontSize: '20px' }" />
+        </a-button>
+        <span :style="{ whiteSpace: 'nowrap' }">智能图像识别系统</span>
       </div>
       
-      <!-- 导航菜单 -->
+      <!-- PC端导航菜单 -->
       <a-menu
+        v-if="!isMobile"
         v-model:selectedKeys="selectedKeys"
         mode="horizontal"
         theme="dark"
@@ -89,18 +101,18 @@
       </a-menu>
       
       <!-- 用户信息 -->
-      <div :style="{ display: 'flex', alignItems: 'center', gap: '16px' }">
-        <a-tag v-if="isVipUser" color="gold" :style="{ fontSize: '12px', fontWeight: 'bold' }">
+      <div :style="{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }">
+        <a-tag v-if="isVipUser && !isMobile" color="gold" :style="{ fontSize: '12px', fontWeight: 'bold' }">
           <CrownOutlined />
           VIP
         </a-tag>
         
         <a-dropdown>
-          <a-button type="text" :style="{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }">
-            <a-avatar :src="userInfo.avatar" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
+          <a-button type="text" :style="{ color: 'white', display: 'flex', alignItems: 'center', gap: '8px', padding: isMobile ? '4px' : '4px 15px' }">
+            <a-avatar :src="userInfo.avatar" :size="isMobile ? 32 : 40" :style="{ background: '#1890ff', color: 'white', fontWeight: 'bold' }">
               {{ getAvatarText() }}
             </a-avatar>
-            <span :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.nickname || userInfo.username || '用户' }}</span>
+            <span v-if="!isMobile" :style="{ color: 'white', marginLeft: '8px' }">{{ userInfo.nickname || userInfo.username || '用户' }}</span>
           </a-button>
           <template #overlay>
             <a-menu @click="handleUserMenuClick">
@@ -141,6 +153,76 @@
       </div>
     </a-layout-header>
     
+    <!-- 移动端抽屉菜单 -->
+    <a-drawer
+      v-model:open="drawerVisible"
+      placement="left"
+      title="菜单"
+      :width="280"
+      :body-style="{ padding: 0 }"
+    >
+      <a-menu
+        v-model:selectedKeys="selectedKeys"
+        mode="inline"
+        :style="{ borderRight: 0 }"
+        @click="handleDrawerMenuClick"
+      >
+        <a-menu-item key="/user/dashboard">
+          <template #icon>
+            <HomeOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
+          </template>
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">首页</span>
+        </a-menu-item>
+        <a-menu-item key="/user/recognition">
+          <template #icon>
+            <CameraOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
+          </template>
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">图像识别</span>
+        </a-menu-item>
+        <a-menu-item key="/user/knowledge">
+          <template #icon>
+            <BookOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
+          </template>
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">知识库</span>
+        </a-menu-item>
+        <a-menu-item key="/user/community">
+          <template #icon>
+            <TeamOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
+          </template>
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">社区</span>
+        </a-menu-item>
+        <a-menu-item key="/user/history">
+          <template #icon>
+            <HistoryOutlined :style="isVipUser ? { color: '#ffd700' } : {}" />
+          </template>
+          <span :style="isVipUser ? { color: '#ffd700' } : {}">历史记录</span>
+        </a-menu-item>
+        
+        <!-- VIP专享功能菜单 -->
+        <a-menu-divider v-if="isVipUser" />
+        <a-menu-item-group v-if="isVipUser" title="VIP专享功能">
+          <a-menu-item key="/user/advanced-recognition">
+            <template #icon>
+              <ThunderboltOutlined :style="{ color: '#ffd700' }" />
+            </template>
+            <span :style="{ color: '#ffd700' }">高级识别</span>
+          </a-menu-item>
+          <a-menu-item key="/user/vip-analytics">
+            <template #icon>
+              <LineChartOutlined :style="{ color: '#ffd700' }" />
+            </template>
+            <span :style="{ color: '#ffd700' }">VIP数据分析</span>
+          </a-menu-item>
+          <a-menu-item key="/user/ai-training">
+            <template #icon>
+              <RobotOutlined :style="{ color: '#ffd700' }" />
+            </template>
+            <span :style="{ color: '#ffd700' }">AI模型训练</span>
+          </a-menu-item>
+        </a-menu-item-group>
+      </a-menu>
+    </a-drawer>
+    
     <!-- Main Content -->
     <a-layout-content :style="{ 
       padding: '0', 
@@ -171,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { 
@@ -189,13 +271,16 @@ import {
   SettingOutlined, 
   HeartOutlined, 
   LikeOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  MenuOutlined
 } from '@ant-design/icons-vue'
 import { UserAPI } from '@/api/user'
 
 const router = useRouter()
 const route = useRoute()
 const selectedKeys = ref(['/user/dashboard'])
+const drawerVisible = ref(false)
+const isMobile = ref(false)
 
 // 用户信息
 const userInfo = reactive({
@@ -265,8 +350,21 @@ watch(() => route.path, (newPath, oldPath) => {
   }
 }, { immediate: true })
 
+// 检测屏幕尺寸
+function checkMobile() {
+  isMobile.value = window.innerWidth < 992
+}
+
 // 主导航菜单点击处理
 function handleMenuClick({ key }: { key: string }) {
+  if (key !== route.path) {
+    router.push(key)
+  }
+}
+
+// 移动端抽屉菜单点击处理
+function handleDrawerMenuClick({ key }: { key: string }) {
+  drawerVisible.value = false
   if (key !== route.path) {
     router.push(key)
   }
@@ -313,8 +411,15 @@ function handleLogout() {
   router.push('/login')
 }
 
-// 组件挂载时加载用户信息
+// 组件挂载时加载用户信息和检测屏幕尺寸
 onMounted(() => {
   loadUserInfo()
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
 })
 </script>

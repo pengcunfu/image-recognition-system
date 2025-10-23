@@ -250,7 +250,7 @@ function handleUserMenuClick({ key }: { key: string }) {
   if (key === 'profile') {
     router.push('/admin-profile')
   } else if (key === 'notifications') {
-    router.push('/notifications')
+    router.push('/admin/notifications')
   } else if (key === 'logout') {
     // 清除登录状态
     userStore.clearUserInfo()

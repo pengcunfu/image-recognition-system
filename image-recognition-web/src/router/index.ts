@@ -38,6 +38,9 @@ import VipAnalyticsView from '@/views/VipAnalyticsView.vue'
 import AiTrainingView from '@/views/AiTrainingView.vue'
 import BecomeVipView from '@/views/BecomeVipView.vue'
 
+// 通知消息组件
+import NotificationView from '@/views/NotificationView.vue'
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
@@ -212,6 +215,25 @@ const routes: Array<RouteRecordRaw> = [
       }
     ]
   },
+  // 管理员通知消息页面
+  {
+    path: '/admin/notifications',
+    component: DashboardLayout,
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'AdminNotifications',
+        component: NotificationView,
+        meta: {
+          title: '我的消息 - 智能图像识别系统'
+        }
+      }
+    ]
+  },
   // 用户路由
   {
     path: '/user',
@@ -351,6 +373,15 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           title: 'AI模型训练 - 智能图像识别系统',
           requiresVip: true
+        }
+      },
+      // 用户通知消息页面
+      {
+        path: 'notifications',
+        name: 'UserNotifications',
+        component: NotificationView,
+        meta: {
+          title: '我的消息 - 智能图像识别系统'
         }
       }
     ]

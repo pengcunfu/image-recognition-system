@@ -1,0 +1,50 @@
+# 生产环境配置
+spring:
+  # DevTools配置（生产环境禁用）
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+# MyBatis Plus配置（生产环境）
+mybatis-plus:
+  configuration:
+    log-impl: # 生产环境不输出SQL日志
+
+# 日志配置（生产环境）
+logging:
+  level:
+    root: WARN
+    com.pengcunfu.recognition: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    com.baomidou.mybatisplus: WARN
+  file:
+    name: /var/log/image-recognition/application.log
+    max-size: 50MB
+    max-history: 90
+    total-size-cap: 5GB
+
+# JWT配置（生产环境 - 必须通过环境变量配置）
+jwt:
+  secret: ${JWT_SECRET}
+
+# 应用配置（生产环境）
+app:
+  storage:
+    type: tos # 生产环境使用对象存储
+  
+  rate-limit:
+    enabled: true # 生产环境启用限流
+
+# 管理端点配置（生产环境）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: never
+

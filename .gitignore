@@ -1,5 +1,56 @@
+# IDE
 .idea/
-logs/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+
+# Build outputs
 target/
+dist/
+build/
+out/
+
+# Logs
+logs/
+*.log
+
+# Environment
 .env
+.env.local
+.env.*.local
+
+# Uploads
 uploads/
+
+# Dependencies
+node_modules/
+web/node_modules/
+**/node_modules/
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+.cache/
+*.cache
+.eslintcache

@@ -41,6 +41,13 @@ pnpm-lock.yaml
 *.swo
 *~
 
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
 # OS
 Thumbs.db
 .DS_Store

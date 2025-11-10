@@ -20,6 +20,8 @@ export interface PostInfo {
   shareCount: number
   isTop: number
   status: number
+  isLiked?: boolean  // 当前用户是否点赞
+  isCollected?: boolean  // 当前用户是否收藏
   createdAt: string
   updatedAt?: string
 }

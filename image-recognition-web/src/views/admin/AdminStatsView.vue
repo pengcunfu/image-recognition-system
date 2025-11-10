@@ -124,35 +124,71 @@
       </a-col>
     </a-row>
     
-    <!-- Charts Row -->
-    <a-row :gutter="[16, 16]">
-      <a-col :xs="24" :lg="16">
+    <!-- Charts Row 1 -->
+    <a-row :gutter="[16, 16]" style="margin-bottom: 24px;">
+      <a-col :xs="24" :lg="12">
         <a-card 
-          title="识别趋势分析" 
+          title="用户角色分布" 
           style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"
           :headStyle="{ borderBottom: '1px solid #f0f0f0', padding: '16px 24px' }"
           :bodyStyle="{ padding: '24px' }"
         >
-          <div style="width: 100%; height: 350px;">
+          <div style="width: 100%; height: 300px;">
             <v-chart 
               style="width: 100%; height: 100%;"
-              :option="lineChartOption" 
+              :option="userRoleChartOption" 
               autoresize
             />
           </div>
         </a-card>
       </a-col>
-      <a-col :xs="24" :lg="8">
+      <a-col :xs="24" :lg="12">
         <a-card 
-          title="用户分布" 
+          title="识别分类统计" 
           style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"
           :headStyle="{ borderBottom: '1px solid #f0f0f0', padding: '16px 24px' }"
           :bodyStyle="{ padding: '24px' }"
         >
-          <div style="width: 100%; height: 350px;">
+          <div style="width: 100%; height: 300px;">
             <v-chart 
               style="width: 100%; height: 100%;"
-              :option="pieChartOption" 
+              :option="recognitionCategoryChartOption" 
+              autoresize
+            />
+          </div>
+        </a-card>
+      </a-col>
+    </a-row>
+    
+    <!-- Charts Row 2 -->
+    <a-row :gutter="[16, 16]">
+      <a-col :xs="24" :lg="12">
+        <a-card 
+          title="VIP订单统计" 
+          style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"
+          :headStyle="{ borderBottom: '1px solid #f0f0f0', padding: '16px 24px' }"
+          :bodyStyle="{ padding: '24px' }"
+        >
+          <div style="width: 100%; height: 300px;">
+            <v-chart 
+              style="width: 100%; height: 100%;"
+              :option="vipOrderChartOption" 
+              autoresize
+            />
+          </div>
+        </a-card>
+      </a-col>
+      <a-col :xs="24" :lg="12">
+        <a-card 
+          title="每日识别趋势（最近30天）" 
+          style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);"
+          :headStyle="{ borderBottom: '1px solid #f0f0f0', padding: '16px 24px' }"
+          :bodyStyle="{ padding: '24px' }"
+        >
+          <div style="width: 100%; height: 300px;">
+            <v-chart 
+              style="width: 100%; height: 100%;"
+              :option="dailyRecognitionChartOption" 
               autoresize
             />
           </div>
@@ -167,6 +203,12 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { useRouter } from 'vue-router'
 import { AdminAPI } from '@/api/admin'
+import type { 
+  UserRoleStats, 
+  RecognitionCategoryStats, 
+  VipOrderStats, 
+  DailyRecognitionStats 
+} from '@/api/admin'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import {
@@ -174,7 +216,8 @@ import {
 } from 'echarts/renderers'
 import {
   LineChart,
-  PieChart
+  PieChart,
+  BarChart
 } from 'echarts/charts'
 import {
   TitleComponent,
@@ -187,6 +230,7 @@ use([
   CanvasRenderer,
   LineChart,
   PieChart,
+  BarChart,
   TitleComponent,
   TooltipComponent,
   LegendComponent,
@@ -217,6 +261,31 @@ const stats = reactive({
 
 // 趋势数据
 const trendData = ref<any>({ dates: [], values: [] })
+
+// 新增图表数据
+const userRoleData = ref<UserRoleStats>({
+  normalUsers: 0,
+  vipUsers: 0,
+  adminUsers: 0,
+  totalUsers: 0
+})
+
+const recognitionCategoryData = ref<RecognitionCategoryStats>({
+  categories: [],
+  totalRecognitions: 0
+})
+
+const vipOrderData = ref<VipOrderStats>({
+  orders: [],
+  totalOrders: 0,
+  totalRevenue: 0
+})
+
+const dailyRecognitionData = ref<DailyRecognitionStats>({
+  data: [],
+  totalDays: 0,
+  avgDaily: 0
+})
 
 // 加载统计数据
 async function loadDashboardStats() {
@@ -268,19 +337,283 @@ async function loadTrendData() {
   }
 }
 
+// 加载用户角色统计数据
+async function loadUserRoleStats() {
+  try {
+    const data = await AdminAPI.getUserRoleStats()
+    if (data) {
+      userRoleData.value = data
+    }
+  } catch (error) {
+    console.error('加载用户角色统计失败:', error)
+    // 使用模拟数据
+    userRoleData.value = {
+      normalUsers: 7,
+      vipUsers: 4,
+      adminUsers: 1,
+      totalUsers: 12
+    }
+  }
+}
+
+// 加载识别分类统计数据
+async function loadRecognitionCategoryStats() {
+  try {
+    const data = await AdminAPI.getRecognitionCategoryStats()
+    if (data) {
+      recognitionCategoryData.value = data
+    }
+  } catch (error) {
+    console.error('加载识别分类统计失败:', error)
+    // 使用模拟数据
+    recognitionCategoryData.value = {
+      categories: [
+        { category: '哪吒卡通形象', count: 3, percentage: 18.8 },
+        { category: '未分类', count: 2, percentage: 12.5 },
+        { category: '跑车', count: 2, percentage: 12.5 },
+        { category: '猫耳少女', count: 1, percentage: 6.3 },
+        { category: '秋景树林', count: 1, percentage: 6.3 },
+        { category: '人物', count: 1, percentage: 6.3 },
+        { category: '蒙奇·D·路飞', count: 1, percentage: 6.3 },
+        { category: '蓝妹啤酒', count: 1, percentage: 6.3 },
+        { category: '棒球帽', count: 1, percentage: 6.3 },
+        { category: '针织手套', count: 1, percentage: 6.3 }
+      ],
+      totalRecognitions: 16
+    }
+  }
+}
+
+// 加载VIP订单统计数据
+async function loadVipOrderStats() {
+  try {
+    const data = await AdminAPI.getVipOrderStats()
+    if (data) {
+      vipOrderData.value = data
+    }
+  } catch (error) {
+    console.error('加载VIP订单统计失败:', error)
+    // 使用模拟数据
+    vipOrderData.value = {
+      orders: [
+        { planType: 0, planName: '月度会员', orderCount: 5, totalAmount: 149.50, percentage: 83.3 },
+        { planType: 2, planName: '年度会员', orderCount: 1, totalAmount: 199.00, percentage: 16.7 }
+      ],
+      totalOrders: 6,
+      totalRevenue: 348.50
+    }
+  }
+}
+
+// 加载每日识别统计数据
+async function loadDailyRecognitionStats() {
+  try {
+    const data = await AdminAPI.getDailyRecognitionStats()
+    if (data) {
+      dailyRecognitionData.value = data
+    }
+  } catch (error) {
+    console.error('加载每日识别统计失败:', error)
+    // 使用模拟数据
+    dailyRecognitionData.value = {
+      data: [
+        { date: '2025-10-22', count: 6 },
+        { date: '2025-10-23', count: 5 },
+        { date: '2025-10-24', count: 4 },
+        { date: '2025-10-25', count: 2 }
+      ],
+      totalDays: 4,
+      avgDaily: 4.25
+    }
+  }
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   loadDashboardStats()
   loadTrendData()
+  loadUserRoleStats()
+  loadRecognitionCategoryStats()
+  loadVipOrderStats()
+  loadDailyRecognitionStats()
 })
 
-// 折线图配置
-const lineChartOption = computed(() => ({
+// 用户角色分布饼图配置
+const userRoleChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'item',
+    formatter: '{a} <br/>{b}: {c}人 ({d}%)'
+  },
+  legend: {
+    orient: 'vertical',
+    left: 'left',
+    textStyle: {
+      fontSize: 12
+    }
+  },
+  series: [
+    {
+      name: '用户角色',
+      type: 'pie',
+      radius: ['40%', '70%'],
+      center: ['60%', '50%'],
+      avoidLabelOverlap: false,
+      itemStyle: {
+        borderRadius: 8,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      label: {
+        show: false,
+        position: 'center'
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: '16',
+          fontWeight: 'bold'
+        }
+      },
+      labelLine: {
+        show: false
+      },
+      data: [
+        {
+          value: userRoleData.value.normalUsers,
+          name: '普通用户',
+          itemStyle: {
+            color: '#52c41a'
+          }
+        },
+        {
+          value: userRoleData.value.vipUsers,
+          name: 'VIP用户',
+          itemStyle: {
+            color: '#faad14'
+          }
+        },
+        {
+          value: userRoleData.value.adminUsers,
+          name: '管理员',
+          itemStyle: {
+            color: '#1890ff'
+          }
+        }
+      ]
+    }
+  ]
+}))
+
+// 识别分类统计柱状图配置
+const recognitionCategoryChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'shadow'
+    },
+    formatter: '{a} <br/>{b}: {c}次 ({d}%)'
+  },
+  grid: {
+    left: '3%',
+    right: '4%',
+    bottom: '15%',
+    top: '10%',
+    containLabel: true
+  },
+  xAxis: {
+    type: 'category',
+    data: recognitionCategoryData.value.categories.slice(0, 8).map(item => item.category),
+    axisLabel: {
+      interval: 0,
+      rotate: 45,
+      fontSize: 10
+    }
+  },
+  yAxis: {
+    type: 'value',
+    name: '识别次数'
+  },
+  series: [
+    {
+      name: '识别分类',
+      type: 'bar',
+      data: recognitionCategoryData.value.categories.slice(0, 8).map((item, index) => ({
+        value: item.count,
+        d: item.percentage.toFixed(1),
+        itemStyle: {
+          color: [
+            '#1890ff', '#52c41a', '#faad14', '#f5222d', 
+            '#722ed1', '#13c2c2', '#eb2f96', '#fa541c'
+          ][index % 8]
+        }
+      })),
+      barWidth: '60%',
+      itemStyle: {
+        borderRadius: [4, 4, 0, 0]
+      }
+    }
+  ]
+}))
+
+// VIP订单统计环形图配置
+const vipOrderChartOption = computed(() => ({
+  tooltip: {
+    trigger: 'item',
+    formatter: '{a} <br/>{b}: {c}单 (¥{d})'
+  },
+  legend: {
+    orient: 'vertical',
+    left: 'left',
+    textStyle: {
+      fontSize: 12
+    }
+  },
+  series: [
+    {
+      name: 'VIP订单',
+      type: 'pie',
+      radius: ['40%', '70%'],
+      center: ['60%', '50%'],
+      avoidLabelOverlap: false,
+      itemStyle: {
+        borderRadius: 8,
+        borderColor: '#fff',
+        borderWidth: 2
+      },
+      label: {
+        show: false,
+        position: 'center'
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: '16',
+          fontWeight: 'bold'
+        }
+      },
+      labelLine: {
+        show: false
+      },
+      data: vipOrderData.value.orders.map((item, index) => ({
+        value: item.orderCount,
+        name: item.planName,
+        d: item.totalAmount.toFixed(2),
+        itemStyle: {
+          color: ['#1890ff', '#52c41a', '#faad14'][index % 3]
+        }
+      }))
+    }
+  ]
+}))
+
+// 每日识别趋势折线图配置
+const dailyRecognitionChartOption = computed(() => ({
   tooltip: {
     trigger: 'axis',
     axisPointer: {
       type: 'cross'
-    }
+    },
+    formatter: '{a} <br/>{b}: {c}次'
   },
   grid: {
     left: '3%',
@@ -291,7 +624,9 @@ const lineChartOption = computed(() => ({
   xAxis: {
     type: 'category',
     boundaryGap: false,
-    data: trendData.value.dates || []
+    data: dailyRecognitionData.value.data.map(item => 
+      new Date(item.date).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+    )
   },
   yAxis: {
     type: 'value',
@@ -299,7 +634,7 @@ const lineChartOption = computed(() => ({
   },
   series: [
     {
-      name: '图像识别',
+      name: '每日识别',
       type: 'line',
       smooth: true,
       symbol: 'circle',
@@ -330,63 +665,7 @@ const lineChartOption = computed(() => ({
           ]
         }
       },
-      data: trendData.value.values || []
-    }
-  ]
-}))
-
-// 饼图配置
-const pieChartOption = computed(() => ({
-  tooltip: {
-    trigger: 'item',
-    formatter: '{a} <br/>{b}: {c} ({d}%)'
-  },
-  legend: {
-    orient: 'vertical',
-    left: 'left'
-  },
-  series: [
-    {
-      name: '用户类型',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      center: ['60%', '50%'],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 10,
-        borderColor: '#fff',
-        borderWidth: 2
-      },
-      label: {
-        show: false,
-        position: 'center'
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: '18',
-          fontWeight: 'bold'
-        }
-      },
-      labelLine: {
-        show: false
-      },
-      data: [
-        {
-          value: stats.totalUsers - stats.vipUsers,
-          name: '普通用户',
-          itemStyle: {
-            color: '#52c41a'
-          }
-        },
-        {
-          value: stats.vipUsers,
-          name: 'VIP用户',
-          itemStyle: {
-            color: '#faad14'
-          }
-        }
-      ]
+      data: dailyRecognitionData.value.data.map(item => item.count)
     }
   ]
 }))

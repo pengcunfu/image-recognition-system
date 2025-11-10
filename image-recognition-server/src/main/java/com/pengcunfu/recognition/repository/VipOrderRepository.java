@@ -64,5 +64,20 @@ public interface VipOrderRepository extends BaseMapper<VipOrder> {
             ORDER BY date
             """)
     java.util.List<java.util.Map<String, Object>> countOrderTrendByDate(@Param("startDate") LocalDateTime startDate);
+
+    /**
+     * 按套餐类型统计订单数量和金额
+     */
+    @Select("""
+            SELECT 
+                plan_type as planType,
+                COUNT(*) as orderCount,
+                SUM(amount) as totalAmount
+            FROM vip_orders
+            WHERE payment_status = 1
+            GROUP BY plan_type
+            ORDER BY plan_type
+            """)
+    java.util.List<java.util.Map<String, Object>> countByPlanType();
 }
 

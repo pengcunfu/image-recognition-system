@@ -620,7 +620,13 @@ async function loadPostDetail(postId: string | number) {
       recognitionResults: []
     }
     
+    // 设置用户的点赞和收藏状态
+    isLiked.value = postData.isLiked || false
+    isBookmarked.value = postData.isCollected || false
+    
     console.log('转换后的帖子数据:', post.value)
+    console.log('后端返回的状态 - isLiked:', postData.isLiked, 'isCollected:', postData.isCollected)
+    console.log('前端设置的状态 - isLiked:', isLiked.value, 'isBookmarked:', isBookmarked.value)
     console.log('当前用户ID:', userStore.userId)
     console.log('帖子作者ID:', post.value.authorId)
     console.log('是否为作者:', isAuthor.value)

@@ -60,6 +60,11 @@ public class RecognitionResult {
     private Integer recognitionType;
 
     /**
+     * 是否为高级识别: 0-普通识别, 1-高级识别
+     */
+    private Integer isAdvanced;
+
+    /**
      * 识别结果JSON
      */
     private String resultJson;

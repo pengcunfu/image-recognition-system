@@ -142,4 +142,234 @@ public class StatsResponse {
         private Long totalCollects;
         private Map<String, Long> categoryDistribution;
     }
+
+    /**
+     * 用户角色统计
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserRoleStats {
+        private Long normalUsers;
+        private Long vipUsers;
+        private Long adminUsers;
+        private Long totalUsers;
+    }
+
+    /**
+     * 识别分类统计项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecognitionCategoryItem {
+        private String category;
+        private Long count;
+        private Double percentage;
+    }
+
+    /**
+     * 识别分类统计
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecognitionCategoryStats {
+        private List<RecognitionCategoryItem> categories;
+        private Long totalRecognitions;
+    }
+
+    /**
+     * VIP订单统计项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipOrderItem {
+        private Integer planType;
+        private String planName;
+        private Long orderCount;
+        private Double totalAmount;
+        private Double percentage;
+    }
+
+    /**
+     * VIP订单统计
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipOrderStats {
+        private List<VipOrderItem> orders;
+        private Long totalOrders;
+        private Double totalRevenue;
+    }
+
+    /**
+     * 每日识别统计项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyRecognitionItem {
+        private String date;
+        private Long count;
+    }
+
+    /**
+     * 每日识别统计
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DailyRecognitionStats {
+        private List<DailyRecognitionItem> data;
+        private Integer totalDays;
+        private Double avgDaily;
+    }
+
+    /**
+     * VIP用户统计分析
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipAnalytics {
+        private Long totalRecognitions;
+        private Double averageAccuracy;
+        private Integer avgProcessTime;
+        private Double costSaved;
+        private Double growthRate;
+        private Double accuracyImprovement;
+        private Double speedImprovement;
+        private Integer daysAnalyzed;
+    }
+
+    /**
+     * VIP趋势数据点
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipTrendPoint {
+        private String date;
+        private Long recognitions;
+        private Double accuracy;
+        private Integer avgTime;
+    }
+
+    /**
+     * VIP识别趋势
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipTrends {
+        private List<VipTrendPoint> dailyTrends;
+        private List<String> dates;
+        private List<Long> recognitionCounts;
+        private List<Double> accuracyTrends;
+        private List<Integer> timeTrends;
+    }
+
+    /**
+     * VIP分类分析项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipCategoryItem {
+        private String category;
+        private Long count;
+        private Double avgAccuracy;
+        private Integer avgTime;
+        private Double percentage;
+    }
+
+    /**
+     * VIP分类分析
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipCategoryAnalysis {
+        private List<VipCategoryItem> categories;
+        private String topCategory;
+        private String mostAccurateCategory;
+        private String fastestCategory;
+    }
+
+    /**
+     * VIP性能分析
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipPerformanceAnalysis {
+        private Double currentAccuracy;
+        private Double previousAccuracy;
+        private Integer currentAvgTime;
+        private Integer previousAvgTime;
+        private Double accuracyTrend;
+        private Double speedTrend;
+        private List<VipPerformancePoint> performanceHistory;
+    }
+
+    /**
+     * VIP性能数据点
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipPerformancePoint {
+        private String date;
+        private Double accuracy;
+        private Integer avgTime;
+        private Long count;
+    }
+
+    /**
+     * VIP智能建议项
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipSuggestionItem {
+        private String id;
+        private String type;
+        private String title;
+        private String description;
+        private String impact;
+        private String icon;
+        private Integer priority;
+        private Boolean applicable;
+    }
+
+    /**
+     * VIP智能建议
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipSuggestions {
+        private List<VipSuggestionItem> suggestions;
+        private Integer totalSuggestions;
+        private Integer highPrioritySuggestions;
+    }
 }

@@ -125,5 +125,137 @@ public interface RecognitionResultRepository extends BaseMapper<RecognitionResul
             @Param("mainCategory") String mainCategory,
             @Param("excludeId") Long excludeId
     );
+
+    /**
+     * 按主分类统计识别数量
+     */
+    @Select("""
+            SELECT main_category as category, COUNT(*) as count
+            FROM recognition_results
+            WHERE main_category IS NOT NULL AND main_category != ''
+            GROUP BY main_category
+            ORDER BY count DESC
+            """)
+    java.util.List<java.util.Map<String, Object>> countByMainCategory();
+
+    /**
+     * 获取VIP用户统计数据（指定时间段）
+     */
+    @Select("""
+            SELECT r.*, u.role
+            FROM recognition_results r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.user_id = #{userId} 
+            AND r.created_at >= #{startDate}
+            AND r.status = 1
+            ORDER BY r.created_at DESC
+            """)
+    java.util.List<java.util.Map<String, Object>> getVipUserStatsFromDate(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * 获取VIP用户统计数据（指定时间段范围）
+     */
+    @Select("""
+            SELECT r.*, u.role
+            FROM recognition_results r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.user_id = #{userId} 
+            AND r.created_at >= #{startDate}
+            AND r.created_at < #{endDate}
+            AND r.status = 1
+            ORDER BY r.created_at DESC
+            """)
+    java.util.List<java.util.Map<String, Object>> getVipUserStats(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    /**
+     * 获取VIP用户每日趋势数据
+     */
+    @Select("""
+            SELECT 
+                DATE(r.created_at) as date,
+                COUNT(*) as count,
+                AVG(r.confidence) as avg_confidence,
+                AVG(r.processing_time) as avg_time
+            FROM recognition_results r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.user_id = #{userId} 
+            AND r.created_at >= #{startDate}
+            AND r.status = 1
+            GROUP BY DATE(r.created_at)
+            ORDER BY date DESC
+            """)
+    java.util.List<java.util.Map<String, Object>> getVipUserDailyTrends(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * 获取VIP用户分类统计数据
+     */
+    @Select("""
+            SELECT 
+                r.main_category,
+                COUNT(*) as count,
+                AVG(r.confidence) as avg_confidence,
+                AVG(r.processing_time) as avg_time
+            FROM recognition_results r
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE r.user_id = #{userId} 
+            AND r.created_at >= #{startDate}
+            AND r.status = 1
+            AND r.main_category IS NOT NULL 
+            AND r.main_category != ''
+            GROUP BY r.main_category
+            ORDER BY count DESC
+            """)
+    java.util.List<java.util.Map<String, Object>> getVipUserCategoryStats(
+            @Param("userId") Long userId,
+            @Param("startDate") LocalDateTime startDate
+    );
+
+    /**
+     * 根据用户ID和识别类型统计数量
+     */
+    @Select("SELECT COUNT(*) FROM recognition_results WHERE user_id = #{userId} AND recognition_type = #{recognitionType}")
+    Long countByUserIdAndRecognitionType(@Param("userId") Long userId, @Param("recognitionType") Integer recognitionType);
+
+    /**
+     * 根据用户ID和是否高级识别统计数量
+     */
+    @Select("SELECT COUNT(*) FROM recognition_results WHERE user_id = #{userId} AND is_advanced = #{isAdvanced}")
+    Long countByUserIdAndIsAdvanced(@Param("userId") Long userId, @Param("isAdvanced") Integer isAdvanced);
+
+    /**
+     * 统计用户的不同分类数量
+     */
+    @Select("SELECT COUNT(DISTINCT main_category) FROM recognition_results WHERE user_id = #{userId} AND main_category IS NOT NULL AND main_category != ''")
+    Long countDistinctCategoriesByUserId(@Param("userId") Long userId);
+
+    /**
+     * 统计用户的不同标签数量
+     */
+    @Select("""
+            SELECT COUNT(DISTINCT tag_item) FROM (
+                SELECT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(tags, ',', numbers.n), ',', -1)) as tag_item
+                FROM recognition_results
+                CROSS JOIN (
+                    SELECT 1 n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
+                    UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10
+                ) numbers
+                WHERE user_id = #{userId} 
+                AND tags IS NOT NULL 
+                AND tags != ''
+                AND CHAR_LENGTH(tags) - CHAR_LENGTH(REPLACE(tags, ',', '')) >= numbers.n - 1
+            ) tag_split
+            WHERE tag_item != ''
+            """)
+    Long countDistinctTagsByUserId(@Param("userId") Long userId);
 }
 

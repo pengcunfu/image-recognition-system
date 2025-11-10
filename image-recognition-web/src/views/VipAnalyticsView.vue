@@ -22,59 +22,60 @@
     <!-- 核心指标 -->
     <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px' }">
+        <a-card :style="{ borderRadius: '8px' }" :loading="loading">
           <a-statistic
             title="总识别次数"
-            :value="metrics.totalRecognitions"
+            :value="analytics.totalRecognitions"
             suffix="次"
             :value-style="{ color: '#1890ff' }"
           />
-          <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
-            <i class="fas fa-arrow-up"></i>
-            <span :style="{ marginLeft: '4px' }">+23.5%</span>
+          <div :style="{ marginTop: '8px', fontSize: '12px', color: analytics.growthRate >= 0 ? '#52c41a' : '#f5222d' }">
+            <i :class="analytics.growthRate >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down'"></i>
+            <span :style="{ marginLeft: '4px' }">{{ analytics.growthRate >= 0 ? '+' : '' }}{{ analytics.growthRate.toFixed(1) }}%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px' }">
+        <a-card :style="{ borderRadius: '8px' }" :loading="loading">
           <a-statistic
             title="平均精度"
-            :value="metrics.averageAccuracy"
+            :value="analytics.averageAccuracy"
             suffix="%"
             :precision="1"
             :value-style="{ color: '#52c41a' }"
           />
           <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-up"></i>
-            <span :style="{ marginLeft: '4px' }">+2.1%</span>
+            <span :style="{ marginLeft: '4px' }">+{{ analytics.accuracyImprovement.toFixed(1) }}%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px' }">
+        <a-card :style="{ borderRadius: '8px' }" :loading="loading">
           <a-statistic
             title="处理速度"
-            :value="metrics.avgProcessTime"
+            :value="analytics.avgProcessTime"
             suffix="ms"
             :value-style="{ color: '#faad14' }"
           />
           <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-down"></i>
-            <span :style="{ marginLeft: '4px' }">-15.2%</span>
+            <span :style="{ marginLeft: '4px' }">-{{ analytics.speedImprovement.toFixed(1) }}%</span>
           </div>
         </a-card>
       </a-col>
       <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px' }">
+        <a-card :style="{ borderRadius: '8px' }" :loading="loading">
           <a-statistic
             title="节省成本"
-            :value="metrics.costSaved"
+            :value="analytics.costSaved"
             prefix="¥"
+            :precision="2"
             :value-style="{ color: '#f5222d' }"
           />
           <div :style="{ marginTop: '8px', fontSize: '12px', color: '#52c41a' }">
             <i class="fas fa-arrow-up"></i>
-            <span :style="{ marginLeft: '4px' }">+45.8%</span>
+            <span :style="{ marginLeft: '4px' }">基于{{ analytics.daysAnalyzed }}天数据</span>
           </div>
         </a-card>
       </a-col>
@@ -83,122 +84,381 @@
     <!-- 图表分析 -->
     <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
       <a-col :xs="24" :lg="12">
-        <a-card title="识别趋势分析" :style="{ borderRadius: '8px' }">
-          <div :style="{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafafa', borderRadius: '8px' }">
-            <i class="fas fa-chart-area" :style="{ fontSize: '48px', color: '#1890ff', marginBottom: '16px' }"></i>
-            <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">识别次数趋势图</div>
-            <div :style="{ fontSize: '13px', opacity: 0.65 }">显示过去30天的识别活动趋势</div>
-          </div>
+        <a-card title="识别趋势分析" :style="{ borderRadius: '8px' }" :loading="loading">
+          <v-chart 
+            :option="trendChartOption" 
+            :style="{ height: '300px' }"
+            autoresize
+          />
         </a-card>
       </a-col>
       <a-col :xs="24" :lg="12">
-        <a-card title="准确率分布" :style="{ borderRadius: '8px' }">
-          <div :style="{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: '#fafafa', borderRadius: '8px' }">
-            <i class="fas fa-chart-pie" :style="{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }"></i>
-            <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">准确率分布图</div>
-            <div :style="{ fontSize: '13px', opacity: 0.65 }">按准确率区间统计识别结果</div>
-          </div>
+        <a-card title="准确率分布" :style="{ borderRadius: '8px' }" :loading="loading">
+          <v-chart 
+            :option="accuracyChartOption" 
+            :style="{ height: '300px' }"
+            autoresize
+          />
         </a-card>
       </a-col>
     </a-row>
 
-    <!-- 使用建议 -->
-    <a-card title="智能优化建议" :style="{ borderRadius: '8px' }">
-      <div :style="{ display: 'flex', flexDirection: 'column', gap: '12px' }">
-        <div 
-          v-for="suggestion in suggestions" 
-          :key="suggestion.id"
-          :style="{ 
-            display: 'flex',
-            alignItems: 'center',
-            padding: '16px',
-            borderRadius: '8px',
-            border: '1px solid #d9d9d9',
-            background: '#fafafa',
-            gap: '16px'
-          }"
-        >
-          <div :style="{ 
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '20px',
-            color: '#fff',
-            flexShrink: 0
-          }">
-            <i :class="suggestion.icon"></i>
-          </div>
-          <div :style="{ flex: 1 }">
-            <h4 :style="{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: '600' }">{{ suggestion.title }}</h4>
-            <p :style="{ margin: '0 0 6px 0', fontSize: '13px', opacity: 0.75 }">{{ suggestion.description }}</p>
-            <div :style="{ fontSize: '12px', color: '#52c41a', fontWeight: '500' }">
-              <i class="fas fa-chart-line" :style="{ marginRight: '4px' }"></i>
-              预期改善: {{ suggestion.impact }}
-            </div>
-          </div>
-          <a-button type="primary" size="small" @click="applySuggestion(suggestion)">
-            应用建议
-          </a-button>
-        </div>
-      </div>
+    <!-- 分类统计图表 -->
+    <a-row :gutter="[16, 16]" :style="{ marginBottom: '16px' }">
+      <a-col :xs="24">
+        <a-card title="识别分类统计" :style="{ borderRadius: '8px' }" :loading="loading">
+          <template #extra>
+            <a-space>
+              <a-tag color="blue">最多: {{ categoryAnalysis.topCategory }}</a-tag>
+              <a-tag color="green">最准: {{ categoryAnalysis.mostAccurateCategory }}</a-tag>
+              <a-tag color="orange">最快: {{ categoryAnalysis.fastestCategory }}</a-tag>
+            </a-space>
+          </template>
+          <v-chart 
+            :option="categoryChartOption" 
+            :style="{ height: '400px' }"
+            autoresize
+          />
     </a-card>
+      </a-col>
+    </a-row>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { message } from 'ant-design-vue'
 import type { Dayjs } from 'dayjs'
+import dayjs from 'dayjs'
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart, BarChart, PieChart } from 'echarts/charts'
+import {
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent
+} from 'echarts/components'
+import VChart from 'vue-echarts'
+import { StatsAPI, type VipAnalytics, type VipTrends, type VipCategoryAnalysis } from '@/api/stats'
 
-const dateRange = ref<[Dayjs, Dayjs] | null>(null)
-
-const metrics = reactive({
-  totalRecognitions: 3456,
-  averageAccuracy: 97.2,
-  avgProcessTime: 847,
-  costSaved: 2856
-})
-
-const suggestions = ref([
-  {
-    id: 1,
-    icon: 'fas fa-bolt',
-    title: '优化图片预处理',
-    description: '建议在上传前对图片进行压缩和格式优化，可提升处理速度25%',
-    impact: '速度提升25%',
-    action: 'enable_preprocessing'
-  },
-  {
-    id: 2,
-    icon: 'fas fa-clock',
-    title: '错峰使用',
-    description: '建议在10-12点和15-17点使用，可获得更快的响应速度',
-    impact: '响应时间减少30%',
-    action: 'schedule_optimization'
-  },
-  {
-    id: 3,
-    icon: 'fas fa-layer-group',
-    title: '批量处理',
-    description: '建议使用批量识别功能，可降低单次识别成本40%',
-    impact: '成本降低40%',
-    action: 'batch_processing'
-  }
+use([
+  CanvasRenderer,
+  LineChart,
+  BarChart,
+  PieChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent
 ])
 
+const dateRange = ref<[Dayjs, Dayjs] | null>(null)
+const loading = ref(false)
+
+// 统计数据
+const analytics = ref<VipAnalytics>({
+  totalRecognitions: 0,
+  averageAccuracy: 0,
+  avgProcessTime: 0,
+  costSaved: 0,
+  growthRate: 0,
+  accuracyImprovement: 0,
+  speedImprovement: 0,
+  daysAnalyzed: 30
+})
+
+const trends = ref<VipTrends>({
+  dailyTrends: [],
+  dates: [],
+  recognitionCounts: [],
+  accuracyTrends: [],
+  timeTrends: []
+})
+
+const categoryAnalysis = ref<VipCategoryAnalysis>({
+  categories: [],
+  topCategory: '',
+  mostAccurateCategory: '',
+  fastestCategory: ''
+})
+
+
+// 计算分析天数
+const analysisDays = computed(() => {
+  if (dateRange.value) {
+    const [start, end] = dateRange.value
+    return end.diff(start, 'day') + 1
+  }
+  return 30
+})
+
+// 识别趋势图表配置
+const trendChartOption = computed(() => ({
+  title: {
+    text: '识别次数趋势',
+    left: 'center',
+    textStyle: {
+      fontSize: 16,
+      fontWeight: 'normal'
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'cross'
+    }
+  },
+  legend: {
+    data: ['识别次数', '平均准确率'],
+    bottom: 10
+  },
+  xAxis: {
+    type: 'category',
+    data: trends.value.dates,
+    axisLabel: {
+      formatter: (value: string) => {
+        return dayjs(value).format('MM-DD')
+      }
+    }
+  },
+  yAxis: [
+    {
+      type: 'value',
+      name: '识别次数',
+      position: 'left'
+    },
+    {
+      type: 'value',
+      name: '准确率(%)',
+      position: 'right',
+      min: 90,
+      max: 100
+    }
+  ],
+  series: [
+    {
+      name: '识别次数',
+      type: 'line',
+      data: trends.value.recognitionCounts,
+      smooth: true,
+      itemStyle: {
+        color: '#1890ff'
+      },
+      areaStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(24, 144, 255, 0.3)' },
+            { offset: 1, color: 'rgba(24, 144, 255, 0.1)' }
+          ]
+        }
+      }
+    },
+    {
+      name: '平均准确率',
+      type: 'line',
+      yAxisIndex: 1,
+      data: trends.value.accuracyTrends,
+      smooth: true,
+      itemStyle: {
+        color: '#52c41a'
+      }
+    }
+  ],
+  grid: {
+    top: 60,
+    bottom: 60,
+    left: 60,
+    right: 60
+  }
+}))
+
+// 准确率分布图表配置
+const accuracyChartOption = computed(() => {
+  const accuracyRanges = [
+    { name: '95-100%', value: 0 },
+    { name: '90-95%', value: 0 },
+    { name: '85-90%', value: 0 },
+    { name: '80-85%', value: 0 },
+    { name: '<80%', value: 0 }
+  ]
+
+  // 根据实际数据计算分布
+  trends.value.accuracyTrends.forEach(accuracy => {
+    if (accuracy >= 95) accuracyRanges[0].value++
+    else if (accuracy >= 90) accuracyRanges[1].value++
+    else if (accuracy >= 85) accuracyRanges[2].value++
+    else if (accuracy >= 80) accuracyRanges[3].value++
+    else accuracyRanges[4].value++
+  })
+
+  return {
+    title: {
+      text: '准确率分布',
+      left: 'center',
+      textStyle: {
+        fontSize: 16,
+        fontWeight: 'normal'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left',
+      data: accuracyRanges.map(item => item.name)
+    },
+    series: [
+      {
+        name: '准确率分布',
+        type: 'pie',
+        radius: ['40%', '70%'],
+        center: ['60%', '50%'],
+        data: accuracyRanges,
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        },
+        itemStyle: {
+          borderRadius: 8,
+          borderColor: '#fff',
+          borderWidth: 2
+        }
+      }
+    ]
+  }
+})
+
+// 分类统计图表配置
+const categoryChartOption = computed(() => ({
+  title: {
+    text: '识别分类统计',
+    left: 'center',
+    textStyle: {
+      fontSize: 16,
+      fontWeight: 'normal'
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    axisPointer: {
+      type: 'shadow'
+    }
+  },
+  xAxis: {
+    type: 'category',
+    data: categoryAnalysis.value.categories.slice(0, 10).map(item => item.category),
+    axisLabel: {
+      interval: 0,
+      rotate: 45
+    }
+  },
+  yAxis: {
+    type: 'value',
+    name: '识别次数'
+  },
+  series: [
+    {
+      name: '识别次数',
+      type: 'bar',
+      data: categoryAnalysis.value.categories.slice(0, 10).map(item => item.count),
+      itemStyle: {
+        color: {
+          type: 'linear',
+          x: 0,
+          y: 0,
+          x2: 0,
+          y2: 1,
+          colorStops: [
+            { offset: 0, color: '#1890ff' },
+            { offset: 1, color: '#69c0ff' }
+          ]
+        },
+        borderRadius: [4, 4, 0, 0]
+      },
+      emphasis: {
+        itemStyle: {
+          color: '#096dd9'
+        }
+      }
+    }
+  ],
+  grid: {
+    top: 60,
+    bottom: 100,
+    left: 60,
+    right: 40
+  }
+}))
+
+// 加载数据
+async function loadAnalyticsData() {
+  loading.value = true
+  
+  try {
+    const days = analysisDays.value
+    
+    // 并行加载所有数据
+    const [analyticsData, trendsData, categoryData] = await Promise.all([
+      StatsAPI.getVipAnalytics(days),
+      StatsAPI.getVipTrends(days),
+      StatsAPI.getVipCategoryAnalysis(days)
+    ])
+    
+    analytics.value = analyticsData
+    trends.value = trendsData
+    categoryAnalysis.value = categoryData
+    
+    message.success('数据加载完成')
+  } catch (error: any) {
+    console.error('加载VIP分析数据失败:', error)
+    message.error(error.message || '加载数据失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 更新分析数据
 function updateAnalytics() {
-  message.info('正在更新分析数据...')
+  loadAnalyticsData()
 }
 
+// 导出报告
 function exportReport() {
-  message.success('分析报告导出中，请稍候...')
+  const reportData = {
+    analytics: analytics.value,
+    trends: trends.value,
+    categories: categoryAnalysis.value,
+    exportTime: new Date().toISOString()
+  }
+  
+  const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `vip-analytics-report-${dayjs().format('YYYY-MM-DD')}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  
+  message.success('分析报告已导出')
 }
 
-function applySuggestion(suggestion: any) {
-  message.success(`正在应用建议: ${suggestion.title}`)
-}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadAnalyticsData()
+})
 </script>

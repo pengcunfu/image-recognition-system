@@ -25,7 +25,7 @@ export interface RequestConfig extends AxiosRequestConfig {
 // 创建axios实例
 const instance: AxiosInstance = axios.create({
   baseURL: baseURL,
-  timeout: 30000,
+  timeout: 600000,
   withCredentials: true, // 支持跨域携带Cookie
   headers: {
     'Content-Type': 'application/json'

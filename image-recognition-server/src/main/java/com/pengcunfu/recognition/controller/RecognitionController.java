@@ -149,6 +149,18 @@ public class RecognitionController {
     }
 
     /**
+     * 获取VIP识别统计数据
+     */
+    @GetMapping("/vip-stats")
+    @Role("VIP")
+    public ApiResponse<RecognitionResponse.VipRecognitionStats> getVipStats() {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("获取VIP识别统计数据: userId={}", userId);
+        RecognitionResponse.VipRecognitionStats stats = recognitionService.getVipRecognitionStats(userId);
+        return ApiResponse.success(stats);
+    }
+
+    /**
      * 获取相关识别记录（同分类）
      */
     @GetMapping("/{id}/related")
@@ -168,6 +180,146 @@ public class RecognitionController {
         log.info("分享识别结果到知识库: userId={}, recognitionId={}", userId, id);
         Long knowledgeId = recognitionService.shareToKnowledge(userId, id);
         return ApiResponse.success(knowledgeId);
+    }
+
+    /**
+     * 高级图像识别（VIP功能）
+     */
+    @PostMapping("/advanced-recognize")
+    @Role("VIP")
+    public ApiResponse<RecognitionResponse.RecognitionInfo> advancedRecognize(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "settings", required = false) String settings) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("高级图像识别: userId={}, fileName={}, settings={}", userId, file.getOriginalFilename(), settings);
+        
+        try {
+            // 验证文件
+            if (file.isEmpty()) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "上传文件为空");
+            }
+            
+            // 验证文件类型
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "只支持上传图片文件");
+            }
+            
+            // VIP用户支持更大文件（20MB）
+            if (file.getSize() > 20 * 1024 * 1024) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "文件大小不能超过 20MB");
+            }
+            
+            // 获取图片尺寸
+            Integer imageWidth = null;
+            Integer imageHeight = null;
+            try {
+                BufferedImage image = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+                if (image != null) {
+                    imageWidth = image.getWidth();
+                    imageHeight = image.getHeight();
+                    log.info("图片尺寸: {}x{}", imageWidth, imageHeight);
+                }
+            } catch (Exception e) {
+                log.warn("获取图片尺寸失败: {}", e.getMessage());
+            }
+            
+            // 上传到 TOS
+            String imageUrl = tosUtil.uploadFile(file, "advanced-recognition");
+            log.info("高级识别文件上传成功: userId={}, imageUrl={}", userId, imageUrl);
+            
+            // 构建高级识别请求
+            RecognitionRequest.AdvancedRecognitionRequest request = new RecognitionRequest.AdvancedRecognitionRequest();
+            request.setRecognitionType(1); // 高级识别类型
+            request.setImageUrl(imageUrl);
+            request.setImageSize((int) file.getSize());
+            request.setImageWidth(imageWidth);
+            request.setImageHeight(imageHeight);
+            request.setImageName(file.getOriginalFilename());
+            request.setSettings(settings);
+            
+            // 执行高级识别
+            RecognitionResponse.RecognitionInfo result = recognitionService.advancedRecognizeImage(userId, request);
+            return ApiResponse.success(result);
+        } catch (IOException e) {
+            log.error("高级识别文件上传失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "文件上传失败: " + e.getMessage());
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("高级图像识别失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "高级图像识别失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量高级图像识别（VIP功能）
+     */
+    @PostMapping("/batch-advanced-recognize")
+    @Role("VIP")
+    public ApiResponse<java.util.List<RecognitionResponse.RecognitionInfo>> batchAdvancedRecognize(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam(value = "settings", required = false) String settings) {
+        Long userId = SecurityContextHolder.getCurrentUserId();
+        log.info("批量高级图像识别: userId={}, fileCount={}, settings={}", userId, files.length, settings);
+        
+        try {
+            // 验证文件数量
+            if (files == null || files.length == 0) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "上传文件不能为空");
+            }
+            
+            // VIP用户支持更多文件
+            if (files.length > 20) {
+                throw new BusinessException(ErrorCode.INVALID_PARAM, "批量高级识别最多支持20张图片");
+            }
+            
+            // 上传所有文件到TOS
+            String[] imageUrls = new String[files.length];
+            for (int i = 0; i < files.length; i++) {
+                MultipartFile file = files[i];
+                
+                // 验证文件
+                if (file.isEmpty()) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 为空");
+                }
+                
+                // 验证文件类型
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 不是图片文件");
+                }
+                
+                // VIP用户支持更大文件（20MB）
+                if (file.getSize() > 20 * 1024 * 1024) {
+                    throw new BusinessException(ErrorCode.INVALID_PARAM, "文件 " + (i + 1) + " 大小不能超过 20MB");
+                }
+                
+                // 上传到TOS
+                imageUrls[i] = tosUtil.uploadFile(file, "advanced-recognition");
+                log.info("高级识别文件 {} 上传成功: userId={}, imageUrl={}", i + 1, userId, imageUrls[i]);
+            }
+            
+            // 构建批量高级识别请求
+            RecognitionRequest.BatchAdvancedRecognitionRequest request = new RecognitionRequest.BatchAdvancedRecognitionRequest();
+            request.setRecognitionType(1); // 高级识别类型
+            request.setImageUrls(imageUrls);
+            request.setSettings(settings);
+            
+            // 执行批量高级识别
+            java.util.List<RecognitionResponse.RecognitionInfo> results = 
+                recognitionService.batchAdvancedRecognizeImages(userId, request);
+            
+            return ApiResponse.success(results);
+        } catch (IOException e) {
+            log.error("批量高级识别文件上传失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "文件上传失败: " + e.getMessage());
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("批量高级图像识别失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "批量高级图像识别失败: " + e.getMessage());
+        }
     }
 
     /**

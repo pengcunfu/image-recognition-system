@@ -1,11 +1,14 @@
 ﻿<template>
   <div :style="{ padding: '24px' }">
     <!-- 欢迎横幅 -->
-    <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }">
-      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }">
+    <a-card :style="{ marginBottom: '24px', borderRadius: '8px' }" :bodyStyle="{ padding: '20px' }">
+      <div :style="{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }">
         <div :style="{ flex: 1 }">
           <div>
-            <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}！</h1>
+            <h1 :style="{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '600' }">
+              欢迎回来，{{ userInfo.nickname || userInfo.username || '用户' }}
+              <span v-if="userInfo.role === 1" :style="{ color: '#faad14', fontSize: '20px', marginLeft: '8px' }">VIP</span>！
+            </h1>
             <p :style="{ margin: 0, fontSize: '14px', opacity: 0.65 }">开始您的智能图像识别之旅</p>
           </div>
           <div :style="{ marginTop: '24px', display: 'flex', gap: '12px' }">
@@ -22,68 +25,70 @@
               查看历史
             </a-button>
           </div>
+                    <!-- 识别统计 -->
+                    <div :style="{ marginTop: '20px' }">
+            <div :style="{ fontSize: '14px', fontWeight: '500', marginBottom: '12px', opacity: 0.8 }">识别统计</div>
+            <a-row :gutter="[6, 6]">
+              <a-col :span="6" v-for="stat in statsItems" :key="stat.key">
+                <div 
+                  :style="{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    textAlign: 'center', 
+                    padding: '10px 6px', 
+                    borderRadius: '6px', 
+                    border: '1px solid #f0f0f0',
+                    background: '#fafafa'
+                  }" 
+                >
+                  <div :style="{ fontSize: '14px', marginBottom: '4px', color: stat.color }">
+                    <i :class="stat.icon"></i>
+                  </div>
+                  <div :style="{ fontSize: '16px', fontWeight: '600', marginBottom: '2px' }">{{ stat.value }}</div>
+                  <div :style="{ fontSize: '11px', fontWeight: '500', lineHeight: '1.2', opacity: 0.8 }">{{ stat.label }}</div>
+                </div>
+              </a-col>
+            </a-row>
+          </div>
+          <!-- 功能导航 -->
+          <div :style="{ marginTop: '20px' }">
+            <div :style="{ fontSize: '14px', fontWeight: '500', marginBottom: '12px', opacity: 0.8 }">快捷功能</div>
+            <a-row :gutter="[6, 6]">
+              <a-col :span="3" v-for="feature in quickFeatures" :key="feature.key">
+                <div 
+                  :style="{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    textAlign: 'center', 
+                    padding: '8px 4px', 
+                    borderRadius: '6px', 
+                    cursor: 'pointer', 
+                    transition: 'all 0.3s ease',
+                    border: '1px solid #f0f0f0',
+                    background: '#fafafa'
+                  }" 
+                  @click="navigateToFeature(feature.path)"
+                  @mouseenter="(e) => handleMouseEnter(e)"
+                  @mouseleave="(e) => handleMouseLeave(e)"
+                >
+                  <div :style="{ fontSize: '14px', marginBottom: '3px', color: feature.color }">
+                    <i :class="feature.icon"></i>
+                  </div>
+                  <div :style="{ fontSize: '11px', fontWeight: '500', lineHeight: '1.2' }">{{ feature.title }}</div>
+                </div>
+              </a-col>
+            </a-row>
+          </div>
+          
+
         </div>
-        <div :style="{ fontSize: '80px', opacity: 0.1, marginLeft: '32px' }">
+        <div :style="{ fontSize: '60px', opacity: 0.1, marginLeft: '24px' }">
           <i class="fas fa-brain"></i>
         </div>
       </div>
     </a-card>
-
-    <!-- 统计卡片 -->
-    <a-row :gutter="[16, 16]" :style="{ marginBottom: '24px' }">
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
-              <i class="fas fa-eye"></i>
-            </div>
-            <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.recognitionCount }}</div>
-              <div :style="{ fontSize: '14px', opacity: '0.65' }">总识别次数</div>
-            </div>
-          </div>
-        </a-card>
-      </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', transition: 'all 0.3s ease' }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
-              <i class="fas fa-heart"></i>
-            </div>
-            <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.collectCount }}</div>
-              <div :style="{ fontSize: '14px', opacity: '0.65' }">我的收藏</div>
-            </div>
-          </div>
-        </a-card>
-      </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
-              <i class="fas fa-comments"></i>
-            </div>
-            <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.commentCount }}</div>
-              <div :style="{ fontSize: '14px', opacity: '0.65' }">评论数量</div>
-            </div>
-          </div>
-        </a-card>
-      </a-col>
-      <a-col :xs="24" :sm="12" :lg="6">
-        <a-card :style="{ borderRadius: '8px', transition: 'all 0.3s ease' }">
-          <div :style="{ display: 'flex', alignItems: 'center', gap: '20px', padding: '12px 8px' }">
-            <div :style="{ width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '24px' }">
-              <i class="fas fa-thumbs-up"></i>
-            </div>
-            <div :style="{ flex: 1 }">
-              <div :style="{ fontSize: '28px', fontWeight: '600', marginBottom: '4px' }">{{ stats.likeCount }}</div>
-              <div :style="{ fontSize: '14px', opacity: '0.65' }">获得点赞</div>
-            </div>
-          </div>
-        </a-card>
-      </a-col>
-    </a-row>
 
     <!-- 主要内容区域 -->
     <a-row :gutter="[16, 16]">
@@ -145,8 +150,19 @@
               :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
               @click="viewKnowledge(item)"
             >
-              <div :style="{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '18px', flexShrink: 0 }">
-                <i :class="item.icon"></i>
+              <div :style="{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#f5f5f5' }">
+                <img 
+                  v-if="item.coverImage" 
+                  :src="item.coverImage" 
+                  :alt="item.title" 
+                  :style="{ width: '100%', height: '100%', objectFit: 'cover' }" 
+                />
+                <div 
+                  v-else 
+                  :style="{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: item.iconColor || '#52c41a' }"
+                >
+                  <i :class="item.icon"></i>
+                </div>
               </div>
               <div :style="{ flex: 1, minWidth: 0 }">
                 <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '6px' }">{{ item.title }}</div>
@@ -163,6 +179,20 @@
               :style="{ display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease' }"
               @click="viewPost(item)"
             >
+              <div :style="{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#f5f5f5' }">
+                <img 
+                  v-if="item.images && item.images.length > 0" 
+                  :src="item.images[0]" 
+                  :alt="item.title" 
+                  :style="{ width: '100%', height: '100%', objectFit: 'cover' }" 
+                />
+                <div 
+                  v-else 
+                  :style="{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#722ed1' }"
+                >
+                  <i class="fas fa-comments"></i>
+                </div>
+              </div>
               <div :style="{ flex: 1 }">
                 <div :style="{ fontSize: '15px', fontWeight: '500', marginBottom: '8px' }">{{ item.title }}</div>
                 <div :style="{ display: 'flex', gap: '16px', fontSize: '13px', opacity: '0.65' }">
@@ -177,28 +207,11 @@
       </a-col>
     </a-row>
 
-    <!-- 功能入口 -->
-    <a-card title="功能导航" :style="{ marginTop: '24px', borderRadius: '8px' }">
-      <a-row :gutter="[16, 16]">
-        <a-col :xs="12" :sm="8" :lg="4" v-for="feature in features" :key="feature.key">
-          <div 
-            :style="{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '32px 16px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s ease', height: '100%' }" 
-            @click="navigateToFeature(feature.path)"
-          >
-            <div :style="{ width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', fontSize: '28px', marginBottom: '16px' }">
-              <i :class="feature.icon"></i>
-            </div>
-            <div :style="{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }">{{ feature.title }}</div>
-            <div :style="{ fontSize: '13px', opacity: '0.65' }">{{ feature.description }}</div>
-          </div>
-        </a-col>
-      </a-row>
-    </a-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { UserAPI, type UserStats } from '@/api/user'
@@ -248,6 +261,8 @@ interface RecommendedKnowledge {
   title: string
   description: string
   icon: string
+  iconColor?: string
+  coverImage?: string
 }
 const recommendedKnowledge = ref<RecommendedKnowledge[]>([])
 
@@ -258,52 +273,128 @@ interface HotPost {
   author: string
   likes: number
   replies: number
+  images?: string[]
 }
 const hotCommunityPosts = ref<HotPost[]>([])
 
-// 功能导航
-const features = ref([
+// 快捷功能导航 - 根据用户角色动态显示
+const quickFeatures = computed(() => {
+  const baseFeatures = [
+    {
+      key: 'knowledge',
+      title: '知识库',
+      icon: 'fas fa-book',
+      color: '#52c41a',
+      path: '/user/knowledge'
+    },
+    {
+      key: 'community',
+      title: '社区',
+      icon: 'fas fa-users',
+      color: '#722ed1',
+      path: '/user/community'
+    },
+    {
+      key: 'my-posts',
+      title: '我的贴子',
+      icon: 'fas fa-edit',
+      color: '#13c2c2',
+      path: '/user/profile?tab=posts'
+    },
+    {
+      key: 'my-likes',
+      title: '我的点赞',
+      icon: 'fas fa-thumbs-up',
+      color: '#fa8c16',
+      path: '/user/profile?tab=likes'
+    },
+    {
+      key: 'favorites',
+      title: '我的收藏',
+      icon: 'fas fa-heart',
+      color: '#eb2f96',
+      path: '/user/profile?tab=favorites'
+    },
+    {
+      key: 'history',
+      title: '历史记录',
+      icon: 'fas fa-history',
+      color: '#8c8c8c',
+      path: '/user/history'
+    }
+  ]
+
+  // 根据用户角色添加不同的识别功能
+  if (userInfo.role === 1) {
+    // VIP用户 - 显示批量识别和高级功能
+    return [
+      {
+        key: 'batch',
+        title: '批量识别',
+        icon: 'fas fa-images',
+        color: '#1890ff',
+        path: '/user/recognition/batch'
+      },
+      {
+        key: 'advanced',
+        title: '高级识别',
+        icon: 'fas fa-magic',
+        color: '#faad14',
+        path: '/user/advanced-recognition'
+      },
+      ...baseFeatures
+    ]
+  } else {
+    // 普通用户 - 显示单张识别
+    return [
+      {
+        key: 'single',
+        title: '单张识别',
+        icon: 'fas fa-camera',
+        color: '#1890ff',
+        path: '/user/recognition'
+      },
+      {
+        key: 'upgrade',
+        title: '升级VIP',
+        icon: 'fas fa-crown',
+        color: '#faad14',
+        path: '/user/become-vip'
+      },
+      ...baseFeatures
+    ]
+  }
+})
+
+// 统计数据项
+const statsItems = ref([
   {
     key: 'recognition',
-    title: '图像识别',
-    description: '上传图片进行识别',
-    icon: 'fas fa-camera',
-    path: '/user/recognition'
+    label: '总识别次数',
+    icon: 'fas fa-eye',
+    color: '#1890ff',
+    value: computed(() => stats.recognitionCount)
   },
   {
-    key: 'batch',
-    title: '批量识别',
-    description: '一次处理多张图片',
-    icon: 'fas fa-images',
-    path: '/user/recognition/batch'
-  },
-  {
-    key: 'knowledge',
-    title: '知识库',
-    description: '浏览百科知识',
-    icon: 'fas fa-book',
-    path: '/user/knowledge'
-  },
-  {
-    key: 'community',
-    title: '社区',
-    description: '参与讨论交流',
-    icon: 'fas fa-users',
-    path: '/user/community'
-  },
-  {
-    key: 'history',
-    title: '历史记录',
-    description: '查看识别历史',
-    icon: 'fas fa-history',
-    path: '/user/history'
-  },
-  {
-    key: 'favorites',
-    title: '我的收藏',
-    description: '管理收藏内容',
+    key: 'collect',
+    label: '我的收藏',
     icon: 'fas fa-heart',
-    path: '/user/favorites'
+    color: '#fa8c16',
+    value: computed(() => stats.collectCount)
+  },
+  {
+    key: 'comment',
+    label: '评论数量',
+    icon: 'fas fa-comments',
+    color: '#52c41a',
+    value: computed(() => stats.commentCount)
+  },
+  {
+    key: 'like',
+    label: '获得点赞',
+    icon: 'fas fa-thumbs-up',
+    color: '#eb2f96',
+    value: computed(() => stats.likeCount)
   }
 ])
 
@@ -333,7 +424,34 @@ function viewPost(item: any) {
 }
 
 function navigateToFeature(path: string) {
-  router.push(path)
+  // 处理带查询参数的路径
+  if (path.includes('?')) {
+    const [routePath, queryString] = path.split('?')
+    const queryParams = new URLSearchParams(queryString)
+    const query: Record<string, string> = {}
+    
+    for (const [key, value] of queryParams) {
+      query[key] = value
+    }
+    
+    router.push({ path: routePath, query })
+  } else {
+    router.push(path)
+  }
+}
+
+function handleMouseEnter(e: Event) {
+  const target = e.target as HTMLElement
+  if (target) {
+    target.style.background = '#f0f0f0'
+  }
+}
+
+function handleMouseLeave(e: Event) {
+  const target = e.target as HTMLElement
+  if (target) {
+    target.style.background = '#fafafa'
+  }
 }
 
 // 加载用户信息
@@ -436,7 +554,9 @@ async function loadRecommendedKnowledge() {
       id: item.id,
       title: item.title,
       description: item.description || item.content.substring(0, 30) + '...',
-      icon: categoryIcons[item.category] || 'fas fa-book'
+      icon: categoryIcons[item.category] || 'fas fa-book',
+      iconColor: '#52c41a',
+      coverImage: item.coverImage ? ImageUtils.getImageUrl(item.coverImage) : undefined
     }))
   } catch (error) {
     console.error('加载推荐知识失败:', error)
@@ -461,7 +581,8 @@ async function loadHotCommunityPosts() {
       title: item.title,
       author: item.authorName || '未知用户',
       likes: item.likeCount,
-      replies: item.commentCount
+      replies: item.commentCount,
+      images: item.images ? item.images.map((img: string) => ImageUtils.getImageUrl(img)).filter((img: string) => img) : []
     }))
   } catch (error) {
     console.error('加载社区热门帖子失败:', error)

@@ -32,13 +32,18 @@ public class CommunityController {
             CommunityRequest.QueryPostRequest request) {
         log.info("获取帖子列表: page={}, size={}, category={}, tag={}", 
             request.getPage(), request.getSize(), request.getCategory(), request.getTag());
+        
+        // 获取当前用户ID（可能为null，表示未登录用户）
+        Long currentUserId = SecurityContextHolder.getCurrentUserId();
+        
         PageResponse<CommunityResponse.PostInfo> response = 
             communityService.getPosts(
                 request.getPage(), 
                 request.getSize(), 
                 request.getCategory(), 
                 request.getTag(),
-                request.getSort()
+                request.getSort(),
+                currentUserId
             );
         return ApiResponse.success(response);
     }
@@ -49,7 +54,11 @@ public class CommunityController {
     @GetMapping("/posts/{id}")
     public ApiResponse<CommunityResponse.PostInfo> getPostDetail(@PathVariable Long id) {
         log.info("获取帖子详情: id={}", id);
-        CommunityResponse.PostInfo post = communityService.getPostDetail(id);
+        
+        // 获取当前用户ID（可能为null，表示未登录用户）
+        Long currentUserId = SecurityContextHolder.getCurrentUserId();
+        
+        CommunityResponse.PostInfo post = communityService.getPostDetail(id, currentUserId);
         return ApiResponse.success(post);
     }
 

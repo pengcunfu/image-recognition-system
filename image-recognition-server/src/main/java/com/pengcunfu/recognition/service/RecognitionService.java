@@ -349,6 +349,53 @@ public class RecognitionService {
     }
 
     /**
+     * 获取VIP识别统计数据
+     */
+    public RecognitionResponse.VipRecognitionStats getVipRecognitionStats(Long userId) {
+        log.info("获取VIP识别统计数据: userId={}", userId);
+
+        // 检查用户VIP权限
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        boolean isVip = user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now());
+        if (!isVip) {
+            throw new BusinessException(ErrorCode.PERMISSION_DENIED, "VIP统计功能仅限VIP用户使用");
+        }
+
+        // 获取总识别次数（包括普通和高级）
+        Long totalRecognitions = recognitionResultRepository.countByUserId(userId);
+
+        // 获取高级识别次数
+        Long advancedRecognitions = recognitionResultRepository.countByUserIdAndIsAdvanced(userId, 1);
+
+        // 计算平均置信度
+        Double averageConfidence = recognitionResultRepository.getAverageConfidenceByUserId(userId);
+        if (averageConfidence == null) {
+            averageConfidence = 0.0;
+        } else {
+            // 转换为百分比
+            averageConfidence = averageConfidence * 100;
+        }
+
+        // 获取不同分类数量
+        Long categoryCount = recognitionResultRepository.countDistinctCategoriesByUserId(userId);
+
+        // 获取标签数量（通过解析所有tags字段）
+        Long tagCount = recognitionResultRepository.countDistinctTagsByUserId(userId);
+
+        return RecognitionResponse.VipRecognitionStats.builder()
+                .totalRecognitions(totalRecognitions)
+                .advancedRecognitions(advancedRecognitions)
+                .averageConfidence(averageConfidence)
+                .categoryCount(categoryCount)
+                .tagCount(tagCount)
+                .build();
+    }
+
+    /**
      * 获取相关识别记录（同分类）
      */
     public List<RecognitionResponse.RecognitionInfo> getRelatedRecognitions(Long userId, Long id) {
@@ -458,6 +505,7 @@ public class RecognitionService {
                 .tags(result.getTags())
                 .description(result.getDescription())
                 .recognitionType(result.getRecognitionType())
+                .isAdvanced(result.getIsAdvanced())
                 .resultJson(result.getResultJson())
                 .status(result.getStatus())
                 .errorMessage(result.getErrorMessage())
@@ -605,5 +653,270 @@ public class RecognitionService {
         // 逐个删除
         ids.forEach(id -> recognitionResultRepository.deleteById(id));
         log.info("批量删除识别记录成功: count={}", ids.size());
+    }
+
+    /**
+     * 高级图像识别（VIP功能）
+     */
+    public RecognitionResponse.RecognitionInfo advancedRecognizeImage(Long userId, RecognitionRequest.AdvancedRecognitionRequest request) {
+        log.info("执行高级图像识别: userId={}, imageUrl={}, settings={}", userId, request.getImageUrl(), request.getSettings());
+
+        // 检查用户
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        // 检查VIP权限
+        boolean isVip = user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now());
+        if (!isVip) {
+            throw new BusinessException(ErrorCode.PERMISSION_DENIED, "高级识别功能仅限VIP用户使用");
+        }
+
+        // VIP用户更宽松的限流检查
+        int maxCount = 500; // VIP用户每小时500次
+        int timeWindow = 3600; // 1小时
+
+        if (!rateLimitService.isRecognitionAllowed(userId, maxCount, timeWindow)) {
+            throw new RateLimitException("高级识别次数已达上限，请稍后再试");
+        }
+
+        // 创建识别记录
+        RecognitionResult result = RecognitionResult.builder()
+                .userId(userId)
+                .imageUrl(request.getImageUrl())
+                .imageName(request.getImageName())
+                .imageSize(request.getImageSize())
+                .imageWidth(request.getImageWidth())
+                .imageHeight(request.getImageHeight())
+                .recognitionType(RecognitionType.DETAILED.getValue()) // 高级识别使用详细模式
+                .isAdvanced(1) // 标记为高级识别
+                .status(RecognitionStatus.PENDING.getValue())
+                .build();
+
+        recognitionResultRepository.insert(result);
+
+        try {
+            long startTime = System.currentTimeMillis();
+            
+            // 构建高级识别提示词
+            String advancedPrompt = buildAdvancedPrompt(request.getSettings());
+            
+            log.info("使用高级识别提示词，设置: {}", request.getSettings());
+            String aiResult = doubaoUtil.recognizeImage(request.getImageUrl(), advancedPrompt);
+            
+            // 提取JSON格式结果
+            String jsonResult = extractJson(aiResult);
+            log.info("高级识别JSON结果: {}", jsonResult);
+            
+            // 解析 AI 返回的 JSON
+            String category = "未分类";
+            String objectName = "未知";
+            BigDecimal confidence = BigDecimal.ZERO;
+            String tags = "";
+            String attributes = "";
+            String description = "";
+
+            try {
+                JsonNode jsonNode = objectMapper.readTree(jsonResult);
+                
+                // 解析主要结果
+                if (jsonNode.has("category")) {
+                    category = jsonNode.get("category").asText();
+                }
+                if (jsonNode.has("object")) {
+                    objectName = jsonNode.get("object").asText();
+                }
+                if (jsonNode.has("confidence")) {
+                    confidence = BigDecimal.valueOf(jsonNode.get("confidence").asDouble());
+                }
+                if (jsonNode.has("tags")) {
+                    JsonNode tagsNode = jsonNode.get("tags");
+                    if (tagsNode.isArray()) {
+                        List<String> tagList = new ArrayList<>();
+                        tagsNode.forEach(tag -> tagList.add(tag.asText()));
+                        tags = String.join(",", tagList);
+                    }
+                }
+                if (jsonNode.has("attributes")) {
+                    attributes = jsonNode.get("attributes").toString();
+                }
+                if (jsonNode.has("description")) {
+                    description = jsonNode.get("description").asText();
+                }
+                
+            } catch (Exception e) {
+                log.warn("解析高级识别JSON失败: {}", e.getMessage());
+            }
+
+            long endTime = System.currentTimeMillis();
+            int processingTime = (int) (endTime - startTime);
+
+            // 更新识别结果
+            result.setResultJson(jsonResult);
+            result.setMainCategory(category);
+            result.setConfidence(confidence);
+            result.setTags(tags);
+            result.setDescription(description);
+            result.setProcessingTime(processingTime);
+            result.setStatus(RecognitionStatus.SUCCESS.getValue());
+            result.setUpdatedAt(LocalDateTime.now());
+
+            recognitionResultRepository.updateById(result);
+
+            log.info("高级图像识别完成: userId={}, resultId={}, category={}, confidence={}, time={}ms", 
+                userId, result.getId(), category, confidence, processingTime);
+
+            // 构建响应
+            return RecognitionResponse.RecognitionInfo.builder()
+                    .id(result.getId())
+                    .userId(result.getUserId())
+                    .imageUrl(result.getImageUrl())
+                    .imageName(result.getImageName())
+                    .imageSize(result.getImageSize())
+                    .imageWidth(result.getImageWidth())
+                    .imageHeight(result.getImageHeight())
+                    .recognitionType(result.getRecognitionType())
+                    .resultJson(result.getResultJson())
+                    .mainCategory(result.getMainCategory())
+                    .category(result.getMainCategory()) // 使用mainCategory作为category
+                    .objectName(objectName) // 使用局部变量
+                    .confidence(result.getConfidence())
+                    .tags(result.getTags())
+                    .attributes(attributes) // 使用局部变量
+                    .description(result.getDescription())
+                    .processingTime(result.getProcessingTime())
+                    .status(result.getStatus())
+                    .createdAt(result.getCreatedAt())
+                    .build();
+
+        } catch (Exception e) {
+            log.error("高级图像识别失败: userId={}, error={}", userId, e.getMessage(), e);
+            
+            // 更新识别结果为失败状态
+            result.setStatus(RecognitionStatus.FAILED.getValue());
+            result.setErrorMessage(e.getMessage());
+            result.setUpdatedAt(LocalDateTime.now());
+            recognitionResultRepository.updateById(result);
+            
+            throw new BusinessException(ErrorCode.INTERNAL_ERROR, "高级图像识别失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 批量高级图像识别（VIP功能）
+     */
+    public List<RecognitionResponse.RecognitionInfo> batchAdvancedRecognizeImages(Long userId, RecognitionRequest.BatchAdvancedRecognitionRequest request) {
+        log.info("执行批量高级图像识别: userId={}, imageCount={}, settings={}", userId, request.getImageUrls().length, request.getSettings());
+
+        // 检查用户
+        User user = userRepository.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在");
+        }
+
+        // 检查VIP权限
+        boolean isVip = user.getVipExpireTime() != null && user.getVipExpireTime().isAfter(LocalDateTime.now());
+        if (!isVip) {
+            throw new BusinessException(ErrorCode.PERMISSION_DENIED, "批量高级识别功能仅限VIP用户使用");
+        }
+
+        // 检查批量识别限流（VIP用户1分钟内最多20次）
+        if (!rateLimitService.isApiAllowed(userId, "batch_advanced_recognition", 20, 60)) {
+            throw new RateLimitException("批量高级识别操作过于频繁，请稍后再试");
+        }
+
+        List<RecognitionResponse.RecognitionInfo> results = new ArrayList<>();
+        
+        // 逐个处理图片
+        for (String imageUrl : request.getImageUrls()) {
+            try {
+                // 创建单个高级识别请求
+                RecognitionRequest.AdvancedRecognitionRequest singleRequest = new RecognitionRequest.AdvancedRecognitionRequest();
+                singleRequest.setImageUrl(imageUrl);
+                singleRequest.setRecognitionType(request.getRecognitionType());
+                singleRequest.setSettings(request.getSettings());
+                
+                // 执行高级识别
+                RecognitionResponse.RecognitionInfo result = advancedRecognizeImage(userId, singleRequest);
+                results.add(result);
+
+            } catch (Exception e) {
+                log.error("批量高级识别中单张图片识别失败: userId={}, imageUrl={}, error={}", 
+                    userId, imageUrl, e.getMessage());
+                
+                // 为失败的图片创建错误记录
+                RecognitionResponse.RecognitionInfo errorResult = RecognitionResponse.RecognitionInfo.builder()
+                        .imageUrl(imageUrl)
+                        .status(RecognitionStatus.FAILED.getValue())
+                        .errorMessage(e.getMessage())
+                        .build();
+                results.add(errorResult);
+            }
+        }
+
+        log.info("批量高级图像识别完成: userId={}, total={}, success={}", 
+            userId, results.size(), results.stream().mapToInt(r -> r.getStatus() == RecognitionStatus.SUCCESS.getValue() ? 1 : 0).sum());
+
+        return results;
+    }
+
+    /**
+     * 构建高级识别提示词
+     */
+    private String buildAdvancedPrompt(String settingsJson) {
+        try {
+            // 加载高级识别提示词模板
+            String basePrompt = getAdvancedPrompt();
+            StringBuilder prompt = new StringBuilder(basePrompt);
+            
+            if (settingsJson != null && !settingsJson.trim().isEmpty()) {
+                JsonNode settings = objectMapper.readTree(settingsJson);
+                
+                // 根据扩展功能调整提示词
+                if (settings.has("features")) {
+                    JsonNode features = settings.get("features");
+                    if (features.isArray()) {
+                        prompt.append("\n\n特别关注以下扩展功能：");
+                        for (JsonNode feature : features) {
+                            String featureName = feature.asText();
+                            switch (featureName) {
+                                case "ocr":
+                                    prompt.append("\n- 文字识别：如果图片中有文字，请在detailed_info中添加text_content字段，包含识别到的文字内容");
+                                    break;
+                                case "face":
+                                    prompt.append("\n- 人脸检测：如果图片中有人脸，请在detailed_info中添加face_analysis字段，包含人脸特征分析");
+                                    break;
+                                case "emotion":
+                                    prompt.append("\n- 情感分析：如果图片中有人物或动物，请在detailed_info中添加emotion_analysis字段，分析情感表达");
+                                    break;
+                                case "color":
+                                    prompt.append("\n- 色彩分析：请在detailed_info中添加color_analysis字段，详细分析主要色彩、色调、饱和度等");
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return prompt.toString();
+            
+        } catch (Exception e) {
+            log.warn("构建高级识别提示词失败，使用默认提示词: {}", e.getMessage());
+            return getDetailedPrompt(); // 回退到详细提示词
+        }
+    }
+
+    /**
+     * 获取高级识别提示词
+     */
+    private String getAdvancedPrompt() {
+        try {
+            ClassPathResource resource = new ClassPathResource("prompts/advanced-recognition-prompt.txt");
+            return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("加载高级识别提示词失败: {}", e.getMessage());
+            return getDetailedPrompt(); // 回退到详细提示词
+        }
     }
 }

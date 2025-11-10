@@ -75,5 +75,45 @@ public class AdminStatsController {
             systemLogService.getLogs(page, size, module, userId, startTime, endTime);
         return ApiResponse.success(response);
     }
+
+    /**
+     * 获取用户角色分布统计
+     */
+    @GetMapping("/user-roles")
+    public ApiResponse<StatsResponse.UserRoleStats> getUserRoleStats() {
+        log.info("获取用户角色分布统计");
+        StatsResponse.UserRoleStats stats = statsService.getUserRoleStats();
+        return ApiResponse.success(stats);
+    }
+
+    /**
+     * 获取识别分类统计
+     */
+    @GetMapping("/recognition-categories")
+    public ApiResponse<StatsResponse.RecognitionCategoryStats> getRecognitionCategoryStats() {
+        log.info("获取识别分类统计");
+        StatsResponse.RecognitionCategoryStats stats = statsService.getRecognitionCategoryStats();
+        return ApiResponse.success(stats);
+    }
+
+    /**
+     * 获取VIP订单统计
+     */
+    @GetMapping("/vip-orders")
+    public ApiResponse<StatsResponse.VipOrderStats> getVipOrderStats() {
+        log.info("获取VIP订单统计");
+        StatsResponse.VipOrderStats stats = statsService.getVipOrderStats();
+        return ApiResponse.success(stats);
+    }
+
+    /**
+     * 获取每日识别趋势（最近30天）
+     */
+    @GetMapping("/daily-recognition")
+    public ApiResponse<StatsResponse.DailyRecognitionStats> getDailyRecognitionStats() {
+        log.info("获取每日识别趋势统计");
+        StatsResponse.DailyRecognitionStats stats = statsService.getDailyRecognitionStats();
+        return ApiResponse.success(stats);
+    }
 }
 

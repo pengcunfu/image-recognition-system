@@ -93,7 +93,16 @@ public class CommunityService {
      */
     public PageResponse<CommunityResponse.PostInfo> getPosts(
             Integer page, Integer size, String category, String tag, String sort) {
-        log.info("获取帖子列表: page={}, size={}, category={}, tag={}, sort={}", page, size, category, tag, sort);
+        return getPosts(page, size, category, tag, sort, null);
+    }
+
+    /**
+     * 获取帖子列表（带用户状态）
+     */
+    public PageResponse<CommunityResponse.PostInfo> getPosts(
+            Integer page, Integer size, String category, String tag, String sort, Long currentUserId) {
+        log.info("获取帖子列表: page={}, size={}, category={}, tag={}, sort={}, userId={}", 
+                page, size, category, tag, sort, currentUserId);
 
         Page<CommunityPost> pageRequest = new Page<>(page, size);
         
@@ -124,7 +133,7 @@ public class CommunityService {
 
         return PageResponse.<CommunityResponse.PostInfo>builder()
                 .data(pageResult.getRecords().stream()
-                        .map(this::convertToPostInfo)
+                        .map(post -> convertToPostInfo(post, currentUserId))
                         .collect(Collectors.toList()))
                 .total(pageResult.getTotal())
                 .page((int) pageResult.getCurrent())
@@ -161,7 +170,15 @@ public class CommunityService {
      */
     @Transactional
     public CommunityResponse.PostInfo getPostDetail(Long postId) {
-        log.info("获取帖子详情: postId={}", postId);
+        return getPostDetail(postId, null);
+    }
+
+    /**
+     * 获取帖子详情（带用户状态）
+     */
+    @Transactional
+    public CommunityResponse.PostInfo getPostDetail(Long postId, Long currentUserId) {
+        log.info("获取帖子详情: postId={}, userId={}", postId, currentUserId);
 
         CommunityPost post = communityPostRepository.selectById(postId);
 
@@ -175,7 +192,7 @@ public class CommunityService {
         // 缓存热点数据
         hotDataService.incrementPostViewCount(postId);
 
-        return convertToPostInfo(post);
+        return convertToPostInfo(post, currentUserId);
     }
 
     /**
@@ -580,6 +597,13 @@ public class CommunityService {
      * 转换为帖子信息 DTO
      */
     private CommunityResponse.PostInfo convertToPostInfo(CommunityPost post) {
+        return convertToPostInfo(post, null);
+    }
+
+    /**
+     * 转换为帖子信息 DTO（带用户状态）
+     */
+    private CommunityResponse.PostInfo convertToPostInfo(CommunityPost post, Long currentUserId) {
         // 获取作者信息
         User author = userRepository.selectById(post.getUserId());
         
@@ -612,6 +636,22 @@ public class CommunityService {
             }
         }
 
+        // 查询当前用户的点赞和收藏状态
+        Boolean isLiked = false;
+        Boolean isCollected = false;
+        
+        if (currentUserId != null) {
+            // 查询点赞状态
+            UserLike userLike = userLikeRepository.findByUserAndTarget(
+                    currentUserId, post.getId(), TargetType.POST.getValue());
+            isLiked = userLike != null;
+            
+            // 查询收藏状态
+            UserCollect userCollect = userCollectRepository.findByUserAndTarget(
+                    currentUserId, post.getId(), TargetType.POST.getValue());
+            isCollected = userCollect != null;
+        }
+
         return CommunityResponse.PostInfo.builder()
                 .id(post.getId())
                 .userId(post.getUserId())
@@ -633,6 +673,8 @@ public class CommunityService {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .isTop(post.getIsTop())
+                .isLiked(isLiked)
+                .isCollected(isCollected)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();

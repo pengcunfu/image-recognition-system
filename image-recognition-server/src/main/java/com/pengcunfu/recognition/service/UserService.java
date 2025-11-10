@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -651,7 +652,9 @@ public class UserService {
                         .title((String) item.get("title"))
                         .description((String) item.get("description"))
                         .imageUrl((String) item.get("imageUrl"))
-                        .confidence((Integer) item.get("confidence"))
+                        .confidence(item.get("confidence") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("confidence")).intValue() : 
+                            (Integer) item.get("confidence"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());
@@ -666,8 +669,12 @@ public class UserService {
                         .title((String) item.get("title"))
                         .description((String) item.get("content"))
                         .imageUrl((String) item.get("images"))
-                        .likeCount((Integer) item.get("likeCount"))
-                        .viewCount((Integer) item.get("viewCount"))
+                        .likeCount(item.get("likeCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("likeCount")).intValue() : 
+                            (Integer) item.get("likeCount"))
+                        .viewCount(item.get("viewCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("viewCount")).intValue() : 
+                            (Integer) item.get("viewCount"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());
@@ -682,8 +689,12 @@ public class UserService {
                         .title((String) item.get("title"))
                         .description((String) item.get("description"))
                         .imageUrl((String) item.get("coverImage"))
-                        .likeCount((Integer) item.get("likeCount"))
-                        .viewCount((Integer) item.get("viewCount"))
+                        .likeCount(item.get("likeCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("likeCount")).intValue() : 
+                            (Integer) item.get("likeCount"))
+                        .viewCount(item.get("viewCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("viewCount")).intValue() : 
+                            (Integer) item.get("viewCount"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());
@@ -713,7 +724,9 @@ public class UserService {
                         .title((String) item.get("title"))
                         .content((String) item.get("content"))
                         .author((String) item.get("author"))
-                        .likeCount((Integer) item.get("likeCount"))
+                        .likeCount(item.get("likeCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("likeCount")).intValue() : 
+                            (Integer) item.get("likeCount"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());
@@ -728,7 +741,9 @@ public class UserService {
                         .title((String) item.get("title"))
                         .content((String) item.get("description"))
                         .author((String) item.get("author"))
-                        .likeCount((Integer) item.get("likeCount"))
+                        .likeCount(item.get("likeCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("likeCount")).intValue() : 
+                            (Integer) item.get("likeCount"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());
@@ -743,7 +758,9 @@ public class UserService {
                         .title("") // 评论没有标题
                         .content((String) item.get("content"))
                         .author((String) item.get("author"))
-                        .likeCount((Integer) item.get("likeCount"))
+                        .likeCount(item.get("likeCount") instanceof BigDecimal ? 
+                            ((BigDecimal) item.get("likeCount")).intValue() : 
+                            (Integer) item.get("likeCount"))
                         .createdAt((LocalDateTime) item.get("createdAt"))
                         .build())
                 .collect(Collectors.toList());

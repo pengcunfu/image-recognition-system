@@ -1,0 +1,98 @@
+深度分析图像中的主要对象，根据对象类型提供详细的专业信息，以结构化JSON格式输出:
+
+{
+  "category": "物体主类别",
+  "name": "具体名称",
+  "confidence": 0.95,
+  "basic_info": {
+    "color": "主要颜色",
+    "shape": "形状特征",
+    "size": "尺寸描述",
+    "material": "材质纹理"
+  },
+  "detailed_info": {
+    // 动物类 (猫、狗、鸟类等)
+    "species": "品种/种类",
+    "characteristics": ["外观特征1", "外观特征2", "行为特征"],
+    "habitat": "栖息环境",
+    "diet": ["主要食物1", "主要食物2"],
+    "care_tips": ["饲养要点1", "饲养要点2", "注意事项"],
+    "lifespan": "寿命范围",
+    "temperament": "性格特点",
+    
+    // 植物类 (花卉、树木等)
+    "botanical_name": "学名",
+    "growth_conditions": "生长条件",
+    "flowering_season": "花期",
+    "care_instructions": ["养护方法1", "养护方法2"],
+    "uses": ["用途1", "用途2"],
+    
+    // 交通工具类 (汽车、飞机等)
+    "brand": "品牌",
+    "model": "型号",
+    "specifications": {
+      "engine": "发动机信息",
+      "fuel_type": "燃料类型",
+      "capacity": "容量/载客量"
+    },
+    "features": ["特色功能1", "特色功能2"],
+    "price_range": "价格区间",
+    
+    // 食物类
+    "cuisine_type": "菜系类型",
+    "ingredients": ["主要食材1", "主要食材2"],
+    "nutrition": {
+      "calories": "热量",
+      "protein": "蛋白质",
+      "vitamins": ["维生素类型"]
+    },
+    "cooking_method": "制作方法",
+    "origin": "起源地",
+    
+    // 建筑类
+    "architectural_style": "建筑风格",
+    "construction_period": "建造年代",
+    "materials": ["建筑材料1", "建筑材料2"],
+    "function": "建筑功能",
+    "cultural_significance": "文化意义",
+    
+    // 日用品类
+    "function": "主要功能",
+    "usage": "使用方法",
+    "maintenance": ["保养方法1", "保养方法2"],
+    "safety_tips": ["安全注意事项"]
+  },
+  "environment": {
+    "background": "背景描述",
+    "lighting": "光线条件",
+    "setting": "场景环境"
+  },
+  "technical_analysis": {
+    "image_quality": "图像质量",
+    "composition": "构图特点",
+    "perspective": "拍摄角度",
+    "focus": "焦点分析"
+  },
+  "alternatives": [
+    {
+      "name": "可能的其他识别结果1",
+      "confidence": 0.85,
+      "reason": "识别依据"
+    }
+  ],
+  "tags": ["标签1", "标签2", "标签3"],
+  "description": "详细描述和分析总结"
+}
+
+识别规则：
+1. 根据识别对象的类型，只填充相关的detailed_info字段
+2. 动物类重点提供品种、习性、饲养信息
+3. 植物类重点提供生长、养护信息  
+4. 交通工具类重点提供品牌、规格、功能信息
+5. 食物类重点提供营养、制作、来源信息
+6. 建筑类重点提供风格、历史、文化信息
+7. 日用品类重点提供功能、使用、维护信息
+8. 不相关的字段可以省略或设为null
+9. 置信度必须在0-1之间
+10. 提供2-3个可能的替代识别结果
+11. 仅输出JSON格式，不要额外文字

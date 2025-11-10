@@ -54,6 +54,70 @@ export interface CategoryStats {
 }
 
 /**
+ * 用户角色统计
+ */
+export interface UserRoleStats {
+  normalUsers: number
+  vipUsers: number
+  adminUsers: number
+  totalUsers: number
+}
+
+/**
+ * 识别分类统计项
+ */
+export interface RecognitionCategoryItem {
+  category: string
+  count: number
+  percentage: number
+}
+
+/**
+ * 识别分类统计
+ */
+export interface RecognitionCategoryStats {
+  categories: RecognitionCategoryItem[]
+  totalRecognitions: number
+}
+
+/**
+ * VIP订单统计项
+ */
+export interface VipOrderItem {
+  planType: number
+  planName: string
+  orderCount: number
+  totalAmount: number
+  percentage: number
+}
+
+/**
+ * VIP订单统计
+ */
+export interface VipOrderStats {
+  orders: VipOrderItem[]
+  totalOrders: number
+  totalRevenue: number
+}
+
+/**
+ * 每日识别统计项
+ */
+export interface DailyRecognitionItem {
+  date: string
+  count: number
+}
+
+/**
+ * 每日识别统计
+ */
+export interface DailyRecognitionStats {
+  data: DailyRecognitionItem[]
+  totalDays: number
+  avgDaily: number
+}
+
+/**
  * 系统日志信息
  */
 export interface SystemLogInfo {
@@ -152,6 +216,34 @@ export class AdminAPI {
    */
   static getCategoryStats() {
     return get<CategoryStats>('/api/admin/stats/categories')
+  }
+
+  /**
+   * 获取用户角色分布统计
+   */
+  static getUserRoleStats() {
+    return get<UserRoleStats>('/api/admin/stats/user-roles')
+  }
+
+  /**
+   * 获取识别分类统计
+   */
+  static getRecognitionCategoryStats() {
+    return get<RecognitionCategoryStats>('/api/admin/stats/recognition-categories')
+  }
+
+  /**
+   * 获取VIP订单统计
+   */
+  static getVipOrderStats() {
+    return get<VipOrderStats>('/api/admin/stats/vip-orders')
+  }
+
+  /**
+   * 获取每日识别趋势统计
+   */
+  static getDailyRecognitionStats() {
+    return get<DailyRecognitionStats>('/api/admin/stats/daily-recognition')
   }
 
   /**

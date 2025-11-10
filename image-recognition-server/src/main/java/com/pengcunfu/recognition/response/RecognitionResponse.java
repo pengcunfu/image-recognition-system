@@ -29,6 +29,7 @@ public class RecognitionResponse {
         private Integer imageWidth;
         private Integer imageHeight;
         private Integer recognitionType;
+        private Integer isAdvanced;
         private String resultJson;
         private String mainCategory;
         private String category; // 兼容字段
@@ -55,5 +56,20 @@ public class RecognitionResponse {
         private Long thisMonth;          // 本月识别次数
         private Double averageConfidence; // 平均置信度
         private Long favorites;          // 收藏数量（暂时返回0）
+    }
+
+    /**
+     * VIP识别统计数据
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VipRecognitionStats {
+        private Long totalRecognitions;   // 总识别次数
+        private Long advancedRecognitions; // 高级识别次数
+        private Double averageConfidence; // 平均置信度
+        private Long categoryCount;       // 分类数量
+        private Long tagCount;           // 标签数量
     }
 }

@@ -173,4 +173,13 @@ public interface UserRepository extends BaseMapper<User> {
             @Param("status") Integer status,
             @Param("keyword") String keyword
     );
+
+    /**
+     * 按角色统计用户数量
+     */
+    @Select("""
+            SELECT COUNT(*) FROM users
+            WHERE role = #{role} AND deleted = 0
+            """)
+    long countByRole(@Param("role") Integer role);
 }

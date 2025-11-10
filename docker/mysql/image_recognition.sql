@@ -17,418 +17,492 @@
 
 -- 导出 image_recognition 的数据库结构
 DROP DATABASE IF EXISTS `image_recognition`;
-CREATE DATABASE IF NOT EXISTS `image_recognition` /*!40100 DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `image_recognition` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `image_recognition`;
 
--- 导出  表 image_recognition.api_usage_stats 结构
-DROP TABLE IF EXISTS `api_usage_stats`;
-CREATE TABLE IF NOT EXISTS `api_usage_stats` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+-- 导出  表 image_recognition.comments 结构
+DROP TABLE IF EXISTS `comments`;
+CREATE TABLE IF NOT EXISTS `comments` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '评论ID(主键)',
   `user_id` bigint NOT NULL COMMENT '用户ID',
-  `date` date NOT NULL COMMENT '统计日期',
-  `service_type` enum('DOUBAO','VOLCENGINE','OTHER') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '服务类型',
-  `request_count` int DEFAULT '0' COMMENT '请求次数',
-  `success_count` int DEFAULT '0' COMMENT '成功次数',
-  `total_tokens` bigint DEFAULT '0' COMMENT '总Token使用量',
-  `total_processing_time` bigint DEFAULT '0' COMMENT '总处理时间(毫秒)',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_date_service` (`user_id`,`date`,`service_type`),
-  KEY `idx_date` (`date`),
-  KEY `idx_service_type` (`service_type`),
-  CONSTRAINT `api_usage_stats_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='API使用统计表';
-
--- 正在导出表  image_recognition.api_usage_stats 的数据：~10 rows (大约)
-DELETE FROM `api_usage_stats`;
-INSERT INTO `api_usage_stats` (`id`, `user_id`, `date`, `service_type`, `request_count`, `success_count`, `total_tokens`, `total_processing_time`, `created_at`, `updated_at`) VALUES
-	(1, 1, '2025-10-13', 'DOUBAO', 15, 14, 12560, 18500, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(2, 1, '2025-10-14', 'DOUBAO', 22, 21, 18900, 27300, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(3, 2, '2025-10-13', 'VOLCENGINE', 8, 8, 7450, 11200, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(4, 2, '2025-10-14', 'DOUBAO', 12, 11, 9870, 14500, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(5, 3, '2025-10-13', 'DOUBAO', 6, 6, 4230, 6800, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(6, 3, '2025-10-14', 'VOLCENGINE', 9, 8, 7120, 10100, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(7, 4, '2025-10-13', 'VOLCENGINE', 11, 10, 9340, 14800, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(8, 4, '2025-10-14', 'DOUBAO', 18, 17, 15600, 23400, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(9, 5, '2025-10-13', 'DOUBAO', 5, 5, 3450, 5200, '2025-10-14 03:08:57', '2025-10-14 03:08:57'),
-	(10, 5, '2025-10-14', 'DOUBAO', 7, 7, 5890, 8700, '2025-10-14 03:08:57', '2025-10-14 03:08:57');
-
--- 导出  表 image_recognition.community_comments 结构
-DROP TABLE IF EXISTS `community_comments`;
-CREATE TABLE IF NOT EXISTS `community_comments` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '评论ID',
-  `post_id` bigint NOT NULL COMMENT '帖子ID',
-  `author_id` bigint NOT NULL COMMENT '评论者ID',
+  `target_type` tinyint NOT NULL COMMENT '评论对象类型: 0-POST帖子, 1-KNOWLEDGE知识',
+  `target_id` bigint NOT NULL COMMENT '评论对象ID',
+  `parent_id` bigint DEFAULT NULL COMMENT '父评论ID',
   `content` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '评论内容',
-  `parent_id` bigint DEFAULT NULL COMMENT '父评论ID（用于回复）',
   `like_count` int DEFAULT '0' COMMENT '点赞数',
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'PUBLISHED' COMMENT '状态：PUBLISHED-已发布, HIDDEN-已隐藏, DELETED-已删除',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT '逻辑删除标志',
+  `reply_count` int DEFAULT '0' COMMENT '回复数',
+  `status` tinyint DEFAULT '0' COMMENT '评论状态: 0-PUBLISHED已发布, 1-DELETED已删除',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_post_id` (`post_id`),
-  KEY `idx_author_id` (`author_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_target` (`target_type`,`target_id`),
   KEY `idx_parent_id` (`parent_id`),
-  KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评论表';
 
--- 正在导出表  image_recognition.community_comments 的数据：~10 rows (大约)
-DELETE FROM `community_comments`;
-INSERT INTO `community_comments` (`id`, `post_id`, `author_id`, `content`, `parent_id`, `like_count`, `status`, `create_time`, `update_time`, `deleted`) VALUES
-	(1, 1, 2, '这篇文章写得很好，学到了很多关于猫的知识！', NULL, 5, 'PUBLISHED', '2025-10-13 10:30:00', '2025-10-14 11:07:43', 0),
-	(2, 1, 3, '确实，我也发现我家的猫有这些特征。', 1, 3, 'PUBLISHED', '2025-10-13 11:15:00', '2025-10-14 11:07:43', 0),
-	(3, 1, 5, '感谢分享，非常实用的信息。', NULL, 8, 'PUBLISHED', '2025-10-13 14:20:00', '2025-10-14 11:07:43', 0),
-	(4, 2, 1, '期待更多这样的教程！', NULL, 12, 'PUBLISHED', '2025-10-13 15:45:00', '2025-10-14 11:07:43', 0),
-	(5, 2, 4, '已经按照教程试了，识别准确率提高了不少。', NULL, 6, 'PUBLISHED', '2025-10-13 16:30:00', '2025-10-14 11:07:43', 0),
-	(6, 3, 2, '新手入门必读！', NULL, 15, 'PUBLISHED', '2025-10-13 17:00:00', '2025-10-14 11:07:43', 0),
-	(7, 3, 3, '建议收藏，写得很详细。', NULL, 10, 'PUBLISHED', '2025-10-13 18:10:00', '2025-10-14 11:07:43', 0),
-	(8, 4, 5, 'AI识别确实越来越厉害了。', NULL, 7, 'PUBLISHED', '2025-10-14 09:00:00', '2025-10-14 11:07:43', 0),
-	(9, 4, 1, '未来可期！', 8, 4, 'PUBLISHED', '2025-10-14 09:30:00', '2025-10-14 11:07:43', 0),
-	(10, 5, 2, '如何提高模型的泛化能力呢？', NULL, 9, 'PUBLISHED', '2025-10-14 10:00:00', '2025-10-14 11:07:43', 0);
+-- 正在导出表  image_recognition.comments 的数据：~17 rows (大约)
+DELETE FROM `comments`;
+INSERT INTO `comments` (`id`, `user_id`, `target_type`, `target_id`, `parent_id`, `content`, `like_count`, `reply_count`, `status`, `created_at`, `updated_at`) VALUES
+	(1, 3, 0, 1, NULL, '你的金毛好可爱啊!', 0, 0, 0, '2025-10-20 00:40:37', '2025-10-20 00:40:37'),
+	(2, 4, 0, 1, NULL, '我也想养一只金毛犬', 0, 0, 0, '2025-10-20 00:40:37', '2025-10-20 00:40:37'),
+	(3, 2, 0, 2, NULL, '波斯猫真的很优雅', 0, 0, 0, '2025-10-20 00:40:37', '2025-10-20 00:40:37'),
+	(4, 4, 1, 1, NULL, '金毛犬是很温顺的品种', 0, 0, 0, '2025-10-20 00:40:37', '2025-10-20 00:40:37'),
+	(5, 3, 0, 1, NULL, '我也有一只金毛，确实很聪明！', 5, 1, 0, '2025-10-20 10:24:32', '2025-10-20 10:24:32'),
+	(6, 4, 0, 1, 1, '金毛是最友好的狗狗之一', 2, 0, 0, '2025-10-20 10:24:32', '2025-10-20 10:24:32'),
+	(7, 2, 0, 2, NULL, '你家花园真漂亮！', 3, 0, 0, '2025-10-20 10:24:32', '2025-10-20 10:24:32'),
+	(8, 4, 0, 3, NULL, '感谢分享，很实用！', 8, 0, 0, '2025-10-20 10:24:32', '2025-10-20 10:24:32'),
+	(9, 3, 1, 10, NULL, '211212', 0, 0, 0, '2025-10-22 16:35:04', '2025-10-22 16:35:04'),
+	(10, 3, 1, 10, NULL, '13232323', 0, 0, 0, '2025-10-22 16:35:07', '2025-10-22 16:35:07'),
+	(11, 3, 1, 10, NULL, '12121212', 0, 0, 0, '2025-10-22 16:35:14', '2025-10-22 16:35:14'),
+	(12, 2, 1, 4, NULL, '2321323', 0, 0, 0, '2025-10-22 19:32:29', '2025-10-22 19:32:29'),
+	(13, 2, 1, 4, NULL, '121212', 0, 0, 0, '2025-10-22 19:32:31', '2025-10-22 19:32:31'),
+	(14, 3, 1, 4, NULL, '121212', 0, 0, 0, '2025-10-23 17:59:11', '2025-10-23 17:59:11'),
+	(15, 3, 1, 4, 14, '121212', 0, 0, 0, '2025-10-23 18:12:11', '2025-10-23 18:12:11'),
+	(16, 3, 1, 4, 14, '121212', 0, 0, 0, '2025-10-23 18:12:29', '2025-10-23 18:12:29'),
+	(17, 2, 1, 9, NULL, '1231212', 0, 0, 0, '2025-10-23 21:09:21', '2025-10-23 21:09:21');
 
 -- 导出  表 image_recognition.community_posts 结构
 DROP TABLE IF EXISTS `community_posts`;
 CREATE TABLE IF NOT EXISTS `community_posts` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '帖子ID',
-  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '帖子标题',
-  `content` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '帖子内容',
-  `author_id` bigint NOT NULL COMMENT '作者ID',
-  `category` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分类',
-  `tags` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标签（JSON格式）',
-  `images` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '图片URL列表（JSON格式）',
-  `view_count` int DEFAULT '0' COMMENT '浏览数',
-  `like_count` int DEFAULT '0' COMMENT '点赞数',
-  `comment_count` int DEFAULT '0' COMMENT '评论数',
-  `share_count` int DEFAULT '0' COMMENT '分享数',
-  `is_top` tinyint(1) DEFAULT '0' COMMENT '是否置顶',
-  `is_featured` tinyint(1) DEFAULT '0' COMMENT '是否精选',
-  `status` enum('DRAFT','PENDING','PUBLISHED','REJECTED','HIDDEN','DELETED') COLLATE utf8mb4_unicode_ci DEFAULT 'PUBLISHED' COMMENT '状态：DRAFT-草稿, PENDING-待审核, PUBLISHED-已发布, REJECTED-已拒绝, HIDDEN-已隐藏, DELETED-已删除',
-  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT '逻辑删除标志',
-  PRIMARY KEY (`id`),
-  KEY `idx_author_id` (`author_id`),
-  KEY `idx_category` (`category`),
-  KEY `idx_status` (`status`),
-  KEY `idx_create_time` (`create_time`),
-  KEY `idx_is_top` (`is_top`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
-
--- 正在导出表  image_recognition.community_posts 的数据：~5 rows (大约)
-DELETE FROM `community_posts`;
-INSERT INTO `community_posts` (`id`, `title`, `content`, `author_id`, `category`, `tags`, `images`, `view_count`, `like_count`, `comment_count`, `share_count`, `is_top`, `is_featured`, `status`, `create_time`, `update_time`, `deleted`) VALUES
-	(1, '如何提高图像识别的准确率？深度学习技术分享', '这是一篇关于如何提高图像识别准确率的详细教程。首先，我们需要了解图像识别的基本原理...', 1, '技术分享', '["深度学习", "图像识别", "AI"]', NULL, 1250, 89, 23, 0, 1, 1, 'PUBLISHED', '2025-10-14 01:22:51', '2025-10-14 01:22:51', 0),
-	(2, 'AI图像识别在医疗领域的应用前景', '探讨AI图像识别技术在医疗诊断中的应用。医疗影像分析是AI技术最有前景的应用领域之一...', 2, '行业应用', '["医疗AI", "图像识别", "应用"]', NULL, 680, 45, 12, 0, 0, 0, 'PENDING', '2025-10-14 01:22:51', '2025-10-14 01:22:51', 0),
-	(3, '新手入门：图像识别基础概念解析', '为初学者介绍图像识别的基本概念和原理。本文将从零开始，详细讲解图像识别的核心技术...', 3, '新手教程', '["入门", "基础", "教程"]', NULL, 892, 68, 18, 0, 0, 1, 'PUBLISHED', '2025-10-14 01:22:51', '2025-10-14 12:16:43', 0),
-	(4, '违规内容测试帖子', '这是一个包含违规内容的测试帖子...', 4, '其他', '["测试"]', NULL, 12, 0, 0, 0, 0, 0, 'REJECTED', '2025-10-14 01:22:51', '2025-10-14 11:00:12', 0),
-	(5, '被隐藏的帖子示例', '这是一个被管理员隐藏的帖子...', 5, '讨论', '["讨论"]', NULL, 163, 3, 1, 0, 1, 0, 'HIDDEN', '2025-10-14 01:22:51', '2025-10-14 11:00:09', 0);
-
--- 导出  表 image_recognition.db_config 结构
-DROP TABLE IF EXISTS `db_config`;
-CREATE TABLE IF NOT EXISTS `db_config` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT 'Primary key ID',
-  `config_key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Configuration key (e.g., spring.mail.username)',
-  `config_value` text COLLATE utf8mb4_unicode_ci COMMENT 'Configuration value',
-  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Configuration description',
-  `is_encrypted` tinyint(1) DEFAULT '0' COMMENT 'Whether this configuration is encrypted',
-  `category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Configuration category (e.g., mail, volcengine, jwt, doubao)',
-  `is_active` tinyint(1) DEFAULT '1' COMMENT 'Whether this configuration is active',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation time',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Update time',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT 'Logical delete flag',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_config_key` (`config_key`),
-  KEY `idx_category` (`category`),
-  KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Database configuration table for storing sensitive parameters';
-
--- 正在导出表  image_recognition.db_config 的数据：~6 rows (大约)
-DELETE FROM `db_config`;
-INSERT INTO `db_config` (`id`, `config_key`, `config_value`, `description`, `is_encrypted`, `category`, `is_active`, `create_time`, `update_time`, `deleted`) VALUES
-	(1, 'spring.mail.username', 'huaqiwill@qq.com', 'Email username for SMTP', 0, 'mail', 1, '2025-10-15 04:14:01', '2025-10-15 04:24:53', 0),
-	(2, 'spring.mail.password', 'anbdmjgjzdnrdced', 'Email password or authorization code', 0, 'mail', 1, '2025-10-15 04:14:01', '2025-10-15 04:28:15', 0),
-	(3, 'volcengine.access-key-id', 'YOUR_VOLCENGINE_ACCESS_KEY_ID', 'Volcengine Access Key ID', 0, 'volcengine', 1, '2025-10-15 04:14:01', '2025-10-15 04:33:52', 0),
-	(4, 'volcengine.secret-access-key', 'YOUR_VOLCENGINE_SECRET_ACCESS_KEY', 'Volcengine Secret Access Key', 0, 'volcengine', 1, '2025-10-15 04:14:01', '2025-10-15 04:33:52', 0),
-	(5, 'jwt.secret', '8ZkP3xQ7vT2bN9mK4sF6jH1dG5fR8aL0cB3eY7uI2oP5qS8tD', 'JWT secret key for token signing', 0, 'jwt', 1, '2025-10-15 04:14:01', '2025-10-15 04:35:35', 0),
-	(6, 'doubao.api.key', 'YOUR_DOUBAO_API_KEY', 'Doubao AI API key', 0, 'doubao', 1, '2025-10-15 04:14:01', '2025-10-15 04:33:53', 0);
-
--- 导出  表 image_recognition.image_metadata 结构
-DROP TABLE IF EXISTS `image_metadata`;
-CREATE TABLE IF NOT EXISTS `image_metadata` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '帖子ID(主键)',
   `user_id` bigint NOT NULL COMMENT '用户ID',
-  `original_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '原始文件名',
-  `file_name` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '存储文件名',
-  `file_path` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '文件路径',
-  `file_size` bigint NOT NULL COMMENT '文件大小(字节)',
-  `mime_type` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT 'MIME类型',
-  `width` int DEFAULT NULL COMMENT '图像宽度',
-  `height` int DEFAULT NULL COMMENT '图像高度',
-  `md5_hash` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT 'MD5哈希值',
-  `upload_ip` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '上传IP',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_user_id` (`user_id`),
-  KEY `idx_md5_hash` (`md5_hash`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `image_metadata_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='图像元数据表';
-
--- 正在导出表  image_recognition.image_metadata 的数据：~10 rows (大约)
-DELETE FROM `image_metadata`;
-INSERT INTO `image_metadata` (`id`, `user_id`, `original_name`, `file_name`, `file_path`, `file_size`, `mime_type`, `width`, `height`, `md5_hash`, `upload_ip`, `created_at`) VALUES
-	(1, 1, 'cat_photo.jpg', 'img_20251013_001.jpg', '/uploads/2025/10/13/img_20251013_001.jpg', 245678, 'image/jpeg', 1920, 1080, 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', '192.168.1.100', '2025-10-13 00:30:00'),
-	(2, 2, 'dog_picture.png', 'img_20251013_002.png', '/uploads/2025/10/13/img_20251013_002.png', 198234, 'image/png', 1600, 900, 'b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7', '192.168.1.101', '2025-10-13 01:15:00'),
-	(3, 3, 'plant_leaf.jpg', 'img_20251013_003.jpg', '/uploads/2025/10/13/img_20251013_003.jpg', 312456, 'image/jpeg', 2048, 1536, 'c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8', '192.168.1.102', '2025-10-13 02:00:00'),
-	(4, 1, 'bird_sky.jpg', 'img_20251013_004.jpg', '/uploads/2025/10/13/img_20251013_004.jpg', 278901, 'image/jpeg', 1920, 1280, 'd4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9', '192.168.1.100', '2025-10-13 03:30:00'),
-	(5, 4, 'flower_garden.png', 'img_20251013_005.png', '/uploads/2025/10/13/img_20251013_005.png', 445678, 'image/png', 2560, 1440, 'e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0', '192.168.1.103', '2025-10-13 05:00:00'),
-	(6, 5, 'insect_macro.jpg', 'img_20251014_001.jpg', '/uploads/2025/10/14/img_20251014_001.jpg', 356789, 'image/jpeg', 3000, 2000, 'f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1', '192.168.1.104', '2025-10-14 00:00:00'),
-	(7, 2, 'tree_forest.jpg', 'img_20251014_002.jpg', '/uploads/2025/10/14/img_20251014_002.jpg', 489012, 'image/jpeg', 2400, 1600, 'g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2', '192.168.1.101', '2025-10-14 01:30:00'),
-	(8, 3, 'fish_aquarium.png', 'img_20251014_003.png', '/uploads/2025/10/14/img_20251014_003.png', 267890, 'image/png', 1800, 1200, 'h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3', '192.168.1.102', '2025-10-14 02:45:00'),
-	(9, 1, 'mountain_view.jpg', 'img_20251014_004.jpg', '/uploads/2025/10/14/img_20251014_004.jpg', 534567, 'image/jpeg', 3840, 2160, 'i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4', '192.168.1.100', '2025-10-14 04:00:00'),
-	(10, 4, 'sunset_beach.jpg', 'img_20251014_005.jpg', '/uploads/2025/10/14/img_20251014_005.jpg', 412345, 'image/jpeg', 2880, 1620, 'j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5', '192.168.1.103', '2025-10-14 06:30:00');
-
--- 导出  表 image_recognition.knowledge_categories 结构
-DROP TABLE IF EXISTS `knowledge_categories`;
-CREATE TABLE IF NOT EXISTS `knowledge_categories` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '分类ID',
-  `name` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '分类名称',
-  `key` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '分类键值',
-  `description` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '分类描述',
-  `image` varchar(500) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '分类图片URL',
-  `item_count` int DEFAULT '0' COMMENT '条目数量',
-  `sort_order` int DEFAULT '0' COMMENT '排序顺序',
-  `status` enum('ACTIVE','INACTIVE','HIDDEN') COLLATE utf8mb3_unicode_ci DEFAULT 'ACTIVE' COMMENT '状态(1-ACTIVE活跃, 2-INACTIVE不活跃, 3-HIDDEN隐藏)',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint(1) DEFAULT '0' COMMENT '逻辑删除标记',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `key` (`key`),
-  KEY `idx_key` (`key`),
-  KEY `idx_status` (`status`),
-  KEY `idx_sort_order` (`sort_order`),
-  KEY `idx_deleted` (`deleted`)
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='知识分类表';
-
--- 正在导出表  image_recognition.knowledge_categories 的数据：7 rows
-DELETE FROM `knowledge_categories`;
-/*!40000 ALTER TABLE `knowledge_categories` DISABLE KEYS */;
-INSERT INTO `knowledge_categories` (`id`, `name`, `key`, `description`, `image`, `item_count`, `sort_order`, `status`, `create_time`, `update_time`, `deleted`) VALUES
-	(1, '动物', 'animal', '各种动物的识别和知识', '/api/v1/files/2025/10/14/1b7238da-de88-4ef6-a8c1-179611b4a883.jpg', 1, 1, 'ACTIVE', '2025-10-13 12:14:22', '2025-10-13 19:42:29', 0),
-	(2, '植物', 'plant', '植物、花卉、树木等的识别', '/api/v1/files/2025/10/14/3ebe195e-ef13-4ee6-97c8-adb3b9f6885f.jpg', 1, 2, 'ACTIVE', '2025-10-13 12:14:22', '2025-10-13 19:28:04', 0),
-	(3, '食物', 'food', '各种食物、菜品的识别', '/api/v1/files/2025/10/14/c974b06b-8ef4-45ab-9313-4c6855413b0d.jpg', 0, 3, 'ACTIVE', '2025-10-13 12:14:22', '2025-10-13 19:12:12', 0),
-	(4, '物品', 'object', '日常物品、工具等的识别', '/api/v1/files/2025/10/14/18b47a33-c267-48c8-98ee-54e943e5a6e7.jpg', 0, 4, 'ACTIVE', '2025-10-13 12:14:22', '2025-10-13 19:12:17', 0),
-	(5, '场景', 'scene', '场景、建筑、地标等的识别', '/api/v1/files/2025/10/14/6a2997ec-6fcf-4597-80d5-cef4dc54e56a.jpg', 0, 5, 'ACTIVE', '2025-10-13 12:14:22', '2025-10-13 19:12:22', 0),
-	(6, '1212', 'fff', '11212', '', 0, 0, 'INACTIVE', '2025-10-13 13:47:02', '2025-10-13 18:33:06', 1),
-	(7, '动物 (副本)', 'animal_copy_1760380177077', '各种动物的识别和知识', NULL, 0, 0, 'ACTIVE', '2025-10-13 18:29:37', '2025-10-13 18:33:03', 1);
-/*!40000 ALTER TABLE `knowledge_categories` ENABLE KEYS */;
-
--- 导出  表 image_recognition.knowledge_items 结构
-DROP TABLE IF EXISTS `knowledge_items`;
-CREATE TABLE IF NOT EXISTS `knowledge_items` (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '知识条目ID',
-  `category_id` bigint NOT NULL COMMENT '分类ID',
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '条目名称',
-  `key` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '条目键值',
-  `scientific_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '学名',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '描述信息',
-  `content` text COLLATE utf8mb4_unicode_ci COMMENT '详细内容（富文本）',
-  `images` json DEFAULT NULL COMMENT '图片列表(JSON格式)',
-  `characteristics` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '特征描述',
-  `habitat` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '栖息地/生长环境',
-  `lifespan` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '生命周期/寿命',
-  `related_items` json DEFAULT NULL COMMENT '相关条目ID列表(JSON格式)',
-  `tags` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标签，逗号分隔',
+  `recognition_id` bigint DEFAULT NULL COMMENT '关联识别结果ID',
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '帖子标题',
+  `content` text COLLATE utf8mb4_unicode_ci COMMENT '帖子内容',
+  `images` text COLLATE utf8mb4_unicode_ci COMMENT '图片URL列表(JSON格式)',
+  `category` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '帖子分类',
+  `tags` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标签(逗号分隔)',
   `view_count` int DEFAULT '0' COMMENT '浏览次数',
   `like_count` int DEFAULT '0' COMMENT '点赞数',
-  `favorite_count` int DEFAULT '0' COMMENT '收藏数',
-  `share_count` int DEFAULT '0' COMMENT '分享数',
-  `difficulty` tinyint DEFAULT '1' COMMENT '难度等级(1-5)',
-  `sort_order` int DEFAULT '0' COMMENT '排序权重',
-  `status` enum('DRAFT','PENDING','PUBLISHED','REJECTED','HIDDEN') COLLATE utf8mb4_unicode_ci DEFAULT 'PUBLISHED' COMMENT '状态(DRAFT-草稿, PENDING-待审核, PUBLISHED-已发布, REJECTED-已拒绝, HIDDEN-已隐藏)',
-  `author_id` bigint DEFAULT NULL COMMENT '作者用户ID',
-  `reviewer_id` bigint DEFAULT NULL COMMENT '审核员ID',
-  `review_time` datetime DEFAULT NULL COMMENT '审核时间',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除标记(0-未删除,1-已删除)',
+  `comment_count` int DEFAULT '0' COMMENT '评论数',
+  `collect_count` int DEFAULT '0' COMMENT '收藏数',
+  `is_top` tinyint(1) DEFAULT '0' COMMENT '是否置顶: 0-否, 1-是',
+  `is_featured` tinyint(1) DEFAULT '0' COMMENT '是否精选: 0-否, 1-是',
+  `status` tinyint DEFAULT '0' COMMENT '帖子状态: 0-PENDING待审核, 1-PUBLISHED已发布, 2-REJECTED已拒绝, 3-DELETED已删除',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_knowledge_items_key` (`key`),
-  KEY `idx_knowledge_items_category` (`category_id`),
-  KEY `idx_knowledge_items_status` (`status`),
-  KEY `idx_knowledge_items_author` (`author_id`),
-  KEY `idx_knowledge_items_create_time` (`create_time`),
-  KEY `idx_knowledge_items_deleted` (`deleted`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='知识库条目表';
-
--- 正在导出表  image_recognition.knowledge_items 的数据：~7 rows (大约)
-DELETE FROM `knowledge_items`;
-INSERT INTO `knowledge_items` (`id`, `category_id`, `name`, `key`, `scientific_name`, `description`, `content`, `images`, `characteristics`, `habitat`, `lifespan`, `related_items`, `tags`, `view_count`, `like_count`, `favorite_count`, `share_count`, `difficulty`, `sort_order`, `status`, `author_id`, `reviewer_id`, `review_time`, `create_time`, `update_time`, `deleted`) VALUES
-	(1, 1, '东北虎', 'northeast_tiger', 'Panthera tigris altaica', '东北虎是现存体型最大的猫科动物，也是世界上最濒危的动物之一。', '1212', '["/api/v1/files/2025/10/14/335422be-528f-4e49-b89c-30272285b489.jpg"]', '体型巨大，毛色橙黄，有黑色条纹，冬季毛发浓密', '中国东北、俄罗斯远东地区的针叶林', '15-20年', '[2, 3]', '猫科,肉食动物,濒危物种', 1251, 89, 156, 23, 4, 100, 'PUBLISHED', 1, NULL, NULL, '2025-10-13 21:44:21', '2025-10-14 11:21:48', 0),
-	(2, 1, '华南虎', 'south_china_tiger', 'Panthera tigris amoyensis', '华南虎是中国特有的虎亚种，目前野外可能已经灭绝。', '1212', '["/api/v1/files/2025/10/14/dc32f002-f41c-4321-b2c1-85237279ac94.jpg"]', '体型中等，条纹较窄且间距较大', '中国南方山区森林', '15-18年', '[1]', '猫科,肉食动物,极度濒危', 892, 67, 134, 18, 5, 90, 'PUBLISHED', 1, NULL, NULL, '2025-10-13 21:44:21', '2025-10-14 11:21:51', 0),
-	(3, 2, '银杏', 'ginkgo', 'Ginkgo biloba', '银杏是世界上最古老的树种之一，被称为植物界的"活化石"。', '1212', '["/api/v1/files/2025/10/14/2e6a39b2-0622-41f6-9394-53374a2cde7c.jpg"]', '叶片扇形，秋季变黄，雌雄异株', '温带地区，适应性强', '1000年以上', '[4]', '古老植物,落叶乔木,药用植物', 2103, 145, 267, 45, 2, 80, 'PUBLISHED', 1, NULL, NULL, '2025-10-13 21:44:21', '2025-10-14 11:21:54', 0),
-	(4, 2, '水杉', 'dawn_redwood', 'Metasequoia glyptostroboides', '水杉是中国特有的孑遗植物，曾被认为已经灭绝。', '1212', '["/api/v1/files/2025/10/14/998a1720-1ed0-43e3-8838-14db4966c6ab.jpg"]', '落叶针叶树，树干通直，生长迅速', '湿润的山谷和河岸', '600年以上', '[3]', '孑遗植物,落叶针叶树,珍稀树种', 1680, 112, 198, 32, 3, 70, 'PUBLISHED', 1, NULL, NULL, '2025-10-13 21:44:21', '2025-10-14 03:42:59', 0),
-	(5, 3, '中华鲟', 'chinese_sturgeon', 'Acipenser sinensis', '中华鲟是中国特有的古老鱼类，被誉为"水中大熊猫"。', '1212', '["/api/v1/files/2025/10/14/269a20c4-7025-4730-a99f-a8a5bb4d2573.jpg"]', '体型巨大，无鳞片，有骨板，寿命极长', '长江流域，海河洄游', '40年以上', '[]', '古老鱼类,洄游鱼类,国家保护动物', 1456, 98, 187, 28, 4, 85, 'PUBLISHED', 1, NULL, NULL, '2025-10-13 21:44:21', '2025-10-14 03:43:06', 0),
-	(6, 2, '12', '12_1760383683992', NULL, '12', '12', '["/api/v1/files/2025/10/14/b1897ed5-95f6-4da4-b964-ef9756a1f2f3.jpg"]', NULL, NULL, NULL, NULL, '12', 3, 0, 0, 0, 1, 0, 'PUBLISHED', 1, NULL, NULL, '2025-10-14 03:28:04', '2025-10-14 11:19:47', 0),
-	(7, 1, '华南虎（副本）', '华南虎（副本）_1760384549497', NULL, '华南虎是中国特有的虎亚种，目前野外可能已经灭绝。', '1212', '["/api/v1/files/2025/10/14/dc32f002-f41c-4321-b2c1-85237279ac94.jpg"]', NULL, NULL, NULL, NULL, '猫科,肉食动物,极度濒危', 0, 0, 0, 0, 5, 0, 'DRAFT', 1, NULL, NULL, '2025-10-14 03:42:29', '2025-10-14 03:42:29', 0);
-
--- 导出  表 image_recognition.recognition_items 结构
-DROP TABLE IF EXISTS `recognition_items`;
-CREATE TABLE IF NOT EXISTS `recognition_items` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `batch_id` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '批次ID',
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `image_id` bigint NOT NULL COMMENT '图像ID',
-  `result_id` bigint DEFAULT NULL COMMENT '识别结果ID',
-  `status` enum('PENDING','PROCESSING','COMPLETED','FAILED') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT 'PENDING' COMMENT '处理状态',
-  `error_message` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '错误信息',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `image_id` (`image_id`),
-  KEY `result_id` (`result_id`),
-  KEY `idx_batch_id` (`batch_id`),
   KEY `idx_user_id` (`user_id`),
+  KEY `idx_recognition_id` (`recognition_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_category` (`category`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_like_count` (`like_count`),
+  CONSTRAINT `community_posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `community_posts_ibfk_2` FOREIGN KEY (`recognition_id`) REFERENCES `recognition_results` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区帖子表';
+
+-- 正在导出表  image_recognition.community_posts 的数据：~61 rows (大约)
+DELETE FROM `community_posts`;
+INSERT INTO `community_posts` (`id`, `user_id`, `recognition_id`, `title`, `content`, `images`, `category`, `tags`, `view_count`, `like_count`, `comment_count`, `collect_count`, `is_top`, `is_featured`, `status`, `created_at`, `updated_at`) VALUES
+	(1, 2, NULL, '分享我的金毛犬识别结果1111', '今天用系统识别了我家的金毛犬,准确度很高!', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '金毛犬,宠物', 5, 0, 0, 0, 0, 0, 1, '2025-10-20 00:40:35', '2025-10-24 00:59:59'),
+	(2, 2, NULL, '我家的波斯猫', '系统成功识别出了我家猫咪的品种,太厉害了!', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '波斯猫,宠物', 5, 0, 0, 0, 0, 0, 1, '2025-10-20 00:40:35', '2025-10-24 00:59:58'),
+	(3, 3, NULL, '花园里的玫瑰', '用系统识别了花园里的玫瑰花,结果非常详细。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '玫瑰,花卉', 2, 0, 0, 0, 0, 0, 1, '2025-10-20 00:40:35', '2025-10-24 00:59:58'),
+	(5, 3, NULL, '花园里的玫瑰', '在花园里拍到的玫瑰，系统成功识别出来了。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '花,玫瑰,花园', 101, 0, 0, 0, 0, 0, 1, '2025-10-20 10:24:29', '2025-10-24 01:11:59'),
+	(6, 4, NULL, '图像识别技术分享', '分享一些使用图像识别系统的经验和技巧。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '技巧,教程', 236, 0, 0, 0, 0, 0, 1, '2025-10-20 10:24:29', '2025-10-24 01:12:05'),
+	(12, 2, NULL, '拉布拉多犬品种识别心得', '最近用系统识别了好几只拉布拉多犬，发现不同毛色的识别准确率都很高。系统能够准确区分金色、黑色和巧克力色的拉布拉多，还能识别出年龄段，非常实用！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '拉布拉多,犬类,宠物', 156, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:33', '2025-10-24 01:11:50'),
+	(13, 3, NULL, '如何拍摄清晰的植物照片', '分享一下拍摄植物照片的技巧：1.选择自然光充足的时间；2.避免强烈阴影；3.对焦在花朵或叶片上；4.保持镜头稳定。这样拍出来的照片识别率更高！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '植物识别,摄影技巧', 289, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:33', '2025-10-24 01:11:50'),
+	(14, 4, NULL, '英国短毛猫和美国短毛猫的区别', '很多人容易混淆这两种猫，其实它们有明显区别。英短脸更圆，美短脸型更长。系统识别时都能准确区分，大家可以试试看！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '猫,宠物,品种', 201, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:33', '2025-10-24 01:11:50'),
+	(15, 2, NULL, '樱花品种识别经验', '春天到了，公园里的樱花开了。用系统识别发现有染井吉野樱、关山樱、垂枝樱等多个品种，每种都能准确识别并给出详细介绍。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '樱花,花卉,春天', 178, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:33', '2025-10-24 01:11:50'),
+	(16, 3, NULL, '德国牧羊犬训练分享', '家里的德牧已经两岁了，分享一些训练心得。系统识别功能还能帮助判断狗狗的姿态是否标准，对训练很有帮助。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '德国牧羊犬,训练,宠物', 234, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:33', '2025-10-24 01:11:50'),
+	(17, 4, NULL, '多肉植物识别指南', '家里养了很多多肉，用系统一一识别了品种。石莲花、熊童子、玉露等都能准确识别，还给出了养护建议，太实用了！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '多肉,植物,养护', 312, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:45', '2025-10-24 01:11:50'),
+	(18, 2, NULL, '柴犬和秋田犬怎么区分', '很多新手容易搞混这两种狗。柴犬体型较小，秋田犬更大更壮。系统识别时会标注体型特征，很容易区分。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '柴犬,秋田犬,区分', 267, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:45', '2025-10-24 01:11:50'),
+	(19, 3, NULL, '月季花养护经验分享', '月季花一年四季都能开花，系统能识别出不同品种的月季。分享下我的养护心得：勤施肥、多修剪、防病虫害。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '月季,花卉,养护', 189, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:45', '2025-10-24 01:11:50'),
+	(20, 4, NULL, '图像识别在野生动物保护中的应用', '探讨图像识别技术如何帮助野生动物保护，通过自动识别物种、监测数量，为保护工作提供数据支持。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '综合讨论', '野生动物,保护,技术应用', 423, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:45', '2025-10-24 01:11:50'),
+	(21, 2, NULL, '边境牧羊犬的智商有多高', '边牧被认为是最聪明的狗，我家的边牧能听懂很多指令。用系统识别后发现它的品相还不错，很开心！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '边境牧羊犬,智商,宠物', 298, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:45', '2025-10-24 01:11:50'),
+	(22, 3, NULL, '兰花品种识别心得', '兰花品种繁多，自己总是分不清。用系统识别后能准确识别蝴蝶兰、墨兰、建兰等品种，还有详细的养护指南。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '兰花,品种,养护', 225, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:56', '2025-10-24 01:11:50'),
+	(23, 4, NULL, '泰迪犬美容造型分享', '泰迪犬可以做各种造型，系统识别时会注意到造型特点。分享几种常见造型：泰迪装、运动装、比熊装等。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '泰迪,美容,造型', 341, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:56', '2025-10-24 01:11:50'),
+	(24, 2, NULL, '如何识别有毒植物', '野外徒步时遇到不认识的植物，用系统识别发现有些是有毒的。建议大家也用这个功能，避免误食。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '有毒植物,安全,识别', 512, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:56', '2025-10-24 01:11:50'),
+	(25, 3, NULL, '布偶猫饲养经验', '布偶猫性格温顺，是很好的伴侣猫。系统能识别出不同花色的布偶，如双色、手套色、重点色等。分享饲养心得。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '布偶猫,饲养,宠物', 276, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:56', '2025-10-24 01:11:50'),
+	(26, 4, NULL, '仙人掌科植物识别', '仙人掌种类很多，很难区分。系统能识别出金琥、量天尺、昙花等品种，对爱好者很有帮助。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '仙人掌,多肉,品种', 198, 0, 0, 0, 0, 0, 1, '2025-10-24 00:57:56', '2025-10-24 01:11:50'),
+	(27, 2, NULL, '哈士奇和阿拉斯加的区别', '这两种雪橇犬经常被混淆。哈士奇眼睛多为蓝色，体型较小；阿拉斯加眼睛是褐色，体型更大。系统都能准确识别。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '哈士奇,阿拉斯加,区分', 387, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:09', '2025-10-24 01:11:50'),
+	(28, 3, NULL, '郁金香品种识别', '春天的郁金香花海太美了！系统能识别出红色、黄色、紫色等各种颜色的郁金香品种，还有重瓣和单瓣的区别。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '郁金香,花卉,品种', 243, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:09', '2025-10-24 01:11:50'),
+	(29, 4, NULL, '萨摩耶犬的微笑天使', '萨摩耶有标志性的微笑表情，性格友善。系统识别时会注意到它的纯白色被毛和标准体型，准确率很高。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '萨摩耶,宠物,特征', 319, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:09', '2025-10-24 01:11:50'),
+	(30, 2, NULL, '观叶植物识别技巧', '很多观叶植物长得相似，系统能通过叶片形状、纹理、颜色识别出绿萝、龟背竹、春羽等品种。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '观叶植物,识别,技巧', 167, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:09', '2025-10-24 01:11:50'),
+	(31, 3, NULL, '英国斗牛犬特征分析', '英斗有独特的外表：扁平的脸、粗壮的身体、短腿。系统能准确识别这些特征，还能判断品相。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '斗牛犬,特征,品种', 214, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:09', '2025-10-24 01:11:50'),
+	(32, 4, NULL, '向日葵种植日记', '从种子到开花的全过程记录，系统能识别向日葵的不同生长阶段，对种植者很有参考价值。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '向日葵,种植,记录', 289, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:20', '2025-10-24 01:11:50'),
+	(33, 2, NULL, '博美犬和银狐犬的区别', '这两种小型犬很像，但博美更小巧，嘴巴更尖；银狐稍大，嘴巴略钝。系统能通过这些细节准确区分。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '博美,银狐犬,区分', 256, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:20', '2025-10-24 01:11:50'),
+	(34, 3, NULL, '常见室内绿植推荐', '推荐几种适合室内种植的绿植：吊兰、常春藤、虎皮兰等。系统能识别它们，还提供养护建议。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '室内植物,绿植,推荐', 345, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:20', '2025-10-24 01:11:50'),
+	(35, 4, NULL, '松狮犬的独特魅力', '松狮犬有蓝黑色的舌头和蓬松的被毛，系统能识别出这些独特特征。分享松狮的饲养要点。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '松狮,特征,饲养', 198, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:20', '2025-10-24 01:11:50'),
+	(36, 2, NULL, '牡丹花品种大全', '牡丹是花中之王，品种繁多。系统能识别魏紫、赵粉、豆绿等名贵品种，对爱好者很有帮助。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '牡丹,品种,花卉', 412, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:20', '2025-10-24 01:11:50'),
+	(37, 3, NULL, '腊肠犬的趣味生活', '腊肠犬身长腿短，非常可爱。系统能识别出标准型、迷你型等不同体型。分享我家腊肠的趣事。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '腊肠犬,宠物,趣事', 267, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:32', '2025-10-24 01:11:50'),
+	(38, 4, NULL, '蔷薇和玫瑰怎么区分', '很多人分不清蔷薇和玫瑰。蔷薇是藤本植物，玫瑰是灌木。系统能准确识别，还会标注花型特征。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '蔷薇,玫瑰,区分', 334, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:32', '2025-10-24 01:11:50'),
+	(39, 2, NULL, '吉娃娃犬饲养指南', '吉娃娃是世界上最小的犬种之一，系统能识别出苹果头型和鹿型两种。分享饲养小型犬的注意事项。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '吉娃娃,小型犬,饲养', 223, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:32', '2025-10-24 01:11:50'),
+	(40, 3, NULL, '芍药花识别心得', '芍药和牡丹很像，但开花时间不同。系统能通过花朵和叶片特征准确区分，非常智能。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '芍药,花卉,识别', 189, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:32', '2025-10-24 01:11:50'),
+	(41, 4, NULL, '雪纳瑞美容造型', '雪纳瑞需要定期美容，标准造型有胡须和眉毛。系统识别时会注意这些特征，判断是否标准。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '雪纳瑞,美容,造型', 298, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:32', '2025-10-24 01:11:50'),
+	(42, 2, NULL, '茶花品种识别', '茶花品种众多，系统能识别十八学士、六角大红等名品。春天是茶花盛开的季节，大家可以试试识别功能。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '茶花,品种,识别', 245, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:43', '2025-10-24 01:11:50'),
+	(43, 3, NULL, '约克夏梗犬的优雅', '约克夏是小型玩赏犬，毛发柔顺有光泽。系统能识别标准的约克夏特征，对选购很有帮助。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '约克夏,小型犬,特征', 187, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:43', '2025-10-24 01:11:50'),
+	(44, 4, NULL, '竹子品种识别指南', '竹子种类很多，系统能识别毛竹、箭竹、紫竹等。分享竹子的养护知识和应用价值。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '竹子,品种,养护', 312, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:43', '2025-10-24 01:11:50'),
+	(45, 2, NULL, '比格犬的活力四射', '比格犬性格活泼，是优秀的猎犬。系统能识别出比格的三色毛和垂耳特征，准确率很高。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '比格犬,特征,性格', 256, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:43', '2025-10-24 01:11:50'),
+	(46, 3, NULL, '百合花品种大全', '百合花高雅美丽，系统能识别香水百合、卷丹百合、麝香百合等品种。分享百合的养护技巧。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '百合,品种,养护', 289, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:43', '2025-10-24 01:11:50'),
+	(47, 4, NULL, '可卡犬的温柔性格', '可卡犬是温顺的家庭犬，系统能识别英国可卡和美国可卡的区别。分享可卡的饲养经验。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '可卡犬,性格,饲养', 234, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:53', '2025-10-24 01:11:50'),
+	(48, 2, NULL, '桂花品种识别', '桂花香气怡人，系统能识别金桂、银桂、丹桂、四季桂等品种。秋天正是桂花飘香的季节。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '桂花,品种,花香', 378, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:53', '2025-10-24 01:11:50'),
+	(49, 3, NULL, '大麦町犬的斑点魅力', '大麦町犬又叫斑点狗，身上的斑点是独特标志。系统能通过斑点分布识别，非常有趣。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '大麦町,斑点狗,特征', 267, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:53', '2025-10-24 01:11:50'),
+	(50, 4, NULL, '菊花品种识别技巧', '菊花是秋天的代表花卉，品种繁多。系统能识别大菊、小菊、悬崖菊等类型，对养花人很实用。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '菊花,品种,识别', 298, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:53', '2025-10-24 01:11:50'),
+	(51, 2, NULL, '西施犬的华丽外表', '西施犬毛发华丽，需要精心打理。系统能识别标准的西施特征，包括长毛和圆脸。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '西施犬,外表,特征', 212, 0, 0, 0, 0, 0, 1, '2025-10-24 00:58:53', '2025-10-24 01:11:50'),
+	(52, 3, NULL, '梅花品种欣赏', '梅花凌寒独放，系统能识别红梅、白梅、腊梅等品种。冬春之际是赏梅的好时节。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '梅花,品种,赏花', 345, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:03', '2025-10-24 01:11:50'),
+	(53, 4, NULL, '巴哥犬的可爱魅力', '巴哥犬脸部皱褶明显，表情可爱。系统能识别这些独特特征，还能判断是否是纯种。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '巴哥犬,特征,可爱', 289, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:03', '2025-10-24 01:11:50'),
+	(54, 2, NULL, '水仙花品种识别', '水仙花清新雅致，系统能识别中国水仙、洋水仙等品种。分享水仙的水培技巧。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '水仙,品种,水培', 223, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:03', '2025-10-24 01:11:50'),
+	(55, 3, NULL, '法国斗牛犬饲养心得', '法斗有大大的耳朵和扁平的脸，性格友善。系统识别准确率很高，分享饲养要点。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '法斗,饲养,心得', 267, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:03', '2025-10-24 01:11:50'),
+	(56, 4, NULL, '杜鹃花品种大全', '杜鹃花色彩丰富，系统能识别映山红、西洋鹃、东鹃等品种。春天是杜鹃花开的季节。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '杜鹃,品种,春花', 312, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:03', '2025-10-24 01:11:50'),
+	(57, 2, NULL, '马尔济斯犬的纯白优雅', '马尔济斯犬全身纯白，毛发柔顺。系统能识别标准特征，是选购时的好帮手。分享美容心得。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '马尔济斯,白色犬,优雅', 234, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:14', '2025-10-24 01:11:50'),
+	(58, 3, NULL, '牵牛花品种识别', '牵牛花是常见的攀援植物，系统能识别不同颜色和花型。分享牵牛花的种植经验。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '植物识别', '牵牛花,品种,种植', 189, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:14', '2025-10-24 01:11:50'),
+	(59, 4, NULL, '凯恩梗犬的勇敢性格', '凯恩梗虽小但勇敢，是优秀的工作犬。系统能识别其粗糙的被毛和紧凑的体型。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '动物识别', '凯恩梗,性格,特征', 167, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:14', '2025-10-24 01:11:50'),
+	(60, 2, NULL, '图像识别技术的未来发展', '探讨AI图像识别技术的发展趋势，从动植物识别到更广泛的应用场景，技术进步令人期待。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '综合讨论', '技术,AI,发展', 458, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:14', '2025-10-24 02:12:45'),
+	(61, 3, NULL, '宠物摄影技巧分享', '如何拍出好看的宠物照片？分享光线选择、角度把握、抓拍时机等技巧，让识别更准确。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '摄影,宠物,技巧', 389, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:14', '2025-10-24 01:11:50'),
+	(62, 4, NULL, '养花新手入门指南', '新手养花容易遇到的问题：浇水过多、光照不足、施肥不当。用系统识别植物后能获得专业养护建议。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '养花,新手,指南', 423, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:26', '2025-10-24 01:11:50'),
+	(63, 2, NULL, '如何提高识别准确率', '分享提高识别准确率的方法：照片清晰、光线充足、角度合适、背景简洁。实测效果显著提升！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '识别,准确率,技巧', 501, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:26', '2025-10-24 01:11:50'),
+	(64, 3, NULL, '宠物健康从识别开始', '通过识别了解宠物品种特性，针对性地进行健康管理。不同品种的宠物有不同的易患疾病。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '综合讨论', '宠物,健康,管理', 370, 1, 0, 0, 0, 0, 1, '2025-10-24 00:59:26', '2025-10-24 02:12:40'),
+	(65, 4, NULL, '园林植物识别应用', '在公园游玩时看到不认识的植物，用系统一扫就知道名称和特性。科普知识增长不少！', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '经验分享', '园林,植物,科普', 298, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:26', '2025-10-24 01:11:50'),
+	(66, 2, NULL, '犬类行为训练心得', '结合品种识别了解犬类性格特点，有针对性地进行训练。不同品种需要不同的训练方法。', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '综合讨论', '训练,行为,犬类', 336, 0, 0, 0, 0, 0, 1, '2025-10-24 00:59:26', '2025-10-24 02:56:57'),
+	(67, 2, NULL, '测试', '测试', '["/api/v1/files/images/2025/10/24/2e9a9f9656ee4cc78ff8e01368dedb5b.jpg"]', 'share', '数据分析', 2, 0, 0, 0, 0, 0, 1, '2025-10-24 02:08:20', '2025-10-24 02:56:33');
+
+-- 导出  表 image_recognition.knowledge 结构
+DROP TABLE IF EXISTS `knowledge`;
+CREATE TABLE IF NOT EXISTS `knowledge` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '知识ID(主键)',
+  `category` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '分类名称',
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '知识标题',
+  `content` text COLLATE utf8mb4_unicode_ci COMMENT '知识内容',
+  `cover_image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '封面图片URL',
+  `images` text COLLATE utf8mb4_unicode_ci COMMENT '配图列表(JSON格式)',
+  `tags` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标签(逗号分隔)',
+  `author_id` bigint DEFAULT NULL COMMENT '作者ID',
+  `view_count` int DEFAULT '0' COMMENT '浏览次数',
+  `like_count` int DEFAULT '0' COMMENT '点赞数',
+  `collect_count` int DEFAULT '0' COMMENT '收藏数',
+  `comment_count` int DEFAULT '0' COMMENT '评论数',
+  `status` tinyint DEFAULT '0' COMMENT '审核状态: 0-PENDING待审核, 1-PUBLISHED已发布, 2-REJECTED已拒绝',
+  `is_top` tinyint DEFAULT '0' COMMENT '是否置顶: 0-否, 1-是',
+  `is_featured` tinyint DEFAULT '0' COMMENT '是否推荐: 0-否, 1-是',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_category` (`category`),
+  KEY `idx_author_id` (`author_id`),
   KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `recognition_items_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `recognition_items_ibfk_2` FOREIGN KEY (`image_id`) REFERENCES `image_metadata` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `recognition_items_ibfk_3` FOREIGN KEY (`result_id`) REFERENCES `recognition_results` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='识别项目表';
+  KEY `idx_is_top` (`is_top`),
+  KEY `idx_is_featured` (`is_featured`),
+  CONSTRAINT `knowledge_ibfk_1` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='知识表';
 
--- 正在导出表  image_recognition.recognition_items 的数据：~10 rows (大约)
-DELETE FROM `recognition_items`;
-INSERT INTO `recognition_items` (`id`, `batch_id`, `user_id`, `image_id`, `result_id`, `status`, `error_message`, `created_at`, `updated_at`) VALUES
-	(1, 'BATCH-20251013-001', 1, 1, 1, 'COMPLETED', NULL, '2025-10-13 00:30:00', '2025-10-14 03:09:40'),
-	(2, 'BATCH-20251013-001', 1, 4, 4, 'COMPLETED', NULL, '2025-10-13 00:31:00', '2025-10-14 03:09:40'),
-	(3, 'BATCH-20251013-001', 1, 9, 9, 'COMPLETED', NULL, '2025-10-13 00:32:00', '2025-10-14 03:09:40'),
-	(4, 'BATCH-20251013-002', 2, 2, 2, 'COMPLETED', NULL, '2025-10-13 01:15:00', '2025-10-14 03:09:40'),
-	(5, 'BATCH-20251013-002', 2, 7, 7, 'COMPLETED', NULL, '2025-10-13 01:16:00', '2025-10-14 03:09:40'),
-	(6, 'BATCH-20251013-003', 3, 3, 3, 'COMPLETED', NULL, '2025-10-13 02:00:00', '2025-10-14 03:09:40'),
-	(7, 'BATCH-20251013-003', 3, 8, 8, 'COMPLETED', NULL, '2025-10-13 02:01:00', '2025-10-14 03:09:40'),
-	(8, 'BATCH-20251013-004', 4, 5, 5, 'COMPLETED', NULL, '2025-10-13 05:00:00', '2025-10-14 03:09:40'),
-	(9, 'BATCH-20251013-004', 4, 10, 10, 'COMPLETED', NULL, '2025-10-13 05:01:00', '2025-10-14 03:09:40'),
-	(10, 'BATCH-20251014-001', 5, 6, 6, 'COMPLETED', NULL, '2025-10-14 00:00:00', '2025-10-14 03:09:40');
+-- 正在导出表  image_recognition.knowledge 的数据：~58 rows (大约)
+DELETE FROM `knowledge`;
+INSERT INTO `knowledge` (`id`, `category`, `title`, `content`, `cover_image`, `images`, `tags`, `author_id`, `view_count`, `like_count`, `collect_count`, `comment_count`, `status`, `is_top`, `is_featured`, `created_at`, `updated_at`) VALUES
+	(1, '动物', '金毛犬', '金毛寻回犬是最常见的家犬之一,因为它很容易养,有耐心并且对主人要求不多,只要定期的运动,食物和兽医体检就可以了。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,寻回犬,家庭宠物,友好', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 00:40:27', '2025-10-24 02:14:48'),
+	(2, '动物', '波斯猫', '波斯猫是最常见的长毛猫,拥有一身飘逸华丽的毛发,优雅的举止,所以被人们称为"猫中王子"。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫,宠物,哺乳动物', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 00:40:27', '2025-10-24 02:14:48'),
+	(3, '植物', '玫瑰花', '玫瑰是蔷薇科蔷薇属植物,是世界上最受欢迎的观赏花卉之一,象征着爱情与美丽。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,观赏植物,爱情', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 00:40:27', '2025-10-24 02:15:03'),
+	(4, '物品', '笔记本电脑', '笔记本电脑是一种小型、可便于携带的个人电脑,通常重1-3公斤。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '电子产品,计算机,办公', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 00:40:27', '2025-10-24 02:15:20'),
+	(5, '动物', '金毛寻回犬', '金毛寻回犬是一种非常友好和聪明的犬种，原产于苏格兰。它们以其金色的被毛和温和的性格而闻名，是优秀的家庭宠物和工作犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '狗,宠物,金毛,犬种', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 10:24:41', '2025-10-24 02:14:48'),
+	(6, '植物', '玫瑰', '玫瑰是蔷薇科蔷薇属植物，被誉为"花中皇后"。玫瑰花色彩丰富，香气浓郁，具有很高的观赏价值和经济价值。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花,玫瑰,植物,观赏植物', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 10:24:41', '2025-10-24 02:15:03'),
+	(7, '动物', '波斯猫', '波斯猫是一种古老的猫品种，以其长毛、扁平的脸和温顺的性格而著称。它们需要定期梳理毛发，是非常受欢迎的宠物猫。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫,宠物,波斯猫,长毛猫', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 10:24:41', '2025-10-24 02:14:48'),
+	(8, '植物', '向日葵', '向日葵是菊科向日葵属的一年生草本植物，因其花序随太阳转动而得名。向日葵种子可以食用，也可榨油。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花,向日葵,植物,油料作物', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-20 10:24:41', '2025-10-24 02:15:03'),
+	(13, '动物', '拉布拉多寻回犬', '拉布拉多寻回犬原产于加拿大，是一种中大型犬类。它们聪明、友好、忠诚，是世界上最受欢迎的犬种之一。拉布拉多有三种颜色：黑色、黄色和巧克力色。它们精力充沛，需要大量运动，非常适合作为导盲犬、搜救犬和家庭伴侣犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,寻回犬,家庭宠物,友好,聪明', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:35', '2025-10-24 02:14:48'),
+	(14, '动物', '哈士奇', '西伯利亚哈士奇是一种中型工作犬，原产于西伯利亚东北部。它们以蓝色或异色的眼睛、黑白或灰白的被毛而闻名。哈士奇性格活泼、独立，具有很强的耐寒能力。它们需要大量运动，喜欢奔跑，叫声独特，常常被称为"二哈"。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,雪橇犬,活泼,蓝眼,耐寒', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:35', '2025-10-24 02:14:48'),
+	(15, '动物', '暹罗猫', '暹罗猫原产于泰国，是世界上最古老的猫品种之一。它们拥有蓝色的杏仁眼、重点色的被毛和优雅的身姿。暹罗猫性格外向、活泼，喜欢与人互动，叫声响亮。它们智商很高，可以训练完成一些简单的动作。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,短毛猫,蓝眼,活泼,泰国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:35', '2025-10-24 02:14:48'),
+	(16, '动物', '英国短毛猫', '英国短毛猫是英国本土品种，拥有圆圆的脸庞、粗壮的身体和厚实的被毛。最受欢迎的是蓝色（灰色）品种，被称为"英短蓝猫"。它们性格温和、独立，适应能力强，是非常好的家庭宠物。不需要太多的关注，很容易照顾。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,短毛猫,温和,蓝猫,英国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:35', '2025-10-24 02:14:48'),
+	(17, '动物', '德国牧羊犬', '德国牧羊犬，也称德国黑背，是一种大型工作犬。它们聪明、勇敢、忠诚，具有出色的工作能力。德牧常被用作警犬、军犬、搜救犬和导盲犬。它们需要充分的训练和运动，对主人非常忠诚，是优秀的护卫犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,工作犬,警犬,聪明,忠诚', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:35', '2025-10-24 02:14:48'),
+	(18, '动物', '柴犬', '柴犬是日本本土犬种，体型中等，拥有竖立的耳朵和卷曲的尾巴。柴犬性格独立、忠诚，警觉性高。它们的毛色有赤色、黑色、胡麻色和白色。柴犬聪明但有些固执，需要耐心训练。近年来因其可爱的外表和独特的性格在全球范围内受到欢迎。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,日本犬,独立,可爱,中型犬', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:49', '2025-10-24 02:14:48'),
+	(19, '动物', '布偶猫', '布偶猫是一种大型长毛猫，以其柔软的被毛、蓝色的眼睛和温顺的性格而闻名。布偶猫性格温和、友好，喜欢与人亲近，常常被称为"仙女猫"。它们的毛色包括双色、手套色和重点色等。布偶猫需要定期梳理毛发，适合家庭饲养。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,长毛猫,温顺,蓝眼,仙女猫', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:49', '2025-10-24 02:14:48'),
+	(20, '动物', '边境牧羊犬', '边境牧羊犬被认为是世界上最聪明的犬种。它们原产于苏格兰边境地区，是优秀的牧羊犬。边牧精力充沛、学习能力强，可以快速掌握各种指令。它们需要大量的身体和精神刺激，适合有经验的饲养者。边牧常在犬类竞技比赛中获得优异成绩。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,牧羊犬,聪明,工作犬,高智商', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:49', '2025-10-24 02:14:48'),
+	(21, '动物', '缅因猫', '缅因猫是北美洲最古老的自然猫种之一，也是最大的家猫品种之一。它们拥有长而蓬松的被毛、毛茸茸的尾巴和大耳朵。缅因猫性格友好、聪明，适应能力强。尽管体型庞大，但它们性格温和，喜欢与人互动，被称为"温柔的巨人"。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,长毛猫,大型,温和,缅因', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:49', '2025-10-24 02:14:48'),
+	(22, '动物', '萨摩耶犬', '萨摩耶犬原产于西伯利亚，拥有纯白色的被毛和标志性的"微笑"表情。它们性格友善、温和，喜欢与人亲近，是优秀的家庭伴侣犬。萨摩耶需要定期梳理毛发，否则容易打结。它们精力旺盛，需要充足的运动和社交活动。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,雪橇犬,微笑,白色,友善', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:01:49', '2025-10-24 02:14:48'),
+	(23, '植物', '樱花', '樱花是蔷薇科樱属植物的花朵，是日本的国花。樱花花期短暂，通常在春季开放，花色以粉色和白色为主。常见品种包括染井吉野樱、关山樱、垂枝樱等。樱花具有很高的观赏价值，每年春季吸引大量游客赏花。樱花象征着浪漫、纯洁和短暂之美。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,樱花,春季,粉色,观赏', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:03', '2025-10-24 02:15:03'),
+	(24, '植物', '郁金香', '郁金香是百合科郁金香属的多年生草本植物，原产于土耳其。郁金香花色丰富，包括红、黄、紫、白、粉等多种颜色。它是荷兰的国花，每年春季荷兰会举办盛大的郁金香花展。郁金香喜欢凉爽的气候，适合种植在排水良好的土壤中。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,郁金香,春季,多彩,荷兰', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:03', '2025-10-24 02:15:03'),
+	(25, '植物', '牡丹', '牡丹是芍药科芍药属植物，被誉为"花中之王"。牡丹花朵硕大、色彩艳丽、香气浓郁，是中国的国花之一。牡丹花色丰富，包括红、粉、白、黄、紫等。牡丹喜欢阳光充足、排水良好的环境，花期通常在春末夏初。牡丹在中国文化中象征着富贵和繁荣。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,牡丹,富贵,春季,国花', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:03', '2025-10-24 02:15:03'),
+	(26, '植物', '兰花', '兰花是兰科植物的总称，是中国传统名花之一，被称为"花中君子"。兰花种类繁多，包括春兰、蕙兰、建兰、墨兰等。兰花以其优雅的姿态、清幽的香气而受到喜爱。兰花喜欢温暖湿润的环境，需要适当的散射光。在中国文化中，兰花象征着高洁和典雅。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,兰花,高雅,香气,君子', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:03', '2025-10-24 02:15:03'),
+	(27, '植物', '菊花', '菊花是菊科菊属的多年生草本植物，是中国十大名花之一。菊花品种繁多，花型、花色各异，花期主要在秋季。菊花不仅具有观赏价值，还可以入药和泡茶。菊花适应性强，栽培容易。在中国文化中，菊花象征着长寿和坚贞，是秋天的代表花卉。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,菊花,秋季,观赏,药用', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:03', '2025-10-24 02:15:03'),
+	(28, '植物', '月季花', '月季花是蔷薇科蔷薇属的常绿或半常绿灌木，被誉为"花中皇后"。月季花期长，可以从春季开到秋季，花色丰富多彩。月季适应性强，栽培容易，是世界上最受欢迎的观赏花卉之一。现代月季品种众多，包括杂交茶香月季、丰花月季、微型月季等。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,月季,四季,多色,皇后', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:25', '2025-10-24 02:15:03'),
+	(29, '植物', '茉莉花', '茉莉花是木犀科素馨属的常绿灌木，原产于印度。茉莉花以其洁白的花朵和浓郁的香气而闻名。茉莉花喜欢温暖湿润的环境，花期在夏季。茉莉花可以制作花茶，具有清香怡人的特点。在亚洲文化中，茉莉花象征着纯洁、优雅和友谊。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,茉莉,香气,白色,花茶', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:25', '2025-10-24 02:15:03'),
+	(30, '植物', '荷花', '荷花是睡莲科莲属的多年生水生植物，是中国的传统名花。荷花出淤泥而不染，花朵优雅大方，花色以粉色和白色为主。荷花全身都是宝，莲子可食用，莲藕是常见蔬菜，荷叶可入药。荷花象征着纯洁、高雅和君子之风，在中国文化中占有重要地位。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,荷花,水生,纯洁,夏季', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:25', '2025-10-24 02:15:03'),
+	(31, '植物', '桂花', '桂花是木犀科木犀属的常绿灌木或小乔木。桂花以其浓郁的香气而闻名，花朵虽小但香味浓郁，沁人心脾。桂花品种主要有金桂、银桂、丹桂和四季桂。桂花可以制作桂花糕、桂花茶等食品。在中国文化中，桂花象征着吉祥、富贵和美好。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,桂花,香气,秋季,吉祥', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:25', '2025-10-24 02:15:03'),
+	(32, '植物', '百合花', '百合是百合科百合属的多年生草本植物。百合花姿优雅、花朵大而美丽，具有淡雅的香气。常见品种包括香水百合、卷丹百合、麝香百合等。百合喜欢凉爽的环境，适合在春秋季节种植。百合在西方文化中象征着纯洁和神圣，在中国则寓意百年好合。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,百合,优雅,香气,纯洁', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:02:25', '2025-10-24 02:15:03'),
+	(33, '植物', '杜鹃花', '杜鹃花是杜鹃花科杜鹃属的常绿或落叶灌木，被誉为"花中西施"。杜鹃花品种繁多，花色丰富，包括红、粉、白、紫等多种颜色。杜鹃花喜欢酸性土壤和半阴环境。春季是杜鹃花的主要花期，漫山遍野的杜鹃花景色壮观。杜鹃花在中国有着悠久的栽培历史。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,杜鹃,春季,酸性土,观赏', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:23', '2025-10-24 02:15:03'),
+	(34, '植物', '梅花', '梅花是蔷薇科杏属的落叶乔木，是中国十大名花之首。梅花在严寒中绽放，象征着坚强、高洁和谦虚。梅花花色以白色、粉色、红色为主，花香清雅。梅花与兰、竹、菊并称为"四君子"。梅花不仅具有观赏价值，其果实还可以加工成话梅、梅酒等食品。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,梅花,冬季,坚强,四君子', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:23', '2025-10-24 02:15:03'),
+	(35, '植物', '茶花', '茶花是山茶科山茶属的常绿灌木或小乔木，是中国传统名花之一。茶花花朵硕大、色彩艳丽，花期在冬春季节。茶花品种众多，包括十八学士、六角大红等名品。茶花喜欢温暖湿润的环境和酸性土壤。茶花在中国园林中广泛应用，深受人们喜爱。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,茶花,冬春,艳丽,名花', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:23', '2025-10-24 02:15:03'),
+	(36, '植物', '水仙花', '水仙花是石蒜科水仙属的多年生草本植物，是中国十大名花之一。水仙花清新雅致，花香宜人，常在春节前后开花，被称为"凌波仙子"。水仙花适合水培，栽培简单。中国水仙和洋水仙是常见品种。水仙花在中国传统文化中象征着吉祥、团圆和思念。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '花卉,水仙,春节,清雅,水培', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:23', '2025-10-24 02:15:03'),
+	(37, '植物', '绿萝', '绿萝是天南星科麒麟叶属的常绿藤本植物，是最受欢迎的室内观叶植物之一。绿萝叶片翠绿，生长迅速，适应性强，可以净化空气。绿萝喜欢温暖湿润的环境，耐阴性好，非常适合室内栽培。绿萝可以土培也可以水培，养护简单，是新手养花的首选。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '绿植,观叶,室内,净化,藤本', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:23', '2025-10-24 02:15:03'),
+	(38, '植物', '吊兰', '吊兰是天门冬科吊兰属的多年生常绿草本植物，是常见的室内观叶植物。吊兰叶片细长、优雅，会长出匍匐茎并开小白花。吊兰具有很强的空气净化能力，可以吸收甲醛等有害物质。吊兰适应性强，养护简单，喜欢半阴环境，适合悬挂栽培。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '绿植,观叶,室内,悬挂,净化', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:39', '2025-10-24 02:15:03'),
+	(39, '植物', '虎皮兰', '虎皮兰是天门冬科虎尾兰属的多年生草本观叶植物。虎皮兰叶片直立、厚实，有黄绿相间的斑纹，形似虎皮。虎皮兰适应性强，耐旱耐阴，可以净化空气。虎皮兰养护简单，不需要经常浇水，是懒人植物的代表。常见品种有金边虎皮兰、银脉虎皮兰等。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '绿植,观叶,室内,耐旱,虎纹', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:39', '2025-10-24 02:15:03'),
+	(40, '植物', '发财树', '发财树是木棉科瓜栗属的常绿乔木，是受欢迎的室内观赏植物。发财树树冠优美，叶片翠绿，寓意吉祥、招财进宝。发财树喜欢温暖湿润的环境，耐阴性好。养护时要注意不要积水，避免烂根。发财树常用于家庭、办公室等场所的装饰。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '绿植,观叶,室内,招财,吉祥', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:39', '2025-10-24 02:15:03'),
+	(41, '植物', '多肉植物', '多肉植物是指植物营养器官肥大的高等植物，包括仙人掌科、景天科等多个科属。多肉植物形态各异，色彩丰富，有很高的观赏价值。常见品种有石莲花、熊童子、玉露、生石花等。多肉植物耐旱，养护简单，深受年轻人喜爱，是近年来流行的园艺植物。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '多肉,景天,耐旱,观赏,萌宠', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:39', '2025-10-24 02:15:03'),
+	(42, '植物', '仙人掌', '仙人掌是仙人掌科植物的统称，原产于美洲干旱地区。仙人掌茎肉质，能储存大量水分，表面有刺以减少水分蒸发。仙人掌适应性强，耐旱耐热，养护简单。常见品种有金琥、仙人球、仙人柱等。仙人掌可以防辐射，是办公桌上的常见植物。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '多肉,仙人掌,耐旱,防辐射,沙漠', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:39', '2025-10-24 02:15:03'),
+	(43, '动物', '泰迪犬', '泰迪犬其实是贵宾犬的一种美容造型，因外形酷似泰迪熊而得名。泰迪犬体型小巧，毛发卷曲，不易掉毛，是热门的家庭宠物。泰迪聪明活泼，容易训练，适合城市公寓饲养。常见颜色有红色、棕色、黑色、白色等。泰迪需要定期美容修剪，保持造型。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,贵宾,可爱,不掉毛', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:57', '2025-10-24 02:14:48'),
+	(44, '动物', '博美犬', '博美犬是一种小型玩赏犬，拥有蓬松的被毛和狐狸般的脸型。博美犬性格活泼、警惕，喜欢吠叫。它们体型虽小但勇敢，是优秀的看家犬。博美犬毛色丰富，包括橙色、白色、黑色等。博美需要定期梳理毛发，保持被毛的蓬松和整洁。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,蓬松,活泼,看家', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:57', '2025-10-24 02:14:48'),
+	(45, '动物', '约克夏梗', '约克夏梗是一种小型玩赏犬，原产于英国约克郡。约克夏拥有长而柔顺的被毛，呈钢蓝色和金黄色。它们性格活泼、勇敢，虽然体型小但警惕性高。约克夏需要定期美容，保持毛发的光泽和整洁。它们适应城市生活，是受欢迎的伴侣犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,长毛,优雅,英国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:57', '2025-10-24 02:14:48'),
+	(46, '动物', '比熊犬', '比熊犬是一种小型犬，拥有纯白色的卷毛和圆圆的脸型。比熊性格温顺、友好，喜欢与人亲近，是优秀的家庭伴侣犬。比熊不易掉毛，适合对毛发过敏的人饲养。比熊需要定期美容修剪，保持蓬松的外形。它们活泼可爱，深受孩子们的喜爱。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,白色,温顺,卷毛', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:57', '2025-10-24 02:14:48'),
+	(47, '动物', '法国斗牛犬', '法国斗牛犬是一种小型护卫犬，拥有蝙蝠耳朵和扁平的脸。法斗性格友善、稳重，不需要大量运动，适合公寓饲养。法斗肌肉发达，体型紧凑，毛色有虎斑、奶油、纯白等。法斗容易出现呼吸问题，需要注意避免剧烈运动和高温环境。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,斗牛,友善,蝙蝠耳', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:04:57', '2025-10-24 02:14:48'),
+	(48, '动物', '吉娃娃', '吉娃娃是世界上最小的犬种之一，原产于墨西哥。吉娃娃有苹果头型和鹿型两种头型，眼睛大而圆。它们勇敢、警惕，对主人非常忠诚。吉娃娃体型小，适合城市公寓饲养。它们怕冷，冬季需要注意保暖。吉娃娃寿命较长，可达15-17年。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,超小型,墨西哥,勇敢,忠诚', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:14', '2025-10-24 02:14:48'),
+	(49, '动物', '雪纳瑞', '雪纳瑞是一种德国犬种，分为标准型、迷你型和巨型三种。雪纳瑞最大的特点是胡须和眉毛，给人一种老头的感觉。它们聪明、活泼、勇敢，是优秀的护卫犬。雪纳瑞毛色以椒盐色和黑色为主。它们需要定期美容，保持标准造型。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,胡须,聪明,德国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:14', '2025-10-24 02:14:48'),
+	(50, '动物', '巴哥犬', '巴哥犬是一种小型犬，原产于中国。巴哥犬脸部有深深的皱褶，表情可爱忧郁。它们性格温和、友善，适合家庭饲养。巴哥犬不需要大量运动，适合老年人饲养。由于面部扁平，巴哥犬容易出现呼吸问题，需要注意避免高温和剧烈运动。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,皱褶,可爱,中国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:14', '2025-10-24 02:14:48'),
+	(51, '动物', '腊肠犬', '腊肠犬是一种短腿长身的猎犬，原产于德国。腊肠犬有标准型、迷你型和兔型三种体型，毛型有短毛、长毛和刚毛三种。它们性格活泼、勇敢，嗅觉灵敏。腊肠犬身体特殊，需要注意保护脊椎，避免上下楼梯和跳跃。它们寿命较长，是忠诚的伴侣犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,短腿,长身,德国,猎犬', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:14', '2025-10-24 02:14:48'),
+	(52, '动物', '西施犬', '西施犬是一种中国古老的玩赏犬，拥有华丽的长毛和圆圆的脸。西施犬性格温顺、友善，喜欢与人亲近。它们毛发长而柔顺，需要每天梳理，定期美容。西施犬适应性强，适合城市家庭饲养。在中国历史上，西施犬是皇室贵族的宠物，地位尊贵。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,长毛,中国,宫廷', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:14', '2025-10-24 02:14:48'),
+	(53, '动物', '松狮犬', '松狮犬是一种中国古老的犬种，拥有蓬松的被毛和蓝黑色的舌头。松狮犬性格独立、高贵，对主人忠诚但对陌生人冷漠。它们外形像小狮子，非常威武。松狮犬需要定期梳理毛发，适应性强。在中国历史上，松狮犬曾被用作护卫犬和狩猎犬。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,中型犬,蓝舌,蓬松,中国', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:32', '2025-10-24 02:14:48'),
+	(54, '动物', '可卡犬', '可卡犬分为英国可卡和美国可卡两种，是温顺的猎犬。可卡犬拥有长长的耳朵和柔顺的被毛，眼神温柔。它们性格友善、活泼，是优秀的家庭伴侣犬。可卡犬需要定期运动和梳理毛发。英国可卡和美国可卡在外形和性格上有细微差别。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,猎犬,长耳,温顺,可卡', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:32', '2025-10-24 02:14:48'),
+	(55, '动物', '比格犬', '比格犬是一种小型猎犬，拥有出色的嗅觉。比格犬通常是三色（黑、棕、白）或二色，耳朵长而下垂。它们性格活泼、好奇心强，喜欢吠叫。比格犬精力充沛，需要充足的运动。它们友善温顺，适合有孩子的家庭。比格犬也常被用作实验动物。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,小型犬,猎犬,三色,活泼', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:32', '2025-10-24 02:14:48'),
+	(56, '动物', '大麦町犬', '大麦町犬又称斑点狗，以其白色被毛上的黑色或棕色斑点而闻名。大麦町犬体型中等，身体匀称，充满活力。它们性格友善、外向，需要大量运动。大麦町犬曾被用作马车护卫犬和消防犬。它们聪明但固执，需要耐心训练。斑点是在出生后逐渐显现的。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,斑点,消防犬,活力,护卫', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:32', '2025-10-24 02:14:48'),
+	(57, '动物', '英国古代牧羊犬', '英国古代牧羊犬是一种大型长毛犬，拥有蓬松的被毛，常常遮住眼睛。它们性格温和、友善，是优秀的家庭伴侣犬。古牧需要大量运动和每天的梳理。它们聪明、易训练，对孩子友善。古牧的叫声独特，有"叮当声"之称。它们需要专业的美容护理。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '犬类,大型犬,长毛,温和,牧羊', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:32', '2025-10-24 02:14:48'),
+	(58, '动物', '美国短毛猫', '美国短毛猫是在美国培育的品种，以其强壮的体格和友好的性格而闻名。美短拥有厚实的被毛，最常见的是银色虎斑。它们性格温和、独立，适应能力强，是优秀的家庭宠物。美短健康长寿，不需要特别护理。它们与英短最大的区别在于脸型和体型。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,短毛,美国,虎斑,强壮', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:50', '2025-10-24 02:14:48'),
+	(59, '动物', '苏格兰折耳猫', '苏格兰折耳猫最大的特点是向前折叠的耳朵，这是由基因突变造成的。折耳猫性格温和、亲人，喜欢安静的环境。折耳猫分为折耳和立耳两种，折耳猫可能有遗传性骨骼疾病。它们需要细心照顾，定期检查关节健康。折耳猫圆圆的脸和大眼睛非常可爱。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,折耳,苏格兰,温和,可爱', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:50', '2025-10-24 02:14:48'),
+	(60, '动物', '挪威森林猫', '挪威森林猫是斯堪的纳维亚半岛的本土猫种，拥有厚实的长毛和强壮的体格。它们适应寒冷气候，善于攀爬。挪威森林猫性格独立、聪明，但也亲近人类。它们需要定期梳理毛发，特别是在换毛季节。挪威森林猫在北欧神话中有重要地位，被认为是神圣的动物。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,长毛,挪威,森林,攀爬', 1, 1, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:50', '2025-10-24 02:14:48'),
+	(61, '动物', '孟加拉猫', '孟加拉猫是由亚洲豹猫和家猫杂交培育而成的品种，拥有豹纹般的斑点或云纹。孟加拉猫体型中等，肌肉发达，充满野性美。它们性格活泼、好奇心强，精力旺盛，需要大量运动和互动。孟加拉猫智商高，可以训练完成一些动作。它们的被毛有独特的光泽。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,豹纹,杂交,活泼,野性', 1, 1, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:50', '2025-10-24 02:14:48'),
+	(62, '动物', '阿比西尼亚猫', '阿比西尼亚猫是一种古老的猫品种，外形优雅，被毛呈暖黄色或红褐色。阿比西尼亚猫性格活泼、好动，非常聪明，喜欢与人互动。它们好奇心强，喜欢探索环境。阿比西尼亚猫身材苗条，肌肉发达，动作敏捷。它们不需要太多的毛发护理，是容易照顾的品种。', '/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg', '["/api/v1/files/images/2025/10/24/d527fc1805e14cc5929f364b1c7a6044.jpg"]', '猫类,短毛,暖色,活泼,古老', 1, 0, 0, 0, 0, 1, 0, 0, '2025-10-24 01:05:50', '2025-10-24 02:14:48');
+
+-- 导出  表 image_recognition.notifications 结构
+DROP TABLE IF EXISTS `notifications`;
+CREATE TABLE IF NOT EXISTS `notifications` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '通知ID(主键)',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `type` tinyint NOT NULL COMMENT '通知类型: 0-SYSTEM系统, 1-COMMENT评论, 2-LIKE点赞, 3-COLLECT收藏, 4-AUDIT审核, 5-VIP会员, 6-REPORT举报',
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '通知标题',
+  `content` text COLLATE utf8mb4_unicode_ci COMMENT '通知内容',
+  `data` json DEFAULT NULL COMMENT '附加数据(JSON格式,存储相关业务数据)',
+  `link_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '跳转链接',
+  `sender_id` bigint DEFAULT NULL COMMENT '发送者ID',
+  `is_read` tinyint(1) DEFAULT '0' COMMENT '是否已读: 0-未读, 1-已读',
+  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_type` (`type`),
+  KEY `idx_is_read` (`is_read`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `sender_id` (`sender_id`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `notifications_ibfk_2` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知表';
+
+-- 正在导出表  image_recognition.notifications 的数据：~4 rows (大约)
+DELETE FROM `notifications`;
+INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `content`, `data`, `link_url`, `sender_id`, `is_read`, `read_time`, `created_at`) VALUES
+	(1, 2, 2, '您的帖子获得了点赞', '用户"普通用户1"点赞了您的帖子"我家的金毛犬识别测试"', NULL, '/community/posts/1', 3, 1, '2025-10-20 11:30:00', '2025-10-20 10:24:56'),
+	(2, 2, 1, '您的帖子有新评论', '用户"普通用户1"评论了您的帖子', NULL, '/community/posts/1', 3, 1, '2025-10-24 03:00:54', '2025-10-20 10:24:56'),
+	(3, 3, 0, '系统通知', '欢迎使用图像识别系统！', NULL, NULL, NULL, 1, '2025-10-20 09:00:00', '2025-10-20 10:24:56'),
+	(4, 4, 2, '您的评论获得了点赞', '用户"vipuser"点赞了您的评论', NULL, '/community/posts/3', 2, 0, NULL, '2025-10-20 10:24:56');
 
 -- 导出  表 image_recognition.recognition_results 结构
 DROP TABLE IF EXISTS `recognition_results`;
 CREATE TABLE IF NOT EXISTS `recognition_results` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '识别ID(主键)',
   `user_id` bigint NOT NULL COMMENT '用户ID',
-  `image_id` bigint NOT NULL COMMENT '图像ID',
-  `service_type` enum('DOUBAO','VOLCENGINE','OTHER') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '识别服务类型',
-  `category` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '物体类别',
-  `name` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '物体名称',
-  `color` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '主要颜色',
-  `shape` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '形状描述',
-  `material` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '材质描述',
-  `attributes` json DEFAULT NULL COMMENT '属性列表',
-  `confidence` decimal(3,2) DEFAULT NULL COMMENT '置信度(0-1)',
-  `raw_response` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '原始AI响应',
-  `processing_time` int DEFAULT NULL COMMENT '处理时间(毫秒)',
-  `token_usage` int DEFAULT NULL COMMENT 'Token使用量',
-  `prompt_used` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '使用的提示词',
-  `model_version` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '模型版本',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '识别时间',
+  `image_url` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
+  `image_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '图片名称',
+  `image_size` int DEFAULT NULL COMMENT '图片大小(字节)',
+  `image_width` int DEFAULT NULL COMMENT '图片宽度(像素)',
+  `image_height` int DEFAULT NULL COMMENT '图片高度(像素)',
+  `recognition_type` tinyint DEFAULT '0' COMMENT '识别类型: 0-QUICK快速识别, 1-DETAILED详细识别',
+  `result_json` text COLLATE utf8mb4_unicode_ci COMMENT '识别结果JSON',
+  `main_category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '主要分类',
+  `confidence` decimal(5,2) DEFAULT NULL COMMENT '置信度(0-100)',
+  `tags` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标签(逗号分隔)',
+  `description` text COLLATE utf8mb4_unicode_ci COMMENT '识别描述',
+  `processing_time` int DEFAULT NULL COMMENT '处理耗时(毫秒)',
+  `status` tinyint DEFAULT '0' COMMENT '识别状态: 0-PENDING待处理, 1-SUCCESS成功, 2-FAILED失败',
+  `error_message` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '错误信息',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
-  KEY `idx_image_id` (`image_id`),
-  KEY `idx_service_type` (`service_type`),
-  KEY `idx_category` (`category`),
+  KEY `idx_status` (`status`),
   KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `recognition_results_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `recognition_results_ibfk_2` FOREIGN KEY (`image_id`) REFERENCES `image_metadata` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='识别结果表';
+  KEY `idx_main_category` (`main_category`),
+  CONSTRAINT `recognition_results_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='识别结果表';
 
--- 正在导出表  image_recognition.recognition_results 的数据：~10 rows (大约)
+-- 正在导出表  image_recognition.recognition_results 的数据：~14 rows (大约)
 DELETE FROM `recognition_results`;
-INSERT INTO `recognition_results` (`id`, `user_id`, `image_id`, `service_type`, `category`, `name`, `color`, `shape`, `material`, `attributes`, `confidence`, `raw_response`, `processing_time`, `token_usage`, `prompt_used`, `model_version`, `created_at`) VALUES
-	(1, 1, 1, 'DOUBAO', '动物', '家猫', '橙白相间', '蹲坐姿态，耳朵竖立', '毛发', '{"age": "成年", "size": "中等", "breed": "橘猫"}', 0.95, '这是一只橘猫，毛色橙白相间，处于蹲坐姿态...', 1250, 856, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-13 00:35:00'),
-	(2, 2, 2, 'VOLCENGINE', '动物', '金毛犬', '金黄色', '站立姿态，尾巴上扬', '毛发', '{"age": "幼年", "size": "大型", "breed": "金毛寻回犬"}', 0.92, '这是一只金毛犬，处于站立姿态...', 1450, 923, '请识别图片中的物体', 'volcengine-v2.0', '2025-10-13 01:20:00'),
-	(3, 3, 3, 'DOUBAO', '植物', '绿萝叶片', '深绿色', '心形叶片', '植物组织', '{"type": "观叶植物", "光泽": "有光泽", "condition": "健康"}', 0.89, '这是绿萝植物的叶片，呈心形...', 980, 645, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-13 02:05:00'),
-	(4, 1, 4, 'DOUBAO', '动物', '蓝山雀', '蓝色和黄色', '飞行姿态，翅膀展开', '羽毛', '{"habitat": "树林", "species": "雀形目", "activity": "飞行中"}', 0.87, '这是一只蓝山雀，正在飞行...', 1100, 778, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-13 03:35:00'),
-	(5, 4, 5, 'VOLCENGINE', '植物', '月季花', '粉红色', '花瓣层叠，花朵盛开', '花瓣', '{"petals": "多层", "fragrance": "芳香", "bloom_status": "盛开"}', 0.93, '这是一朵盛开的月季花...', 1320, 891, '请识别图片中的物体', 'volcengine-v2.0', '2025-10-13 05:05:00'),
-	(6, 5, 6, 'DOUBAO', '动物', '瓢虫', '红色带黑斑', '半球形外壳', '甲壳', '{"size": "小型", "type": "七星瓢虫", "spots": 7}', 0.91, '这是一只七星瓢虫...', 890, 567, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-14 00:05:00'),
-	(7, 2, 7, 'DOUBAO', '植物', '松树', '深绿色', '针叶树冠，树干挺直', '木质', '{"age": "成熟", "type": "针叶树", "height": "高大"}', 0.88, '这是一棵松树，树冠茂密...', 1180, 812, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-14 01:35:00'),
-	(8, 3, 8, 'VOLCENGINE', '动物', '金鱼', '橙红色', '椭圆形身体，尾鳍飘逸', '鳞片', '{"fins": "长尾", "type": "观赏鱼", "environment": "水族箱"}', 0.94, '这是一条金鱼，颜色鲜艳...', 1050, 734, '请识别图片中的物体', 'volcengine-v2.0', '2025-10-14 02:50:00'),
-	(9, 1, 9, 'DOUBAO', '自然景观', '雪山', '白色和灰色', '山峰连绵，积雪覆盖', '岩石和冰雪', '{"season": "冬季", "weather": "晴朗", "elevation": "高海拔"}', 0.90, '这是一座雪山，山峰被积雪覆盖...', 1400, 945, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-14 04:05:00'),
-	(10, 4, 10, 'DOUBAO', '自然景观', '日落海滩', '橙红渐变', '地平线分割，太阳半隐', '沙滩和海水', '{"tide": "退潮", "time": "傍晚", "weather": "晴朗"}', 0.86, '这是日落时分的海滩景色...', 1280, 867, '请识别图片中的物体', 'doubao-vision-v1', '2025-10-14 06:35:00');
+INSERT INTO `recognition_results` (`id`, `user_id`, `image_url`, `image_name`, `image_size`, `image_width`, `image_height`, `recognition_type`, `result_json`, `main_category`, `confidence`, `tags`, `description`, `processing_time`, `status`, `error_message`, `created_at`, `updated_at`) VALUES
+	(7, 3, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/6f84ef9e16014b07a4182d81e5aecab8.jpg', NULL, NULL, NULL, NULL, 0, '这张图片中的主要对象是一位穿着灰色针织帽和灰色绞花毛衣的女性，她处于车内环境中。', '未分类', 0.95, '标签1,标签2', '识别描述', 100, 1, NULL, '2025-10-22 15:11:40', '2025-10-22 15:11:40'),
+	(8, 3, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/22be815399ee432aa19e120581d5b343.jpg', NULL, NULL, NULL, NULL, 0, '这张图片中的主要对象是一位坐在车内的女性。', '未分类', 0.95, '标签1,标签2', '识别描述', 100, 1, NULL, '2025-10-22 15:11:54', '2025-10-22 15:11:54'),
+	(9, 3, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/b34e32db4ee6439a8e6b5ecee31ca606.jpg', NULL, NULL, NULL, NULL, 0, '{\n  "category": "人物",\n  "name": "人物",\n  "color": "黑色（服饰）",\n  "shape": "人形",\n  "material": "布料（柔软质感）",\n  "attributes": ["女性", "车内场景", "手持物品"],\n  "confidence": 0.95\n}', '人物', 0.95, '女性,车内场景,手持物品', '颜色: 黑色（服饰）; 形状: 人形; 材质: 布料（柔软质感）; ', 5055, 1, NULL, '2025-10-22 15:18:13', '2025-10-22 15:18:13'),
+	(10, 3, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/e04dfe7a926e421197c6111d92a98459.jpg', '11.jpg', 4317013, 3840, 2160, 0, '{\n  "category": "交通工具",\n  "name": "跑车",\n  "color": "白色",\n  "shape": "流线型，低趴动感",\n  "material": "车身光滑金属质感，轮毂金属光泽",\n  "attributes": ["超跑", "双门", "高性能", "时尚设计"],\n  "confidence": 0.95\n}', '跑车', 0.95, '超跑,双门,高性能,时尚设计', '颜色: 白色; 形状: 流线型，低趴动感; 材质: 车身光滑金属质感，轮毂金属光泽; ', 4814, 1, NULL, '2025-10-22 15:32:04', '2025-10-22 15:32:04'),
+	(11, 3, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/60d2ce0304334de596ff19442420d306.jpg', '222.jpg', 95606, 1080, 1080, 0, '{\n  "category": "服饰",\n  "name": "棒球帽",\n  "color": "浅蓝色",\n  "shape": "帽身呈弧形带帽檐",\n  "material": "布料质感",\n  "attributes": ["带有品牌标志", "遮阳"],\n  "confidence": 0.95\n}', '棒球帽', 0.95, '带有品牌标志,遮阳', '颜色: 浅蓝色; 形状: 帽身呈弧形带帽檐; 材质: 布料质感; ', 3743, 1, NULL, '2025-10-22 15:32:35', '2025-10-22 15:32:35'),
+	(12, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/22/3b4cf796e86f45a3ab68dd8ca1d04bdd.jpg', '14.jpg', 2180675, 3840, 2160, 0, '{\n  "category": "卡通角色",\n  "name": "哪吒卡通形象",\n  "color": "深红色（背景）、红色（服饰等）",\n  "shape": "拟人化人物造型，带丸子头、传统服饰元素",\n  "material": "卡通渲染质感，色彩鲜艳且表面光滑",\n  "attributes": ["卡通风格", "多角色重复", "红色主色调"],\n  "confidence": 0.95\n}', '哪吒卡通形象', 0.95, '卡通风格,多角色重复,红色主色调', '颜色: 深红色（背景）、红色（服饰等）; 形状: 拟人化人物造型，带丸子头、传统服饰元素; 材质: 卡通渲染质感，色彩鲜艳且表面光滑; ', 6643, 1, NULL, '2025-10-22 17:47:16', '2025-10-22 17:47:16'),
+	(13, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/23/cfda41b58e804fad8d34ece8ba95179f.jpg', '28.jpg', 2996856, 3840, 2160, 0, '{\n  "category": "动漫角色",\n  "name": "蒙奇·D·路飞",\n  "color": "黑色（头发）、红色（上衣）、蓝色（短裤）",\n  "shape": "人形，坐姿",\n  "material": "衣物为布料质感，草帽为草编质感，皮肤光滑",\n  "attributes": ["《海贼王》角色", "草帽海贼团船长", "动漫人物"],\n  "confidence": 0.95\n}', '蒙奇·D·路飞', 0.95, '《海贼王》角色,草帽海贼团船长,动漫人物', '颜色: 黑色（头发）、红色（上衣）、蓝色（短裤）; 形状: 人形，坐姿; 材质: 衣物为布料质感，草帽为草编质感，皮肤光滑; ', 11269, 1, NULL, '2025-10-23 20:09:22', '2025-10-23 20:09:22'),
+	(14, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/23/912b5b3e3d854eb4bc94f854df48ef16.jpg', '0c55c4eaed4ec3d4968cfef607adc87d.jpg', 670636, 1080, 2336, 0, '{\n  "category": "自然景观",\n  "name": "秋景树林",\n  "color": "金黄",\n  "shape": "树木错落，落叶散布",\n  "material": "树叶斑斓柔软，地面落叶堆积，树干纹理粗糙",\n  "attributes": ["秋季", "户外"],\n  "confidence": 0.95\n}', '秋景树林', 0.95, '秋季,户外', '颜色: 金黄; 形状: 树木错落，落叶散布; 材质: 树叶斑斓柔软，地面落叶堆积，树干纹理粗糙; ', 6860, 1, NULL, '2025-10-23 20:55:12', '2025-10-23 20:55:12'),
+	(15, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/23/089c6f3a4cee4a6cb154fea7d3023db7.jpg', '14.jpg', 2180675, 3840, 2160, 0, '{\n  "category": "卡通角色",\n  "name": "哪吒卡通形象",\n  "color": "深红色（背景）、红色（服饰装饰）、黑色（头发）等",\n  "shape": "拟人化人形，头扎双丸子头",\n  "material": "卡通渲染质感，表面光滑",\n  "attributes": ["卡通风格", "多重复角色", "传统神话形象改编"],\n  "confidence": 0.95\n}', '哪吒卡通形象', 0.95, '卡通风格,多重复角色,传统神话形象改编', '颜色: 深红色（背景）、红色（服饰装饰）、黑色（头发）等; 形状: 拟人化人形，头扎双丸子头; 材质: 卡通渲染质感，表面光滑; ', 4735, 1, NULL, '2025-10-23 21:17:12', '2025-10-23 21:17:12'),
+	(16, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/23/6c5c6959189349729b4421e778f8ca52.jpg', '14.jpg', 2180675, 3840, 2160, 0, '{\n  "category": "卡通形象",\n  "name": "哪吒卡通形象",\n  "color": "红色（背景及服饰）、黑色（头发）",\n  "shape": "拟人化人物造型，含双丸子头、传统服饰等特征",\n  "material": "卡通渲染质感，色彩明快且表面光滑",\n  "attributes": ["动画角色", "神话改编形象"],\n  "confidence": 0.95\n}', '哪吒卡通形象', 0.95, '动画角色,神话改编形象', '颜色: 红色（背景及服饰）、黑色（头发）; 形状: 拟人化人物造型，含双丸子头、传统服饰等特征; 材质: 卡通渲染质感，色彩明快且表面光滑; ', 6137, 1, NULL, '2025-10-23 21:23:24', '2025-10-23 21:23:24'),
+	(17, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/23/77a0fa714f75429b8ade6a6b83402759.jpg', '12.jpg', 1257956, 3440, 1440, 0, '{\n  "category": "交通工具",\n  "name": "跑车",\n  "color": "浅蓝色",\n  "shape": "流线型低趴车身，线条流畅",\n  "material": "金属质感，光滑车漆",\n  "attributes": ["超跑", "现代设计", "低风阻造型"],\n  "confidence": 0.95\n}', '跑车', 0.95, '超跑,现代设计,低风阻造型', '颜色: 浅蓝色; 形状: 流线型低趴车身，线条流畅; 材质: 金属质感，光滑车漆; ', 7282, 1, NULL, '2025-10-23 23:55:48', '2025-10-23 23:55:48'),
+	(18, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/24/9356bfcd822243619922610c3c735f42.jpg', '2.jpg', 214461, 1080, 1080, 0, '{\n  "category": "服饰",\n  "name": "针织手套",\n  "color": "浅灰色",\n  "shape": "长筒形",\n  "material": "针织（绞花纹理，毛线质感）",\n  "attributes": ["保暖", "绞花编织"],\n  "confidence": 0.95\n}', '针织手套', 0.95, '保暖,绞花编织', '颜色: 浅灰色; 形状: 长筒形; 材质: 针织（绞花纹理，毛线质感）; ', 5122, 1, NULL, '2025-10-24 00:32:50', '2025-10-24 00:32:50'),
+	(19, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/24/49d2a66231c14703acbfd17bed498c9a.jpg', '8.jpg', 3396584, 3840, 2160, 0, '{\n  "category": "玩偶",\n  "name": "泰迪熊玩偶",\n  "color": "白色、蓝色",\n  "shape": "圆润熊形，圆形耳朵与身体",\n  "material": "毛绒质感，柔软",\n  "attributes": ["可爱风格", "佩戴蓝色蝴蝶结"],\n  "confidence": 0.95\n}', '泰迪熊玩偶', 0.95, '可爱风格,佩戴蓝色蝴蝶结', '颜色: 白色、蓝色; 形状: 圆润熊形，圆形耳朵与身体; 材质: 毛绒质感，柔软; ', 4015, 1, NULL, '2025-10-24 00:40:08', '2025-10-24 00:40:08'),
+	(20, 2, 'https://image-recognition.tos-cn-beijing.volces.com/recognition/2025/10/24/cc29cb58e824469196413669fc6a761b.jpg', '25.jpg', 2098743, 3440, 1440, 0, '{\n  "category": "人物",\n  "name": "猫耳少女",\n  "color": "粉色（头发为主）",\n  "shape": "长发带猫耳的动漫人物造型",\n  "material": "手绘插画质感",\n  "attributes": ["猫耳", "粉色长发", "手绘风格"],\n  "confidence": 0.95\n}', '猫耳少女', 0.95, '猫耳,粉色长发,手绘风格', '颜色: 粉色（头发为主）; 形状: 长发带猫耳的动漫人物造型; 材质: 手绘插画质感; ', 6081, 1, NULL, '2025-10-24 00:41:53', '2025-10-24 00:41:53');
 
 -- 导出  表 image_recognition.system_logs 结构
 DROP TABLE IF EXISTS `system_logs`;
 CREATE TABLE IF NOT EXISTS `system_logs` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `user_id` bigint DEFAULT NULL COMMENT '用户ID',
-  `action` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '操作类型',
-  `resource` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '操作资源',
-  `details` json DEFAULT NULL COMMENT '操作详情',
-  `ip_address` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT 'IP地址',
-  `user_agent` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '用户代理',
-  `status` enum('SUCCESS','FAILED') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '操作状态',
-  `error_message` text CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci COMMENT '错误信息',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '日志ID(主键)',
+  `user_id` bigint DEFAULT NULL COMMENT '操作用户ID',
+  `module` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '操作模块',
+  `action` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '操作动作',
+  `description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '操作描述',
+  `ip_address` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'IP地址',
+  `user_agent` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户代理',
+  `request_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '请求URL',
+  `request_method` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '请求方法',
+  `request_params` text COLLATE utf8mb4_unicode_ci COMMENT '请求参数',
+  `response_time` int DEFAULT NULL COMMENT '响应时间(毫秒)',
+  `status` tinyint DEFAULT '0' COMMENT '执行状态: 0-SUCCESS成功, 1-FAILED失败',
+  `error_message` text COLLATE utf8mb4_unicode_ci COMMENT '错误信息',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `idx_user_id` (`user_id`),
-  KEY `idx_action` (`action`),
-  KEY `idx_status` (`status`),
+  KEY `idx_module` (`module`),
   KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `system_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='系统日志表';
+  KEY `idx_status` (`status`),
+  CONSTRAINT `system_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统日志表';
 
--- 正在导出表  image_recognition.system_logs 的数据：~12 rows (大约)
+-- 正在导出表  image_recognition.system_logs 的数据：~4 rows (大约)
 DELETE FROM `system_logs`;
-INSERT INTO `system_logs` (`id`, `user_id`, `action`, `resource`, `details`, `ip_address`, `user_agent`, `status`, `error_message`, `created_at`) VALUES
-	(1, 1, 'USER_LOGIN', 'auth/login', '{"method": "password", "username": "admin"}', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 00:00:00'),
-	(2, 2, 'USER_LOGIN', 'auth/login', '{"method": "password", "username": "user1"}', '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 00:30:00'),
-	(3, 1, 'IMAGE_UPLOAD', 'files/upload', '{"size": 245678, "filename": "cat_photo.jpg"}', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 00:30:00'),
-	(4, 1, 'IMAGE_RECOGNITION', 'recognition/analyze', '{"service": "DOUBAO", "image_id": 1}', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 00:35:00'),
-	(5, 2, 'IMAGE_UPLOAD', 'files/upload', '{"size": 198234, "filename": "dog_picture.png"}', '192.168.1.101', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 01:15:00'),
-	(6, 3, 'USER_LOGIN', 'auth/login', '{"method": "password", "username": "vip"}', '192.168.1.102', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 01:45:00'),
-	(7, NULL, 'USER_REGISTER', 'auth/register', '{"email": "new@example.com", "username": "newuser"}', '192.168.1.105', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'FAILED', '用户名已存在', '2025-10-13 02:30:00'),
-	(8, 4, 'POST_CREATE', 'community/posts', '{"title": "如何提高识别准确率", "post_id": 5}', '192.168.1.103', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-13 03:00:00'),
-	(9, 1, 'USER_UPDATE', 'user/profile', '{"field": "avatar", "value": "/api/v1/files/default-avatar.png"}', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-14 01:00:00'),
-	(10, 5, 'COMMENT_CREATE', 'community/comments', '{"post_id": 4, "comment_id": 8}', '192.168.1.104', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-14 01:00:00'),
-	(11, 1, 'KNOWLEDGE_CREATE', 'knowledge/items', '{"name": "橘猫", "category_id": 1}', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-14 02:00:00'),
-	(12, 2, 'VIP_UPGRADE', 'user/vip', '{"level": 1, "expire": "2026-10-14", "user_id": 2}', '192.168.1.101', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36', 'SUCCESS', NULL, '2025-10-14 03:30:00');
+INSERT INTO `system_logs` (`id`, `user_id`, `module`, `action`, `description`, `ip_address`, `user_agent`, `request_url`, `request_method`, `request_params`, `response_time`, `status`, `error_message`, `created_at`) VALUES
+	(1, 1, 'auth', 'login', '管理员登录系统', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0', '/api/v1/auth/login', 'POST', '{"username":"admin"}', 125, 0, NULL, '2025-10-20 10:24:53'),
+	(2, 2, 'recognition', 'image_upload', 'VIP用户上传图片识别', '192.168.1.101', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15', '/api/v1/recognition/image', 'POST', '{"type":"quick"}', 1200, 0, NULL, '2025-10-20 10:24:53'),
+	(3, 3, 'community', 'create_post', '用户发布社区帖子', '192.168.1.102', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Firefox/121.0', '/api/v1/community/posts', 'POST', '{"title":"花园里的玫瑰"}', 256, 0, NULL, '2025-10-20 10:24:53'),
+	(4, NULL, 'system', 'backup', '系统自动备份数据库', '127.0.0.1', 'SystemCron/1.0', '/internal/backup', 'POST', '{}', 5432, 0, NULL, '2025-10-20 10:24:53');
 
 -- 导出  表 image_recognition.users 结构
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '用户名',
-  `password` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NOT NULL COMMENT '密码(加密)',
-  `email` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '邮箱',
-  `phone` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '手机号',
-  `avatar` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL COMMENT '头像URL',
-  `role` enum('USER','VIP','ADMIN') COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT 'USER' COMMENT '用户角色：USER=普通用户，VIP=VIP用户，ADMIN=管理员',
-  `status` enum('ACTIVE','INACTIVE','BANNED','DELETED') COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT 'ACTIVE' COMMENT '用户状态：ACTIVE=激活，INACTIVE=未激活，BANNED=封禁，DELETED=已删除',
-  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `name` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL,
-  `bio` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci DEFAULT NULL,
-  `vip_level` int DEFAULT NULL,
-  `vip_expire_time` datetime DEFAULT NULL COMMENT 'VIP过期时间',
-  `last_login_time` timestamp NULL DEFAULT NULL,
-  `deleted` enum('NOT_DELETED','DELETED') COLLATE utf8mb3_unicode_ci NOT NULL DEFAULT 'NOT_DELETED' COMMENT '删除状态：NOT_DELETED=未删除，DELETED=已删除',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '用户ID(主键)',
+  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名',
+  `email` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '邮箱',
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '密码(BCrypt加密存储)',
+  `nickname` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '昵称',
+  `avatar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '头像URL',
+  `phone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
+  `bio` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '个人简介',
+  `balance` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '账户余额',
+  `role` tinyint NOT NULL DEFAULT '0' COMMENT '用户角色: 0-USER普通用户, 1-VIP会员, 2-ADMIN管理员',
+  `status` tinyint NOT NULL DEFAULT '0' COMMENT '账号状态: 0-ACTIVE激活, 1-BANNED封禁, 2-INACTIVE未激活',
+  `vip_expire_time` datetime DEFAULT NULL COMMENT 'VIP到期时间',
+  `last_login_time` datetime DEFAULT NULL COMMENT '最后登录时间',
+  `login_ip` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '登录IP地址',
+  `login_count` int NOT NULL DEFAULT '0' COMMENT '登录次数',
+  `login_logs` json DEFAULT NULL COMMENT '登录日志(JSON格式,记录最近的登录记录)',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint(1) DEFAULT '0' COMMENT '逻辑删除: 0-未删除, 1-已删除',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`),
-  KEY `idx_username` (`username`),
-  KEY `idx_email` (`email`),
+  KEY `idx_role` (`role`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
--- 正在导出表  image_recognition.users 的数据：~6 rows (大约)
+-- 正在导出表  image_recognition.users 的数据：~12 rows (大约)
 DELETE FROM `users`;
-INSERT INTO `users` (`id`, `username`, `password`, `email`, `phone`, `avatar`, `role`, `status`, `create_time`, `update_time`, `name`, `bio`, `vip_level`, `vip_expire_time`, `last_login_time`, `deleted`) VALUES
-	(1, 'admin', '123456', 'admin@example.com', '18574824160', '/api/v1/files/2025/10/14/5cf71696-5a2d-4d8e-ae07-cf63cae5d9dd.jpg', 'ADMIN', 'ACTIVE', '2025-09-30 00:15:23', '2025-10-14 02:41:37', '管理员', NULL, 0, NULL, '2025-10-15 03:06:50', 'NOT_DELETED'),
-	(2, 'user', '123456', 'test@example.com', '15567678989', '/api/v1/files/2025/10/14/2c6aaa6e-9618-46f7-bc87-7903bdfb162d.jpg', 'USER', 'ACTIVE', '2025-09-30 00:15:23', '2025-10-14 02:43:07', '用户', NULL, 0, NULL, '2025-10-14 21:39:17', 'NOT_DELETED'),
-	(3, 'vip', '123456', '31734840209@qq.com', NULL, '/api/v1/files/2025/10/14/2c6aaa6e-9618-46f7-bc87-7903bdfb162d.jpg', 'VIP', 'ACTIVE', '2025-10-12 11:19:22', '2025-10-14 02:49:10', 'newuser2025', NULL, 1, '2026-12-31 23:59:59', '2025-10-14 21:40:43', 'NOT_DELETED'),
-	(4, 'admin123', '123456', '3173484026@qq.com', '15576364885', '/api/v1/files/2025/10/14/57a3439f-196a-4741-9209-432cf1fcb7a6.jpg', 'USER', 'ACTIVE', '2025-10-13 05:37:00', '2025-10-14 02:38:22', 'admin123', NULL, 0, NULL, '2025-10-13 05:37:00', 'NOT_DELETED'),
-	(5, 'admin11', '123456', 'qqq111@qq.com', '15576364885', '/api/v1/files/2025/10/14/3c0e6500-0b8e-45f3-8507-26dc433a17d8.jpg', 'USER', 'ACTIVE', '2025-10-14 01:36:30', '2025-10-14 02:42:45', '彭存福', NULL, 1, NULL, NULL, 'NOT_DELETED'),
-	(6, 'admin115', '123456', '31734840264@qq.com', '18574824160', '/api/v1/files/2025/10/14/75eff25f-2f55-4ca8-809c-ebf678fce4b3.jpg', 'USER', 'ACTIVE', '2025-10-14 02:20:13', '2025-10-14 02:29:39', '彭存福', NULL, 1, NULL, NULL, 'DELETED');
+INSERT INTO `users` (`id`, `username`, `email`, `password`, `nickname`, `avatar`, `phone`, `bio`, `balance`, `role`, `status`, `vip_expire_time`, `last_login_time`, `login_ip`, `login_count`, `login_logs`, `created_at`, `updated_at`, `deleted`) VALUES
+	(1, 'admin', 'admin@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '系统管理员', '/api/v1/files/images/2025/10/20/39076dbd14cb4ef3b93cb80007615e3c.jpg', '15576364885', '这个人很懒，还没有填写个人简介', 0.00, 2, 0, NULL, '2025-10-24 03:06:38', '0:0:0:0:0:0:0:1', 2, '[{"time": [2025, 10, 24, 3, 6, 38, 232099600], "device": "Windows电脑", "success": true, "location": "未知", "ipAddress": "0:0:0:0:0:0:0:1", "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"}, {"time": [2025, 10, 24, 1, 47, 5, 612192500], "device": "Windows电脑", "success": true, "location": "未知", "ipAddress": "0:0:0:0:0:0:0:1", "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0"}]', '2025-10-20 00:40:15', '2025-10-24 02:11:19', 0),
+	(2, 'pengcunfu', 'pengcunfu@qq.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '彭存福', '/api/v1/files/images/2025/10/21/2ff1b1a318a14c45ac2b2e7738234841.jpg', '15567678989', '这个人很懒，还没有填写个人简介', 350.50, 1, 0, '2026-03-23 01:30:03', '2025-10-24 02:11:58', '0:0:0:0:0:0:0:1', 1, '[{"time": [2025, 10, 24, 2, 11, 57, 607902900], "device": "Windows电脑", "success": true, "location": "未知", "ipAddress": "0:0:0:0:0:0:0:1", "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"}]', '2025-10-20 00:40:15', '2025-10-24 02:11:16', 0),
+	(3, 'pcf', '3173484026@qq.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '彭存福VIP', '/api/v1/files/images/2025/10/21/f291f7a979744691bee086be9de94826.jpg', '15567678987', '这个人很懒，还没有填写个人简介', 0.00, 0, 0, NULL, '2025-10-23 04:18:33', NULL, 0, NULL, '2025-10-20 00:40:15', '2025-10-24 02:12:21', 0),
+	(4, 'user01', 'user01@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '普通用户01', '/api/v1/files/images/2025/10/21/aea2e0f58fdf4319abb8bd0a975455f1.jpg', '', '这个人很懒，还没有填写个人简介', 0.00, 0, 0, NULL, NULL, NULL, 0, NULL, '2025-10-20 00:40:15', '2025-10-24 02:11:22', 0),
+	(9, 'user02', 'user02@example.com', '$2a$10$w6y.SN56OOq8wLr8Qp8Bk.AoGNLJZbws0hqmv4qeC5tn3YaTJpwhS', '普通用户02', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '15567678988', '这个人很懒，还没有填写个人简介', 0.00, 0, 1, NULL, NULL, NULL, 0, NULL, '2025-10-21 00:23:09', '2025-10-24 02:11:39', 0),
+	(10, 'user03', 'user03@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '普通用户03', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138001', '热爱生活,喜欢摄影', 0.00, 0, 0, NULL, NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:10:40', 0),
+	(11, 'user04', 'user04@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '普通用户04', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138002', '美食探索者', 0.00, 0, 0, NULL, NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:10:45', 0),
+	(12, 'user05', 'user05@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '普通用户05', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138003', '旅行爱好者', 0.00, 0, 0, NULL, NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:10:51', 0),
+	(13, 'user06', 'user06@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '普通用户06', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138004', '科技数码发烧友', 0.00, 0, 0, NULL, NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:10:55', 0),
+	(14, 'vip01', 'vip01@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'VIP用户01', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138005', '专业摄影师,VIP会员', 0.00, 1, 0, '2026-10-22 20:22:26', NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:11:00', 0),
+	(15, 'vip02', 'vip02@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'VIP用户02', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138006', '资深设计师,VIP会员', 0.00, 1, 0, '2026-04-22 20:22:26', NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:11:05', 0),
+	(16, 'vip03', 'vip03@example.com', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'VIP用户03', '/api/v1/files/images/2025/10/21/b6547ce7ee5e4c02b98fd411b65cef25.jpg', '13800138007', '视频创作者,VIP会员', 0.00, 1, 0, '2026-01-22 20:22:26', NULL, NULL, 0, NULL, '2025-10-22 20:22:26', '2025-10-24 02:11:09', 0);
+
+-- 导出  表 image_recognition.user_collects 结构
+DROP TABLE IF EXISTS `user_collects`;
+CREATE TABLE IF NOT EXISTS `user_collects` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '记录ID(主键)',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `target_type` tinyint NOT NULL COMMENT '收藏对象类型: 0-POST帖子, 1-KNOWLEDGE知识',
+  `target_id` bigint NOT NULL COMMENT '收藏对象ID',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_target` (`user_id`,`target_type`,`target_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_target` (`target_type`,`target_id`),
+  CONSTRAINT `user_collects_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户收藏表';
+
+-- 正在导出表  image_recognition.user_collects 的数据：~10 rows (大约)
+DELETE FROM `user_collects`;
+INSERT INTO `user_collects` (`id`, `user_id`, `target_type`, `target_id`, `created_at`) VALUES
+	(1, 3, 0, 1, '2025-10-20 10:24:47'),
+	(2, 4, 0, 1, '2025-10-20 10:24:47'),
+	(3, 4, 0, 3, '2025-10-20 10:24:47'),
+	(4, 2, 1, 1, '2025-10-20 10:24:47'),
+	(5, 3, 1, 2, '2025-10-20 10:24:47'),
+	(6, 4, 1, 1, '2025-10-20 10:24:47'),
+	(7, 3, 0, 10, '2025-10-22 16:35:00'),
+	(8, 3, 2, 9, '2025-10-22 16:40:25'),
+	(13, 2, 2, 12, '2025-10-23 22:11:01'),
+	(14, 2, 0, 60, '2025-10-24 02:12:47');
+
+-- 导出  表 image_recognition.user_likes 结构
+DROP TABLE IF EXISTS `user_likes`;
+CREATE TABLE IF NOT EXISTS `user_likes` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '记录ID(主键)',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `target_type` tinyint NOT NULL COMMENT '点赞对象类型: 0-POST帖子, 1-COMMENT评论, 2-KNOWLEDGE知识',
+  `target_id` bigint NOT NULL COMMENT '点赞对象ID',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_target` (`user_id`,`target_type`,`target_id`),
+  KEY `idx_target` (`target_type`,`target_id`),
+  CONSTRAINT `user_likes_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户点赞表';
+
+-- 正在导出表  image_recognition.user_likes 的数据：~13 rows (大约)
+DELETE FROM `user_likes`;
+INSERT INTO `user_likes` (`id`, `user_id`, `target_type`, `target_id`, `created_at`) VALUES
+	(1, 3, 0, 1, '2025-10-20 10:24:45'),
+	(2, 3, 0, 2, '2025-10-20 10:24:45'),
+	(3, 4, 0, 1, '2025-10-20 10:24:45'),
+	(4, 4, 0, 3, '2025-10-20 10:24:45'),
+	(5, 2, 1, 1, '2025-10-20 10:24:45'),
+	(6, 3, 1, 4, '2025-10-20 10:24:45'),
+	(7, 4, 2, 1, '2025-10-20 10:24:45'),
+	(8, 2, 2, 2, '2025-10-20 10:24:45'),
+	(9, 3, 0, 10, '2025-10-22 16:34:58'),
+	(14, 2, 2, 10, '2025-10-22 18:56:44'),
+	(20, 2, 0, 4, '2025-10-23 22:10:08'),
+	(21, 2, 2, 12, '2025-10-23 22:11:00'),
+	(22, 2, 0, 64, '2025-10-24 02:08:36');
+
+-- 导出  表 image_recognition.vip_orders 结构
+DROP TABLE IF EXISTS `vip_orders`;
+CREATE TABLE IF NOT EXISTS `vip_orders` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '订单ID(主键)',
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `order_no` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '订单号',
+  `plan_type` tinyint DEFAULT '0' COMMENT '套餐类型: 0-MONTHLY月度, 1-QUARTERLY季度, 2-YEARLY年度',
+  `plan_name` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '套餐名称',
+  `amount` decimal(10,2) DEFAULT NULL COMMENT '订单金额',
+  `payment_method` tinyint DEFAULT '0' COMMENT '支付方式: 0-ALIPAY支付宝, 1-WECHAT微信, 2-BALANCE余额',
+  `payment_status` tinyint DEFAULT '0' COMMENT '支付状态: 0-UNPAID未支付, 1-PAID已支付, 2-REFUNDED已退款, 3-CANCELLED已取消',
+  `payment_time` datetime DEFAULT NULL COMMENT '支付时间',
+  `transaction_id` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '交易流水号',
+  `start_time` datetime DEFAULT NULL COMMENT '生效时间',
+  `expire_time` datetime DEFAULT NULL COMMENT '到期时间',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `order_no` (`order_no`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_payment_status` (`payment_status`),
+  KEY `idx_created_at` (`created_at`),
+  CONSTRAINT `vip_orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='VIP订单表';
+
+-- 正在导出表  image_recognition.vip_orders 的数据：~7 rows (大约)
+DELETE FROM `vip_orders`;
+INSERT INTO `vip_orders` (`id`, `user_id`, `order_no`, `plan_type`, `plan_name`, `amount`, `payment_method`, `payment_status`, `payment_time`, `transaction_id`, `start_time`, `expire_time`, `created_at`, `updated_at`) VALUES
+	(1, 2, 'VIP202510200001', 2, 'VIP年度会员', 199.00, 0, 1, '2025-10-20 10:30:00', 'ALI2025102010300001', '2025-10-20 10:30:00', '2026-10-20 10:30:00', '2025-10-20 10:24:44', '2025-10-20 10:24:44'),
+	(2, 3, 'VIP202510200002', 0, 'VIP月度会员', 29.90, 1, 0, NULL, NULL, NULL, NULL, '2025-10-20 10:24:44', '2025-10-20 10:24:44'),
+	(3, 2, 'VIP1761154202695C4C07DAA', 0, NULL, 29.90, 2, 1, '2025-10-23 01:30:03', NULL, NULL, NULL, '2025-10-23 01:30:03', '2025-10-23 01:30:03'),
+	(4, 2, 'VIP176115421952128C04FE9', 0, NULL, 29.90, 2, 1, '2025-10-23 01:30:20', NULL, '2025-10-23 01:31:45', NULL, '2025-10-23 01:30:20', '2025-10-23 01:31:45'),
+	(5, 2, 'VIP1761154276593E031318A', 0, NULL, 29.90, 2, 1, '2025-10-23 01:31:17', NULL, '2025-10-23 01:31:46', '2025-10-23 01:31:44', '2025-10-23 01:31:17', '2025-10-23 01:31:46'),
+	(6, 2, 'VIP17611543110972F4842D7', 0, NULL, 29.90, 2, 1, '2025-10-23 01:31:51', NULL, NULL, NULL, '2025-10-23 01:31:51', '2025-10-23 01:31:51'),
+	(7, 2, 'VIP1761154717129DC6B963D', 0, '月度会员', 29.90, 2, 1, '2025-10-23 01:38:37', NULL, '2025-10-23 01:38:37', '2025-11-23 01:38:37', '2025-10-23 01:38:37', '2025-10-23 01:38:37');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

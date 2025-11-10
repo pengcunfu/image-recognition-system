@@ -48,6 +48,17 @@ export interface RecognitionStats {
 }
 
 /**
+ * VIP识别统计数据
+ */
+export interface VipRecognitionStats {
+  totalRecognitions: number
+  advancedRecognitions: number
+  averageConfidence: number
+  categoryCount: number
+  tagCount: number
+}
+
+/**
  * 图像识别API模块
  */
 export class RecognitionAPI {
@@ -102,6 +113,13 @@ export class RecognitionAPI {
   }
 
   /**
+   * 获取VIP识别统计数据
+   */
+  static getVipStats() {
+    return get<VipRecognitionStats>('/api/recognition/vip-stats')
+  }
+
+  /**
    * 获取相关识别记录（同分类）
    */
   static getRelated(id: number) {
@@ -114,6 +132,42 @@ export class RecognitionAPI {
   static shareToKnowledge(id: number) {
     return post<number>(`/api/recognition/${id}/share-to-knowledge`)
   }
+
+  /**
+   * 高级图像识别（VIP功能）
+   */
+  static advancedRecognize(file: File, settings: AdvancedRecognitionSettings) {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('recognitionType', '1') // 高级识别类型
+    formData.append('settings', JSON.stringify(settings))
+    return upload<RecognitionInfo>('/api/recognition/advanced-recognize', formData)
+  }
+
+  /**
+   * 批量高级识别（VIP功能）
+   */
+  static batchAdvancedRecognize(files: File[], settings: AdvancedRecognitionSettings) {
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files', file)
+    })
+    formData.append('recognitionType', '1') // 高级识别类型
+    formData.append('settings', JSON.stringify(settings))
+    return upload<RecognitionInfo[]>('/api/recognition/batch-advanced-recognize', formData)
+  }
+}
+
+/**
+ * 高级识别设置
+ */
+export interface AdvancedRecognitionSettings {
+  mode: 'precision' | 'multi' | 'scene'
+  precision: number
+  threshold: number
+  depth: 'basic' | 'advanced' | 'expert'
+  outputs: string[]
+  features: string[]
 }
 
 // 导出默认实例

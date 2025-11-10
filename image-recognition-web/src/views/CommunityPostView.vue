@@ -622,8 +622,8 @@ async function loadPosts() {
         likes: post.likeCount,
         replies: post.commentCount,
         createTime: formatTime(post.createdAt),
-        isLiked: false, // 需要从后端获取当前用户的点赞状态
-        isFavorited: false, // 需要从后端获取当前用户的收藏状态
+        isLiked: post.isLiked || false, // 从后端获取当前用户的点赞状态
+        isFavorited: post.isCollected || false, // 从后端获取当前用户的收藏状态
         tags: post.tags ? post.tags.split(',').filter((t: string) => t.trim()) : [],
         images,
         topReplies: []
@@ -940,8 +940,8 @@ async function loadHotPosts() {
         likes: post.likeCount || 0,
         replies: post.commentCount || 0,
         createTime: formatTime(post.createdAt),
-        isLiked: false,
-        isFavorited: false,
+        isLiked: post.isLiked || false,
+        isFavorited: post.isCollected || false,
         tags: post.tags ? post.tags.split(',').filter((t: string) => t.trim()) : [],
         images
       }

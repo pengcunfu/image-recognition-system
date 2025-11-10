@@ -91,12 +91,7 @@
             </template>
             <span :style="{ color: '#ffd700' }">VIP数据分析</span>
           </a-menu-item>
-          <a-menu-item key="/user/ai-training">
-            <template #icon>
-              <RobotOutlined :style="{ color: '#ffd700' }" />
-            </template>
-            <span :style="{ color: '#ffd700' }">AI模型训练</span>
-          </a-menu-item>
+
         </template>
       </a-menu>
       

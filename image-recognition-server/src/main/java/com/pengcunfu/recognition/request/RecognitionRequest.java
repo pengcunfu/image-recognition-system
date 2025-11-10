@@ -88,4 +88,62 @@ public class RecognitionRequest {
     public static class DeleteRecognitionRequest {
         private String reason;
     }
+
+    /**
+     * 高级图像识别请求（VIP功能）
+     */
+    @Data
+    public static class AdvancedRecognitionRequest {
+        @NotNull(message = "图片不能为空")
+        private String imageUrl;
+
+        /**
+         * 图片名称
+         */
+        private String imageName;
+
+        /**
+         * 图片大小(字节)
+         */
+        private Integer imageSize;
+
+        /**
+         * 图片宽度
+         */
+        private Integer imageWidth;
+
+        /**
+         * 图片高度
+         */
+        private Integer imageHeight;
+
+        /**
+         * 识别类型: 1-高级识别
+         */
+        private Integer recognitionType = 1;
+
+        /**
+         * 高级设置JSON字符串
+         */
+        private String settings;
+    }
+
+    /**
+     * 批量高级识别请求（VIP功能）
+     */
+    @Data
+    public static class BatchAdvancedRecognitionRequest {
+        @NotNull(message = "图片列表不能为空")
+        private String[] imageUrls;
+
+        /**
+         * 识别类型: 1-高级识别
+         */
+        private Integer recognitionType = 1;
+
+        /**
+         * 高级设置JSON字符串
+         */
+        private String settings;
+    }
 }
